@@ -1,7 +1,7 @@
 "use client";
 
 import { PencilIcon, PlayIcon, SkipForwardIcon, WandSparklesIcon } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getLanguageAdapter } from "@/languages";
 import type { LanguageId } from "@/shared/constants";
 import { Button } from "@/components/ui/button";
@@ -10,12 +10,18 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { CodeEditor, StdinInput } from "@/features/editor";
 import { ShareButton } from "@/features/snippets";
 import { usePlayback, Visualizer } from "@/features/visualizer";
+import { useFullscreen } from "../hooks/use-fullscreen";
+import { usePersistedNumber } from "../hooks/use-persisted-number";
 import { useRun } from "../hooks/use-run";
 import { IdleState } from "./idle-state";
 import { RunError } from "./run-error";
 import { RunningState } from "./running-state";
+import { SplitHandle } from "./split-handle";
+import { cn } from "@/lib/utils";
 
 type Mode = "auto" | "step";
+
+const CODE_WIDTH = { key: "mcv-code-width", default: 45, min: 20, max: 75 } as const;
 
 export interface WorkspaceProps {
   language: LanguageId;
@@ -39,6 +45,10 @@ export function Workspace({ language, initialCode, initialStdin, title, canShare
   const trace = state.status === "ready" ? state.trace : null;
   const playback = usePlayback(trace, mode === "auto");
   const viewing = state.status === "ready" && trace?.status !== "compile_error";
+  const splitRef = useRef<HTMLDivElement>(null);
+  const [codeWidth, setCodeWidth] = usePersistedNumber(CODE_WIDTH.key, CODE_WIDTH.default, CODE_WIDTH.min, CODE_WIDTH.max);
+  const fullscreen = useFullscreen();
+  const fullscreenControl = useMemo(() => ({ active: fullscreen.active, toggle: fullscreen.toggle }), [fullscreen.active, fullscreen.toggle]);
 
   const visualize = useCallback(() => void run(language, code, stdin), [run, language, code, stdin]);
 
@@ -63,8 +73,12 @@ export function Workspace({ language, initialCode, initialStdin, title, canShare
   const fileName = title ?? `${/public\s+class\s+(\w+)/.exec(code)?.[1] ?? "Main"}.java`;
 
   return (
-    <div className="grid lg:h-[calc(100dvh-3.5rem)] lg:grid-cols-[minmax(0,9fr)_minmax(0,11fr)]">
-      <section aria-label="Code" className="flex h-[75dvh] min-h-0 flex-col border-b lg:h-auto lg:border-r lg:border-b-0">
+    <div
+      ref={splitRef}
+      className="grid lg:h-[calc(100dvh-3.5rem)] lg:grid-cols-[minmax(0,var(--code-width))_auto_minmax(0,1fr)]"
+      style={{ "--code-width": `${codeWidth}%` } as React.CSSProperties}
+    >
+      <section aria-label="Code" className="flex h-[75dvh] min-h-0 flex-col border-b lg:h-auto lg:border-b-0">
         {banner}
         <div className="flex flex-wrap items-center justify-between gap-2 border-b px-3 py-2">
           <span className="truncate font-mono text-xs text-muted-foreground">{fileName}</span>
@@ -114,7 +128,22 @@ export function Workspace({ language, initialCode, initialStdin, title, canShare
         </div>
       </section>
 
-      <section aria-label="Visualization" className="flex h-[90dvh] min-h-0 flex-col lg:h-auto">
+      <SplitHandle
+        containerRef={splitRef}
+        value={codeWidth}
+        onChange={setCodeWidth}
+        min={CODE_WIDTH.min}
+        max={CODE_WIDTH.max}
+        defaultValue={CODE_WIDTH.default}
+      />
+
+      <section
+        aria-label="Visualization"
+        className={cn(
+          "flex h-[90dvh] min-h-0 flex-col lg:h-auto",
+          fullscreen.active && "fixed inset-0 z-50 h-dvh bg-background lg:h-dvh",
+        )}
+      >
         {state.status === "idle" && <IdleState />}
         {state.status === "running" && <RunningState />}
         {state.status === "error" && <RunError error={state.error} onRetry={visualize} />}
@@ -126,6 +155,7 @@ export function Workspace({ language, initialCode, initialStdin, title, canShare
             stdin={state.stdin}
             playback={playback}
             onSelectLine={(line) => setReveal({ line, nonce: Date.now() })}
+            fullscreen={fullscreenControl}
           />
         )}
       </section>

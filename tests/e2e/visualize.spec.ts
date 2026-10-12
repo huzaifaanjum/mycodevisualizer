@@ -106,6 +106,62 @@ test.describe("visualizer", () => {
   });
 });
 
+test.describe("flow, layout and full screen", () => {
+  test("flow tab shows the path this run took with counts", async ({ page }) => {
+    await page.goto("/?example=array-sum");
+    await expect(page.getByText(/^Step 1 of \d+$/)).toBeVisible({ timeout: 30_000 });
+    await page.keyboard.press("End");
+    await page.getByRole("tab", { name: "Flow" }).click();
+    const flow = page.getByRole("region", { name: "Flow of main" });
+    await expect(flow).toBeVisible();
+    await expect(flow).toContainText("for (int i = 0; i < nums.length; i++) {");
+    await expect(flow.getByLabel("ran 4 times")).toBeVisible();
+    await expect(flow.locator("svg path[marker-end]").first()).toBeAttached();
+  });
+
+  test("flow tab follows recursion into each method", async ({ page }) => {
+    await page.goto("/?example=factorial-recursion");
+    await expect(page.getByText(/^Step 1 of \d+$/)).toBeVisible({ timeout: 30_000 });
+    await page.keyboard.press("End");
+    await page.getByRole("tab", { name: "Flow" }).click();
+    await expect(page.getByRole("region", { name: "Flow of factorial" })).toContainText("called 4 of 4 times");
+  });
+
+  test("code panel can be resized with the keyboard and remembers its width", async ({ page, isMobile }) => {
+    test.skip(isMobile, "The divider only exists on wide screens");
+    await page.goto("/");
+    const handle = page.getByRole("separator", { name: "Resize code panel" });
+    await expect(handle).toHaveAttribute("aria-valuenow", "45");
+    await handle.focus();
+    await page.keyboard.press("ArrowLeft");
+    await page.keyboard.press("ArrowLeft");
+    await expect(handle).toHaveAttribute("aria-valuenow", "41");
+    await page.keyboard.press("Home");
+    await expect(handle).toHaveAttribute("aria-valuenow", "20");
+    await page.reload();
+    await expect(page.getByRole("separator", { name: "Resize code panel" })).toHaveAttribute("aria-valuenow", "20");
+    await page.getByRole("separator", { name: "Resize code panel" }).dblclick();
+    await expect(page.getByRole("separator", { name: "Resize code panel" })).toHaveAttribute("aria-valuenow", "45");
+  });
+
+  test("visualization can go full screen and back", async ({ page }) => {
+    await page.goto("/");
+    await visualize(page);
+    const panel = page.getByRole("region", { name: "Visualization" });
+    await page.getByRole("button", { name: "Full screen" }).click();
+    await expect(panel).toHaveClass(/fixed/);
+    await expect(page.getByText(/line \d+/).first()).toBeVisible();
+    await page.keyboard.press("ArrowRight");
+    await expect(page.getByText(/^Step 2 of \d+$/)).toBeVisible();
+    await page.getByRole("button", { name: "Exit full screen" }).click();
+    await expect(panel).not.toHaveClass(/fixed/);
+    await page.keyboard.press("f");
+    await expect(panel).toHaveClass(/fixed/);
+    await page.keyboard.press("Escape");
+    await expect(panel).not.toHaveClass(/fixed/);
+  });
+});
+
 test.describe("site", () => {
   test("examples page filters and opens an example", async ({ page }) => {
     await page.goto("/examples");

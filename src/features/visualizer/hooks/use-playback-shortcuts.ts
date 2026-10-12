@@ -10,8 +10,11 @@ function isTypingTarget(target: EventTarget | null): boolean {
   return target.closest(".monaco-editor") !== null;
 }
 
-/** Space play/pause, arrows step, Home/End jump, B toggles a breakpoint on the current line. */
-export function usePlaybackShortcuts(playback: PlaybackController, enabled: boolean): void {
+/**
+ * Space play/pause, arrows step, Home/End jump, B toggles a breakpoint on the current line,
+ * F toggles full screen (when the page provides it).
+ */
+export function usePlaybackShortcuts(playback: PlaybackController, enabled: boolean, toggleFullscreen?: () => void): void {
   useEffect(() => {
     if (!enabled) return;
     const onKeyDown = (e: KeyboardEvent) => {
@@ -24,6 +27,7 @@ export function usePlaybackShortcuts(playback: PlaybackController, enabled: bool
         End: playback.last,
         b: () => playback.step && playback.toggleBreakpoint(playback.step.line),
         B: () => playback.step && playback.toggleBreakpoint(playback.step.line),
+        ...(toggleFullscreen ? { f: toggleFullscreen, F: toggleFullscreen } : {}),
       };
       const action = actions[e.key];
       if (!action) return;
@@ -34,5 +38,5 @@ export function usePlaybackShortcuts(playback: PlaybackController, enabled: bool
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [playback, enabled]);
+  }, [playback, enabled, toggleFullscreen]);
 }
