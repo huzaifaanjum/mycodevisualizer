@@ -77,7 +77,7 @@ export function Workspace({ language, initialCode, initialStdin, title, canShare
   }, [reset, exitFullscreen]);
 
   useEffect(() => {
-    if (autoRun) visualize();
+    if (autoRun) void run(language, codeRef.current, stdinRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only on first load
   }, []);
 
