@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { ApiRequestError, apiRequest } from "@/shared/api/client";
 import type { LanguageId } from "@/shared/constants";
-import { TraceSchema, type Trace } from "@/shared/trace";
+import { expandTrace, TraceSchema, type Trace } from "@/shared/trace";
 
 export type RunState =
   | { status: "idle" }
@@ -22,13 +22,14 @@ export function useRun() {
     controllerRef.current = controller;
     setState({ status: "running" });
     try {
-      const trace = await apiRequest("/api/runs", {
+      const raw = await apiRequest("/api/runs", {
         method: "POST",
         body: { language, code, stdin },
         schema: TraceSchema,
         signal: controller.signal,
       });
-      setState({ status: "ready", trace, source: code, stdin });
+      // Heaps arrive as per-step deltas to keep responses small; rebuild full heaps once here.
+      setState({ status: "ready", trace: expandTrace(raw), source: code, stdin });
     } catch (err) {
       if (controller.signal.aborted) return;
       setState({

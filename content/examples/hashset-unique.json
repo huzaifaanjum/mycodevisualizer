@@ -1,0 +1,11 @@
+{
+  "slug": "hashset-unique",
+  "title": "Remove duplicates with a HashSet",
+  "topic": "Collections",
+  "difficulty": "Easy",
+  "language": "java",
+  "description": "Adding something a set already contains changes nothing.",
+  "code": "import java.util.HashSet;\nimport java.util.Set;\n\npublic class Main {\n    public static void main(String[] args) {\n        int[] rolls = {4, 2, 4, 6, 2, 1};\n        Set<Integer> unique = new HashSet<>();\n        for (int i = 0; i < rolls.length; i++) {\n            unique.add(rolls[i]);\n        }\n        unique.remove(1);\n        System.out.println(\"Distinct rolls: \" + unique);\n    }\n}\n",
+  "stdin": "",
+  "order": 103
+}

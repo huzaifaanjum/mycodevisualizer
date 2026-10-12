@@ -62,6 +62,7 @@ public final class Main {
             Debugger.Limits limits = new Debugger.Limits(a.maxSteps(), a.timeoutMs(), 128, 64 * 1024);
             Debugger.Outcome outcome = new Debugger(work, prepared.mainClass(), userClasses, stdin, limits).run();
             trace.put("status", outcome.status());
+            trace.put("heapEncoding", "delta");
             trace.put("truncatedReason", outcome.truncatedReason());
             trace.put("steps", outcome.steps());
             trace.put("stdout", outcome.stdout());

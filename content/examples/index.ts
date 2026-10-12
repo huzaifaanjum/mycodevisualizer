@@ -15,6 +15,12 @@ import factorialRecursion from "./factorial-recursion.json";
 import fibonacciRecursion from "./fibonacci-recursion.json";
 import scannerAverage from "./scanner-average.json";
 import greetByName from "./greet-by-name.json";
+import arraylistBasics from "./arraylist-basics.json";
+import hashmapWordCount from "./hashmap-word-count.json";
+import hashsetUnique from "./hashset-unique.json";
+import stackBalancedBrackets from "./stack-balanced-brackets.json";
+import queueLine from "./queue-line.json";
+import treemapGrades from "./treemap-grades.json";
 
 export const BUNDLED_EXAMPLES = [
   helloVariables,
@@ -33,4 +39,10 @@ export const BUNDLED_EXAMPLES = [
   fibonacciRecursion,
   scannerAverage,
   greetByName,
+  arraylistBasics,
+  hashmapWordCount,
+  hashsetUnique,
+  stackBalancedBrackets,
+  queueLine,
+  treemapGrades,
 ];

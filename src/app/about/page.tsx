@@ -23,7 +23,10 @@ export default function AboutPage() {
       <ul className="list-disc space-y-1 pl-5">
         <li>Up to {LIMITS.maxSteps.toLocaleString()} steps and {LIMITS.executionTimeoutMs / 1000} seconds per run.</li>
         <li>Code up to {LIMITS.maxCodeBytes / 1024} KB and input up to {LIMITS.maxStdinBytes / 1024} KB.</li>
-        <li>Java today: one file, a main method, variables, conditions, loops, arrays, methods, recursion and Scanner input. More languages are coming.</li>
+        <li>
+          Java today: one file, a main method, variables, conditions, loops, arrays, methods, recursion, Scanner input, your own classes,
+          and collections such as ArrayList, HashMap, HashSet, TreeMap, stacks and queues. More languages are coming.
+        </li>
       </ul>
       <p>
         Read the <Link className="text-primary underline-offset-2 hover:underline" href="/privacy">privacy notes</Link> to see what is stored.

@@ -1,6 +1,7 @@
 import factorial from "@tests/fixtures/traces/factorial.json";
 import arraySum from "@tests/fixtures/traces/array-sum.json";
 import outOfBounds from "@tests/fixtures/traces/out-of-bounds.json";
+import collections from "@tests/fixtures/traces/collections.json";
 import compileError from "@tests/fixtures/traces/compile-error.json";
 import { TraceSchema } from "./schema";
 
@@ -10,6 +11,7 @@ describe("TraceSchema", () => {
     ["array-sum", arraySum],
     ["out-of-bounds", outOfBounds],
     ["compile-error", compileError],
+    ["collections", collections],
   ])("accepts real tracer output (%s)", (_name, fixture) => {
     expect(TraceSchema.safeParse(fixture).success).toBe(true);
   });

@@ -41,6 +41,32 @@ test.describe("visualizer", () => {
     await expect(page.locator("svg path[marker-end]").first()).toBeAttached();
   });
 
+  test("shows collection contents and highlights what changed", async ({ page }) => {
+    await page.goto("/?example=arraylist-basics");
+    await expect(page.getByText(/^Step 1 of \d+$/)).toBeVisible({ timeout: 30_000 });
+    // Step to just after shopping.add(1, "apples").
+    for (let i = 0; i < 5; i++) await page.keyboard.press("ArrowRight");
+    await expect(page.getByText('"apples" was added to shopping at index 1. shopping now has 4 elements.')).toBeVisible();
+    const list = page.locator("figure", { hasText: "ArrayList" });
+    await expect(list).toContainText("size 4");
+    await expect(list.getByText("(added)")).toHaveCount(1);
+    await page.keyboard.press("ArrowRight");
+    await expect(page.getByText('shopping[0] was replaced: "milk" → "oat milk".')).toBeVisible();
+    await page.keyboard.press("ArrowRight");
+    await expect(list.getByText("(removed)")).toHaveCount(1);
+    await expectNoHorizontalOverflow(page);
+  });
+
+  test("shows a map as a key-value table with updated values", async ({ page }) => {
+    await page.goto("/?example=treemap-grades");
+    await expect(page.getByText(/^Step 1 of \d+$/)).toBeVisible({ timeout: 30_000 });
+    for (let i = 0; i < 5; i++) await page.keyboard.press("ArrowRight");
+    await expect(page.getByText('grades: the value for "Ali" changed from 92 to 95.')).toBeVisible();
+    const table = page.locator("figure", { hasText: "TreeMap" });
+    await expect(table).toContainText("sorted by key");
+    await expect(table.getByRole("row")).toHaveCount(4);
+  });
+
   test("automated mode plays on its own and can be paused", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("radio", { name: "Automated" }).click();

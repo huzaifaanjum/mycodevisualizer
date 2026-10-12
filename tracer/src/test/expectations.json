@@ -1,10 +1,48 @@
 {
-  "Factorial": { "status": "ok", "stdout": "4! = 24\n", "lastEvent": "end", "minSteps": 15 },
-  "ArraySum": { "status": "ok", "stdout": "Sum: 8\n", "lastEvent": "end" },
-  "OutOfBounds": { "status": "runtime_error", "stdout": "before\n", "exceptionType": "ArrayIndexOutOfBoundsException", "exceptionLine": 5 },
-  "Forever": { "status": "truncated" },
-  "Broken": { "status": "compile_error", "diagnosticLines": [3, 4] },
-  "Exits": { "status": "ok", "stdout": "bye\n" },
-  "NoMain": { "status": "compile_error" },
-  "Points": { "status": "ok", "stdout": "5 7a2.5\n" }
+  "Factorial": {
+    "status": "ok",
+    "stdout": "4! = 24\n",
+    "lastEvent": "end",
+    "minSteps": 15
+  },
+  "ArraySum": {
+    "status": "ok",
+    "stdout": "Sum: 8\n",
+    "lastEvent": "end"
+  },
+  "OutOfBounds": {
+    "status": "runtime_error",
+    "stdout": "before\n",
+    "exceptionType": "ArrayIndexOutOfBoundsException",
+    "exceptionLine": 5
+  },
+  "Forever": {
+    "status": "truncated"
+  },
+  "Broken": {
+    "status": "compile_error",
+    "diagnosticLines": [
+      3,
+      4
+    ]
+  },
+  "Exits": {
+    "status": "ok",
+    "stdout": "bye\n"
+  },
+  "NoMain": {
+    "status": "compile_error"
+  },
+  "Points": {
+    "status": "ok",
+    "stdout": "5 7a2.5\n"
+  },
+  "Collections101": {
+    "status": "ok",
+    "stdout": "[Alan, Grace] {a=2} [5, 9] [1] [y] {apple=7, pear=3} {z=26, a=1} [a, b, c] [42] [1, 3] [1, 2, 3] [solo] 2 [Alan, Grace]\n",
+    "lastEvent": "end"
+  },
+  "CollectionStress": {
+    "status": "truncated"
+  }
 }

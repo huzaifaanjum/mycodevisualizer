@@ -1,0 +1,11 @@
+{
+  "slug": "arraylist-basics",
+  "title": "ArrayList: add, insert, replace, remove",
+  "topic": "Collections",
+  "difficulty": "Beginner",
+  "language": "java",
+  "description": "Watch a list grow, shift and shrink as elements are added and removed.",
+  "code": "import java.util.ArrayList;\nimport java.util.List;\n\npublic class Main {\n    public static void main(String[] args) {\n        List<String> shopping = new ArrayList<>();\n        shopping.add(\"milk\");\n        shopping.add(\"eggs\");\n        shopping.add(\"bread\");\n        shopping.add(1, \"apples\");\n        shopping.set(0, \"oat milk\");\n        shopping.remove(\"eggs\");\n        System.out.println(shopping + \" has \" + shopping.size() + \" items\");\n    }\n}\n",
+  "stdin": "",
+  "order": 101
+}

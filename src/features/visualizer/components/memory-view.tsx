@@ -2,6 +2,7 @@
 
 import { useMemo, useRef } from "react";
 import type { Step } from "@/shared/trace";
+import { diffCollection } from "../lib/collection-diff";
 import { changedHeapSlots, changedLocals, drawableHeap } from "../lib/trace-helpers";
 import { FrameCard } from "./frame-card";
 import { HeapObjectBox } from "./heap-object";
@@ -38,7 +39,14 @@ export function MemoryView({ step, previousStep }: { step: Step | undefined; pre
             <p className="text-xs text-muted-foreground">No arrays or objects yet.</p>
           ) : (
             heapObjects.map(([id, obj]) => (
-              <HeapObjectBox key={id} id={id} object={obj} heap={step?.heap ?? {}} changed={changedSlots} />
+              <HeapObjectBox
+                key={id}
+                id={id}
+                object={obj}
+                heap={step?.heap ?? {}}
+                changed={changedSlots}
+                collectionDiff={diffCollection(id, previousStep, step)}
+              />
             ))
           )}
         </div>

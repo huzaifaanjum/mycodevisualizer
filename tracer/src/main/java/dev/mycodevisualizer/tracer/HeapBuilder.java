@@ -30,6 +30,23 @@ final class HeapBuilder {
         "java.lang.Short", "java.lang.Byte", "java.lang.Character", "java.lang.Boolean");
 
     private final Map<String, Object> heap = new LinkedHashMap<>();
+    private final Caches caches;
+    private final CollectionReader collections;
+
+    /**
+     * Shared across all steps of one run. Strings and boxed values are immutable, so their mapped
+     * form can be reused; JDI field handles never change.
+     */
+    record Caches(Map<Long, Map<String, Object>> immutable, Map<String, Field> fields) {
+        static Caches create() {
+            return new Caches(new java.util.HashMap<>(), new java.util.HashMap<>());
+        }
+    }
+
+    HeapBuilder(Caches caches) {
+        this.caches = caches;
+        this.collections = new CollectionReader(this::map, caches.fields());
+    }
 
     Map<String, Object> heap() {
         return heap;
@@ -45,10 +62,12 @@ final class HeapBuilder {
         ObjectReference obj = (ObjectReference) v;
         String className = obj.referenceType().name();
         if (BOXED.contains(className)) {
-            Field f = obj.referenceType().fieldByName("value");
-            Value inner = f == null ? null : obj.getValue(f);
-            String shown = inner instanceof PrimitiveValue p ? display(p) : "?";
-            return primitive(simpleName(className), shown);
+            return caches.immutable().computeIfAbsent(obj.uniqueID(), id -> {
+                Field f = obj.referenceType().fieldByName("value");
+                Value inner = f == null ? null : obj.getValue(f);
+                String shown = inner instanceof PrimitiveValue p ? display(p) : "?";
+                return primitive(simpleName(className), shown);
+            });
         }
         String id = "h" + obj.uniqueID();
         if (!heap.containsKey(id)) {
@@ -73,9 +92,13 @@ final class HeapBuilder {
 
     private void fill(Map<String, Object> entry, ObjectReference obj, String className) {
         if (obj instanceof StringReference s) {
-            String value = s.value();
-            entry.put("kind", "string");
-            entry.put("value", value.length() > MAX_STRING_CHARS ? value.substring(0, MAX_STRING_CHARS) + "…" : value);
+            entry.putAll(caches.immutable().computeIfAbsent(s.uniqueID(), id -> {
+                String value = s.value();
+                Map<String, Object> str = new LinkedHashMap<>();
+                str.put("kind", "string");
+                str.put("value", value.length() > MAX_STRING_CHARS ? value.substring(0, MAX_STRING_CHARS) + "…" : value);
+                return str;
+            }));
             return;
         }
         if (obj instanceof ArrayReference arr) {
@@ -92,6 +115,9 @@ final class HeapBuilder {
                 }
             }
             entry.put("items", items);
+            return;
+        }
+        if (collections.tryFill(entry, obj)) {
             return;
         }
         entry.put("kind", "object");

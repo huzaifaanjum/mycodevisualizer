@@ -1,4 +1,6 @@
 import type { Heap, HeapObject } from "@/shared/trace";
+import type { CollectionDiff } from "../lib/collection-diff";
+import { CollectionBox } from "./collection-box";
 import { cn } from "@/lib/utils";
 import { ValueText } from "./value-text";
 
@@ -9,12 +11,18 @@ export function HeapObjectBox({
   object,
   heap,
   changed,
+  collectionDiff,
 }: {
   id: string;
   object: DrawableObject;
   heap: Heap;
   changed: Set<string>;
+  /** Changes since the previous step, for lists, sets and maps. */
+  collectionDiff?: CollectionDiff | null;
 }) {
+  if (object.kind === "list" || object.kind === "set" || object.kind === "map") {
+    return <CollectionBox id={id} object={object} heap={heap} diff={collectionDiff ?? null} />;
+  }
   if (object.kind === "array") {
     const hidden = object.length - object.items.length;
     return (

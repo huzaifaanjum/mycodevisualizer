@@ -1,6 +1,6 @@
 import arraySum from "@tests/fixtures/traces/array-sum.json";
 import factorial from "@tests/fixtures/traces/factorial.json";
-import { TraceSchema } from "@/shared/trace";
+import { expandTrace, TraceSchema } from "@/shared/trace";
 import {
   buildCallTree,
   changedHeapSlots,
@@ -14,8 +14,8 @@ import {
   stdoutAt,
 } from "./trace-helpers";
 
-const fact = TraceSchema.parse(factorial);
-const sum = TraceSchema.parse(arraySum);
+const fact = expandTrace(TraceSchema.parse(factorial));
+const sum = expandTrace(TraceSchema.parse(arraySum));
 
 describe("trace helpers", () => {
   it("formats primitives, nulls, strings and arrays", () => {

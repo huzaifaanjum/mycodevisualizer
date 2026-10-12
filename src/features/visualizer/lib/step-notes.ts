@@ -1,7 +1,8 @@
 import type { Frame, Step, Trace } from "@/shared/trace";
 import { noteTemplates as t } from "./note-templates";
 import { analyzeLine, identifiersIn } from "./source-analysis";
-import { changedHeapSlots, formatValue, stdinSlice } from "./trace-helpers";
+import { diffCollection } from "./collection-diff";
+import { changedHeapSlots, describeValue, drawableHeap, formatValue, heapObjectNames, stdinSlice, valueKey } from "./trace-helpers";
 
 export type NoteKind =
   | "start"
@@ -49,6 +50,7 @@ export function describeStep(ctx: NoteContext): StepNote[] {
   } else {
     notes.push(...callAndReturnNotes(prev, step));
     notes.push(...variableNotes(prev, step));
+    notes.push(...collectionNotes(prev, step));
     notes.push(...ioNotes(prev, step, ctx));
     notes.push(...controlFlowNotes(prev, step, ctx.sourceLines));
   }
@@ -99,12 +101,19 @@ function variableNotes(prev: Step, step: Step): StepNote[] {
   const notes: StepNote[] = [];
   for (const local of top.locals) {
     const old = before.locals.find((l) => l.name === local.name);
-    const now = formatValue(local.value, step.heap);
+    const isObject = local.value.kind === "ref" && step.heap[local.value.heapId]?.kind !== "string";
     if (!old) {
-      notes.push({ kind: "assign", text: t.declared(local.name, now) });
-    } else {
-      const was = formatValue(old.value, prev.heap);
-      if (was !== now) notes.push({ kind: "change", text: t.changed(local.name, was, now) });
+      notes.push({
+        kind: "assign",
+        text: isObject ? t.declaredRef(local.name, describeValue(local.value, step.heap)) : t.declared(local.name, formatValue(local.value, step.heap)),
+      });
+    } else if (valueKey(old.value, prev.heap) !== valueKey(local.value, step.heap)) {
+      notes.push({
+        kind: "change",
+        text: isObject
+          ? t.reassignedRef(local.name, describeValue(local.value, step.heap))
+          : t.changed(local.name, formatValue(old.value, prev.heap), formatValue(local.value, step.heap)),
+      });
     }
   }
   const names = new Map<string, string>();
@@ -126,6 +135,56 @@ function variableNotes(prev: Step, step: Step): StepNote[] {
       const from = old.fields.find((f) => f.name === key);
       const to = obj.fields.find((f) => f.name === key);
       if (from && to) notes.push({ kind: "heap", text: t.field(name, key, formatValue(from.value, prev.heap), formatValue(to.value, step.heap)) });
+    }
+  }
+  return notes;
+}
+
+const MAX_DETAILED_CHANGES = 3;
+
+/** Additions, removals and replacements in every list, set and map that is still reachable. */
+function collectionNotes(prev: Step, step: Step): StepNote[] {
+  const notes: StepNote[] = [];
+  const names = heapObjectNames(step);
+  for (const [id, obj] of drawableHeap(step)) {
+    if (obj.kind !== "list" && obj.kind !== "set" && obj.kind !== "map") continue;
+    const diff = diffCollection(id, prev, step);
+    if (!diff) continue;
+    const name = names.get(id) ?? `the ${obj.className}`;
+    const statuses = diff.kind === "map" ? diff.entries : diff.items;
+    const added = statuses.filter((s) => s.status === "added").length;
+    const changed = statuses.filter((s) => s.status === "changed").length;
+    const removed = diff.removed.length;
+    if (obj.size === 0 && removed > 0 && added === 0) {
+      notes.push({ kind: "heap", text: t.collectionCleared(name) });
+      continue;
+    }
+    if (added + changed + removed > MAX_DETAILED_CHANGES) {
+      notes.push({ kind: "heap", text: t.collectionSummary(name, added, removed, changed, obj.size) });
+      continue;
+    }
+    if (diff.kind === "map" && obj.kind === "map") {
+      diff.removed.forEach((r) => notes.push({ kind: "heap", text: t.mapRemoved(name, r.keyDisplay, obj.size) }));
+      diff.entries.forEach((s, i) => {
+        const entry = obj.entries[i];
+        if (!entry) return;
+        const key = formatValue(entry.key, step.heap);
+        const value = formatValue(entry.value, step.heap);
+        if (s.status === "added") notes.push({ kind: "heap", text: t.mapAdded(name, key, value, obj.size) });
+        if (s.status === "changed") notes.push({ kind: "heap", text: t.mapChanged(name, key, s.from ?? "?", value) });
+      });
+    } else if (diff.kind !== "map" && obj.kind !== "map") {
+      const isSet = obj.kind === "set";
+      diff.removed.forEach((r) =>
+        notes.push({ kind: "heap", text: isSet ? t.setRemoved(name, r.display, obj.size) : t.listRemoved(name, r.display, r.index, obj.size) }),
+      );
+      diff.items.forEach((s, i) => {
+        const item = obj.items[i];
+        if (!item) return;
+        const value = formatValue(item, step.heap);
+        if (s.status === "added") notes.push({ kind: "heap", text: isSet ? t.setAdded(name, value, obj.size) : t.listAdded(name, value, i, obj.size) });
+        if (s.status === "changed") notes.push({ kind: "heap", text: t.listChanged(name, i, s.from ?? "?", value) });
+      });
     }
   }
   return notes;

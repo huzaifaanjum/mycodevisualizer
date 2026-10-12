@@ -56,6 +56,7 @@ final class Debugger {
     private final Set<String> userClasses;
     private final byte[] stdin;
     private final Limits limits;
+    private final HeapBuilder.Caches caches = HeapBuilder.Caches.create();
 
     private final List<Map<String, Object>> steps = new ArrayList<>();
     private final List<String> activationIds = new ArrayList<>();
@@ -67,6 +68,8 @@ final class Debugger {
     private ReferenceType launcherType;
     private Map<String, Object> pendingReturn;
     private String status = "ok";
+    /** JSON of each heap object as last emitted, for delta encoding. */
+    private Map<String, String> emittedHeap = new java.util.HashMap<>();
     private String truncatedReason;
     private boolean finished;
 
@@ -268,7 +271,7 @@ final class Debugger {
         if (m.isConstructor() || m.isStaticInitializer() || exit.returnValue() instanceof VoidValue) {
             return;
         }
-        HeapBuilder hb = new HeapBuilder();
+        HeapBuilder hb = new HeapBuilder(caches);
         Map<String, Object> value = hb.map(exit.returnValue());
         Map<String, Object> ret = new LinkedHashMap<>();
         ret.put("method", m.name());
@@ -295,7 +298,7 @@ final class Debugger {
         int previousDepth = activationIds.size();
         syncActivations(user);
 
-        HeapBuilder heap = new HeapBuilder();
+        HeapBuilder heap = new HeapBuilder(caches);
         List<Object> frames = new ArrayList<>();
         for (int i = 0; i < user.size(); i++) {
             frames.add(frame(user.get(i), activationIds.get(i), heap));
@@ -323,11 +326,28 @@ final class Debugger {
             step.put("returned", rv);
             pendingReturn = null;
         }
-        step.put("heap", heap.heap());
+        step.put("heap", heapDelta(heap.heap()));
         readOutput(thread.virtualMachine());
         step.put("stdoutLength", stdout.length());
         step.put("stdinConsumed", readStdinPos());
         steps.add(step);
+    }
+
+    /**
+     * Heap objects that are new or changed since the previous step. The client rebuilds each step's
+     * full heap by applying deltas in order (trace "heapEncoding": "delta").
+     */
+    private Map<String, Object> heapDelta(Map<String, Object> current) {
+        Map<String, Object> delta = new LinkedHashMap<>();
+        Map<String, String> next = new java.util.HashMap<>();
+        for (Map.Entry<String, Object> e : current.entrySet()) {
+            String json = Json.write(e.getValue());
+            next.put(e.getKey(), json);
+            if (!json.equals(emittedHeap.get(e.getKey()))) delta.put(e.getKey(), e.getValue());
+        }
+        // Keep objects that went out of reach: the client still has them, so they don't need resending.
+        emittedHeap.putAll(next);
+        return delta;
     }
 
     private boolean isUserType(String name) {
@@ -395,17 +415,24 @@ final class Debugger {
         return v;
     }
 
+    private ObjectReference outBuffer;
+    private Field outCount;
+    private Field outBuf;
+    private Field inPos;
+
     private void readOutput(VirtualMachine vm) {
         if (launcherType == null) return;
-        Field outField = launcherType.fieldByName("OUT");
-        ObjectReference baos = (ObjectReference) launcherType.getValue(outField);
-        ReferenceType baosType = baos.referenceType();
-        int count = ((IntegerValue) baos.getValue(fieldIn(baosType, "count"))).value();
+        if (outBuffer == null) {
+            outBuffer = (ObjectReference) launcherType.getValue(launcherType.fieldByName("OUT"));
+            outCount = fieldIn(outBuffer.referenceType(), "count");
+            outBuf = fieldIn(outBuffer.referenceType(), "buf");
+        }
+        int count = ((IntegerValue) outBuffer.getValue(outCount)).value();
         int have = stdoutBytes.size();
         if (count > have) {
             int take = Math.min(count, limits.maxOutputBytes()) - have;
             if (take > 0) {
-                ArrayReference buf = (ArrayReference) baos.getValue(fieldIn(baosType, "buf"));
+                ArrayReference buf = (ArrayReference) outBuffer.getValue(outBuf);
                 for (Value b : buf.getValues(have, take)) {
                     stdoutBytes.write(((ByteValue) b).value());
                 }
@@ -429,7 +456,8 @@ final class Debugger {
 
     private int readStdinPos() {
         if (launcherType == null) return 0;
-        Value v = launcherType.getValue(launcherType.fieldByName("IN_POS"));
+        if (inPos == null) inPos = launcherType.fieldByName("IN_POS");
+        Value v = launcherType.getValue(inPos);
         return v instanceof IntegerValue i ? i.value() : 0;
     }
 
@@ -466,7 +494,7 @@ final class Debugger {
         step.put("line", line);
         step.put("event", "exception");
         step.put("frames", last == null ? List.of() : last.get("frames"));
-        step.put("heap", last == null ? Map.of() : last.get("heap"));
+        step.put("heap", Map.of()); // delta: nothing changed since the previous step
         step.put("stdoutLength", stdout.length());
         step.put("stdinConsumed", safeStdinPos());
         Map<String, Object> ex = new LinkedHashMap<>();

@@ -1,7 +1,7 @@
 import arraySum from "@tests/fixtures/traces/array-sum.json";
 import factorial from "@tests/fixtures/traces/factorial.json";
 import outOfBounds from "@tests/fixtures/traces/out-of-bounds.json";
-import { TraceSchema, type Trace } from "@/shared/trace";
+import { expandTrace, TraceSchema, type Trace } from "@/shared/trace";
 import { describeStep } from "./step-notes";
 
 const SOURCES = {
@@ -45,7 +45,7 @@ public class Factorial {
 }`,
 };
 
-const parse = (json: unknown): Trace => TraceSchema.parse(json);
+const parse = (json: unknown): Trace => expandTrace(TraceSchema.parse(json));
 
 function notesFor(trace: Trace, source: string, stdin = "") {
   const lines = source.split("\n");

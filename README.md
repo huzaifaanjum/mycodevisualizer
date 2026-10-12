@@ -8,11 +8,12 @@ Paste code, add input, press **Visualize**, then step through it or let it play.
 - **Real Java**, compiled and run in an isolated Vercel Sandbox microVM, traced line by line with a JDI debugger.
 - **Step-by-step or automated** playback with speed control, a timeline scrubber, breakpoints (click the gutter) and keyboard shortcuts (Space, ←/→, Home/End, B).
 - **Memory view**: call stack frames with local variables, arrays and objects on the heap, arrows for references (so aliasing is visible).
+- **Collections**: `ArrayList`, `LinkedList`, `HashSet`, `TreeSet`, `HashMap`, `TreeMap`, `LinkedHashMap`, `ArrayDeque`, `Stack`, `PriorityQueue`, `List.of`/`Map.of` and more, shown as lists, sets and key → value tables. Added elements glow, replaced values show what they were, removed elements linger for a step.
 - **Call tree** for recursion, with return values.
 - **Plain-English notes** for every step ("The loop condition i < nums.length is true (i is 0), so its body runs.").
 - **Console and input tape** showing output so far and which input tokens Scanner has consumed.
 - Beginner-friendly explanations of **compile errors** and **exceptions**.
-- 16 curated **examples**, shareable **links**, optional **GitHub / Google sign-in** to keep your shared programs.
+- 22 curated **examples**, shareable **links**, optional **GitHub / Google sign-in** to keep your shared programs.
 - Pure black theme with a selectable accent color.
 
 ## Stack
@@ -60,7 +61,7 @@ Without `MONGODB_URI` the app still works: examples come from `/content/examples
 | `pnpm sandbox:snapshot` | Build the JDK + tracer sandbox snapshot |
 
 ## Security
-User code only runs inside throwaway microVMs with no network access, a 5 s budget, 128 MB heap and 1,000-step cap. The API validates every input with Zod, rejects cross-origin writes, caps request sizes, rate-limits by hashed IP, sends a strict CSP and security headers, and never stores raw IPs. See `CLAUDE.md` for coding rules.
+User code only runs inside throwaway microVMs with no network access, an 8 s tracing budget, 128 MB heap and 1,000-step cap. The API validates every input with Zod, rejects cross-origin writes, caps request sizes, rate-limits by hashed IP, sends a strict CSP and security headers, and never stores raw IPs. See `CLAUDE.md` for coding rules.
 
 ## Adding a language
 Implement `LanguageAdapter` in `src/languages/<lang>/`, register it in `src/languages/registry.ts`, add a tracer that emits the `Trace` schema (`src/shared/trace/schema.ts`), and include it in the sandbox runtime.

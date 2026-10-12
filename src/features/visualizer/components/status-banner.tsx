@@ -1,4 +1,5 @@
 import { CircleAlertIcon, TimerIcon } from "lucide-react";
+import { LIMITS } from "@/shared/constants";
 import type { Step, Trace } from "@/shared/trace";
 
 /** Explains why a run stopped early (limits) or crashed (exception) at the relevant step. */
@@ -16,10 +17,10 @@ export function StatusBanner({
   if (trace.status === "truncated" && isLastStep) {
     const text =
       trace.truncatedReason === "STEP_LIMIT"
-        ? "Stopped after 1,000 steps. Is there a loop that never ends?"
+        ? `Stopped after ${LIMITS.maxSteps.toLocaleString("en-US")} steps. Is there a loop that never ends?`
         : trace.truncatedReason === "OUTPUT_LIMIT"
           ? "Stopped because the program printed too much output."
-          : "Stopped after 5 seconds. Is there a loop that never ends, or is the program waiting for more input?";
+          : `Stopped after ${LIMITS.executionTimeoutMs / 1000} seconds. Is there a loop that never ends, or is the program waiting for more input?`;
     return (
       <div role="status" className="flex items-start gap-2 border-b border-changed/30 bg-changed/10 px-3 py-2 text-sm text-changed">
         <TimerIcon className="mt-0.5 size-4 shrink-0" aria-hidden />

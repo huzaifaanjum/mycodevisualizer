@@ -6,10 +6,11 @@ export const LIMITS = {
   maxCodeBytes: 64 * 1024,
   maxStdinBytes: 16 * 1024,
   maxSteps: 1000,
-  executionTimeoutMs: 5000,
+  /** Wall-clock budget for compiling and tracing (debugging adds overhead on top of the program itself). */
+  executionTimeoutMs: 8000,
   /** Overall wall time for a run request, including sandbox start-up. */
   requestTimeoutMs: 30_000,
-  maxTraceBytes: 2 * 1024 * 1024,
+  maxTraceBytes: 6 * 1024 * 1024,
   maxSnippetTitleLength: 80,
 } as const;
 
@@ -48,6 +49,7 @@ export const EXAMPLE_TOPICS = [
   "Methods",
   "Recursion",
   "Input",
+  "Collections",
 ] as const;
 export type ExampleTopic = (typeof EXAMPLE_TOPICS)[number];
 

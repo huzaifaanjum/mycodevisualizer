@@ -14,6 +14,29 @@ export const noteTemplates = {
   changed: (name: string, from: string, to: string) => `${name} changed from ${from} to ${to}.`,
   arrayCell: (name: string, index: number, from: string, to: string) => `${name}[${index}] changed from ${from} to ${to}.`,
   field: (name: string, field: string, from: string, to: string) => `${name}.${field} changed from ${from} to ${to}.`,
+  declaredRef: (name: string, description: string) => `${name} was created and refers to ${description}.`,
+  reassignedRef: (name: string, description: string) => `${name} now refers to ${description}.`,
+  listAdded: (name: string, value: string, index: number, size: number) =>
+    `${value} was added to ${name} at index ${index}. ${name} now has ${countOf(size)}.`,
+  listRemoved: (name: string, value: string, index: number, size: number) =>
+    `${value} was removed from ${name} (it was at index ${index}). ${name} now has ${countOf(size)}.`,
+  listChanged: (name: string, index: number, from: string, to: string) => `${name}[${index}] was replaced: ${from} → ${to}.`,
+  setAdded: (name: string, value: string, size: number) => `${value} was added to the set ${name}. It now has ${countOf(size)}.`,
+  setRemoved: (name: string, value: string, size: number) => `${value} was removed from the set ${name}. It now has ${countOf(size)}.`,
+  mapAdded: (name: string, key: string, value: string, size: number) =>
+    `${name} got a new entry ${key} → ${value}. It now has ${countOf(size, "entry", "entries")}.`,
+  mapRemoved: (name: string, key: string, size: number) =>
+    `The entry for ${key} was removed from ${name}. It now has ${countOf(size, "entry", "entries")}.`,
+  mapChanged: (name: string, key: string, from: string, to: string) => `${name}: the value for ${key} changed from ${from} to ${to}.`,
+  collectionCleared: (name: string) => `${name} was cleared. It is now empty.`,
+  collectionSummary: (name: string, added: number, removed: number, changed: number, size: number) =>
+    `${name} changed: ${[
+      added && `${added} added`,
+      removed && `${removed} removed`,
+      changed && `${changed} replaced`,
+    ]
+      .filter(Boolean)
+      .join(", ")}. It now has ${countOf(size)}.`,
   input: (text: string) => `Scanner read "${text}" from the input.`,
   output: (text: string) => `The program printed ${text}.`,
   conditionTrue: (kind: string, condition: string, values: string) =>
@@ -28,3 +51,7 @@ export const noteTemplates = {
   nextLine: (line: number) => `Next, line ${line} runs.`,
   valuesSuffix: (pairs: string) => ` (${pairs})`,
 } as const;
+
+function countOf(n: number, one = "element", many = "elements"): string {
+  return `${n} ${n === 1 ? one : many}`;
+}

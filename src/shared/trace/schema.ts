@@ -35,6 +35,27 @@ export const HeapObjectSchema = z.discriminatedUnion("kind", [
     fields: z.array(VariableSchema),
     opaque: z.boolean().optional(),
   }),
+  /** Ordered collections: ArrayList, LinkedList, ArrayDeque, Stack, PriorityQueue (heap order), List.of… */
+  z.object({
+    kind: z.literal("list"),
+    className: z.string(),
+    size: z.number().int().nonnegative(),
+    items: z.array(ValueSchema),
+  }),
+  /** HashSet, LinkedHashSet, TreeSet, Set.of… in iteration order. */
+  z.object({
+    kind: z.literal("set"),
+    className: z.string(),
+    size: z.number().int().nonnegative(),
+    items: z.array(ValueSchema),
+  }),
+  /** HashMap, LinkedHashMap, TreeMap, Map.of… in iteration order. */
+  z.object({
+    kind: z.literal("map"),
+    className: z.string(),
+    size: z.number().int().nonnegative(),
+    entries: z.array(z.object({ key: ValueSchema, value: ValueSchema })),
+  }),
 ]);
 
 export const FrameSchema = z.object({
@@ -74,6 +95,11 @@ export const TraceSchema = z.object({
   status: TraceStatusSchema,
   mainClass: z.string().optional(),
   truncatedReason: TruncatedReasonSchema.optional(),
+  /**
+   * "delta": each step's heap holds only objects that are new or changed since the previous step;
+   * call expandTrace() to get full heaps. "full": every step carries its whole heap.
+   */
+  heapEncoding: z.enum(["full", "delta"]).default("full"),
   message: z.string().optional(),
   diagnostics: z.array(DiagnosticSchema).optional(),
   steps: z.array(StepSchema),
@@ -92,3 +118,5 @@ export type TraceStatus = z.infer<typeof TraceStatusSchema>;
 export type TruncatedReason = z.infer<typeof TruncatedReasonSchema>;
 export type Trace = z.infer<typeof TraceSchema>;
 export type Heap = Step["heap"];
+export type CollectionObject = Extract<HeapObject, { kind: "list" | "set" | "map" }>;
+export type MapEntry = Extract<HeapObject, { kind: "map" }>["entries"][number];

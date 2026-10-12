@@ -20,6 +20,7 @@ export function formatValue(value: Value, heap: Heap): string {
       if (!obj) return "…";
       if (obj.kind === "string") return JSON.stringify(obj.value);
       if (obj.kind === "array") return `${obj.elementType}[${obj.length}]`;
+      if (obj.kind === "list" || obj.kind === "set" || obj.kind === "map") return `${obj.className}(size ${obj.size})`;
       return obj.className;
     }
     default: {
@@ -27,6 +28,18 @@ export function formatValue(value: Value, heap: Heap): string {
       return exhaustive;
     }
   }
+}
+
+/**
+ * Identity used to compare collection elements between steps: primitives and Strings compare by
+ * content (that's what students see), other objects by identity.
+ */
+export function valueKey(value: Value, heap: Heap): string {
+  if (value.kind === "ref") {
+    const obj = heap[value.heapId];
+    return obj?.kind === "string" ? `s:${obj.value}` : `@${value.heapId}`;
+  }
+  return value.kind === "null" ? "null" : `p:${value.display}`;
 }
 
 /** True when the value should be drawn as a box with an arrow rather than inline text. */
@@ -49,8 +62,26 @@ export function drawableHeap(step: Step | undefined): [string, Exclude<HeapObjec
     // `String[] args` of main is always empty and only adds noise for beginners.
     if (obj.kind === "array" && obj.length === 0 && obj.elementType === "String") return;
     result.push([value.heapId, obj]);
-    if (obj.kind === "array") obj.items.forEach(visit);
-    else obj.fields.forEach((f) => visit(f.value));
+    switch (obj.kind) {
+      case "array":
+      case "list":
+      case "set":
+        obj.items.forEach(visit);
+        break;
+      case "map":
+        obj.entries.forEach((e) => {
+          visit(e.key);
+          visit(e.value);
+        });
+        break;
+      case "object":
+        obj.fields.forEach((f) => visit(f.value));
+        break;
+      default: {
+        const exhaustive: never = obj;
+        return exhaustive;
+      }
+    }
   };
   for (const frame of step.frames) frame.locals.forEach((l) => visit(l.value));
   return result;
@@ -144,19 +175,66 @@ export function buildCallTree(trace: Trace, index: number): { roots: string[]; n
   return { roots, nodes };
 }
 
-/** Keys (`frameId:name`) of locals that are new or changed compared with the previous step. */
+/**
+ * Keys (`frameId:name`) of locals that are new or changed compared with the previous step.
+ * A reference only counts as changed when it points at a different object.
+ */
 export function changedLocals(prev: Step | undefined, step: Step | undefined): Set<string> {
   const changed = new Set<string>();
   if (!step) return changed;
   const before = new Map<string, string>();
-  prev?.frames.forEach((f) => f.locals.forEach((l) => before.set(`${f.id}:${l.name}`, formatValue(l.value, prev.heap))));
+  prev?.frames.forEach((f) => f.locals.forEach((l) => before.set(`${f.id}:${l.name}`, valueKey(l.value, prev.heap))));
   step.frames.forEach((f) =>
     f.locals.forEach((l) => {
       const key = `${f.id}:${l.name}`;
-      if (before.get(key) !== formatValue(l.value, step.heap)) changed.add(key);
+      if (before.get(key) !== valueKey(l.value, step.heap)) changed.add(key);
     }),
   );
   return changed;
+}
+
+/** Plain-English description of what a value is, e.g. "an empty ArrayList" or "an int array of length 3". */
+export function describeValue(value: Value, heap: Heap): string {
+  if (value.kind !== "ref") return formatValue(value, heap);
+  const obj = heap[value.heapId];
+  if (!obj) return "an object";
+  switch (obj.kind) {
+    case "string":
+      return JSON.stringify(obj.value);
+    case "array":
+      return `${/^[aeiou]/i.test(obj.elementType) ? "an" : "a"} ${obj.elementType} array of length ${obj.length}`;
+    case "list":
+    case "set":
+    case "map":
+      return obj.size === 0
+        ? `an empty ${obj.className}`
+        : `a ${obj.className} with ${obj.size} ${obj.kind === "map" ? (obj.size === 1 ? "entry" : "entries") : obj.size === 1 ? "element" : "elements"}`;
+    case "object":
+      return `${/^[aeiou]/i.test(obj.className) ? "an" : "a"} ${obj.className} object`;
+    default: {
+      const exhaustive: never = obj;
+      return exhaustive;
+    }
+  }
+}
+
+/** A readable name for each heap object: the local variable (or field) that refers to it. */
+export function heapObjectNames(step: Step): Map<string, string> {
+  const names = new Map<string, string>();
+  const frames = [...step.frames].reverse(); // current frame first
+  for (const frame of frames) {
+    for (const local of frame.locals) {
+      if (local.value.kind === "ref" && !names.has(local.value.heapId)) names.set(local.value.heapId, local.name);
+    }
+  }
+  for (const [id, name] of [...names]) {
+    const obj = step.heap[id];
+    if (obj?.kind !== "object") continue;
+    for (const f of obj.fields) {
+      if (f.value.kind === "ref" && !names.has(f.value.heapId)) names.set(f.value.heapId, `${name}.${f.name}`);
+    }
+  }
+  return names;
 }
 
 /** Keys (`heapId:index` / `heapId:field`) of array cells and fields changed since the previous step. */

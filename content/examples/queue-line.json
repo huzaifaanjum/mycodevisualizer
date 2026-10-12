@@ -1,0 +1,11 @@
+{
+  "slug": "queue-line",
+  "title": "Queue: first in, first out",
+  "topic": "Collections",
+  "difficulty": "Beginner",
+  "language": "java",
+  "description": "People join at the back and are served from the front.",
+  "code": "import java.util.LinkedList;\nimport java.util.Queue;\n\npublic class Main {\n    public static void main(String[] args) {\n        Queue<String> line = new LinkedList<>();\n        line.offer(\"Ana\");\n        line.offer(\"Ben\");\n        line.offer(\"Cy\");\n        String served = line.poll();\n        line.offer(\"Dee\");\n        System.out.println(\"Served \" + served + \", waiting: \" + line);\n    }\n}\n",
+  "stdin": "",
+  "order": 105
+}
