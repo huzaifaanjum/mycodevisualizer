@@ -31,6 +31,26 @@ export class AppError extends Error {
   }
 }
 
+/**
+ * A short, server-side-only description of an error and its causes (e.g. a Sandbox API error body),
+ * for logs and failure diagnostics. Never sent to the client.
+ */
+export function describeError(err: unknown, maxLength = 500): string {
+  const parts: string[] = [];
+  let current: unknown = err;
+  for (let depth = 0; current !== undefined && current !== null && depth < 4; depth++) {
+    if (current instanceof Error) {
+      const json = (current as { json?: unknown }).json;
+      parts.push(`${current.name}: ${current.message}${json === undefined ? "" : ` ${JSON.stringify(json)}`}`);
+      current = current.cause;
+    } else {
+      parts.push(String(current));
+      current = undefined;
+    }
+  }
+  return parts.join(" <- ").slice(0, maxLength);
+}
+
 export function toApiError(err: unknown): { status: number; body: ApiError } {
   if (err instanceof AppError) {
     return {

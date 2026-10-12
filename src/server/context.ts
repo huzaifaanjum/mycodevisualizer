@@ -30,7 +30,13 @@ export function getRunService() {
     rateLimiter: rateLimiter(),
     rateLimitMultiplier: getConfig().env.RATE_LIMIT_MULTIPLIER,
     recordUsage: getConfig().features.database
-      ? (e) => usageRepository.record({ type: "run", language: "java", status: e.status, durationMs: e.durationMs })
+      ? (e) => usageRepository.record({
+          type: "run",
+          language: "java",
+          status: e.status,
+          durationMs: e.durationMs,
+          ...(e.reason && { reason: e.reason }),
+        })
       : undefined,
   });
   return runService;

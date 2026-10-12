@@ -31,6 +31,26 @@ describe("run service", () => {
     expect(recordUsage).toHaveBeenCalledWith(expect.objectContaining({ language: "java", status: "ok" }));
   });
 
+  it("records the underlying cause when the sandbox fails, without exposing it", async () => {
+    const recordUsage = vi.fn(async () => undefined);
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const failing: ExecutionProvider = {
+      name: "fake",
+      toolsDir: "/tools",
+      run: async () => {
+        throw new AppError("EXECUTION_FAILED", "We couldn't start a sandbox to run your code. Please try again.", {
+          cause: new Error("429 Too Many Requests: concurrency limit reached"),
+        });
+      },
+    };
+    const service = createRunService({ provider: failing, rateLimiter: new RateLimiter(new MemoryRateLimitStore()), recordUsage });
+    const err = await service.run(request, anonymousIdentity("abc")).catch((e: unknown) => e);
+    expect((err as AppError).message).not.toContain("429");
+    expect(recordUsage).toHaveBeenCalledWith(
+      expect.objectContaining({ status: "failed:EXECUTION_FAILED", reason: expect.stringContaining("concurrency limit reached") }),
+    );
+  });
+
   it("rejects unsupported features before running anything", async () => {
     const onRun = vi.fn();
     const service = createRunService({ provider: provider("{}", onRun), rateLimiter: new RateLimiter(new MemoryRateLimitStore()) });

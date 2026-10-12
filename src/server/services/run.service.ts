@@ -4,14 +4,14 @@ import type { RunRequest } from "@/shared/api";
 import { LIMITS, RATE_LIMITS } from "@/shared/constants";
 import { TraceSchema, type Trace } from "@/shared/trace";
 import type { ExecutionProvider } from "@/server/execution";
-import { AppError } from "@/server/security/errors";
+import { AppError, describeError } from "@/server/security/errors";
 import type { RateLimiter } from "@/server/security/rate-limit";
 import type { Identity } from "./identity";
 
 export interface RunServiceDeps {
   provider: ExecutionProvider;
   rateLimiter: RateLimiter;
-  recordUsage?: (event: { language: string; status: string; durationMs: number }) => Promise<void>;
+  recordUsage?: (event: { language: string; status: string; durationMs: number; reason?: string }) => Promise<void>;
   clock?: () => number;
   maxConcurrentRuns?: number;
   rateLimitMultiplier?: number;
@@ -65,6 +65,13 @@ export function createRunService(deps: RunServiceDeps) {
         const trace = parseTrace(result.stdout);
         await deps.recordUsage?.({ language: request.language, status: trace.status, durationMs: clock() - started }).catch(() => undefined);
         return trace;
+      } catch (err) {
+        // Infrastructure failures: keep the real cause server-side so they can be diagnosed.
+        const code = err instanceof AppError ? err.code : "INTERNAL";
+        const reason = describeError(err);
+        console.error(`Run failed (${code}): ${reason}`);
+        await deps.recordUsage?.({ language: request.language, status: `failed:${code}`, durationMs: clock() - started, reason }).catch(() => undefined);
+        throw err;
       } finally {
         inFlight--;
       }

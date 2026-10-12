@@ -39,6 +39,8 @@ export interface UsageEventDoc {
   language: LanguageId;
   status?: string;
   durationMs?: number;
+  /** Server-side failure reason (infrastructure errors only; never user code or input). */
+  reason?: string;
   createdAt: Date;
 }
 

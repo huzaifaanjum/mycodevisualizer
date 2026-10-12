@@ -1,7 +1,7 @@
 import "server-only";
 import { Sandbox } from "@vercel/sandbox";
 import { after } from "next/server";
-import { AppError } from "@/server/security/errors";
+import { AppError, describeError } from "@/server/security/errors";
 import {
   buildRuntimeSnapshot,
   hashSources,
@@ -75,12 +75,7 @@ export function createVercelSandboxProvider({ configuredSnapshotId, store }: Opt
       let sandbox: Sandbox | undefined;
       try {
         try {
-          sandbox = await Sandbox.create({
-            source: { type: "snapshot", snapshotId },
-            resources: { vcpus: 1 },
-            timeout: timeoutMs + 20_000,
-            networkPolicy: "deny-all",
-          });
+          sandbox = await createSandbox(snapshotId, timeoutMs);
         } catch (err) {
           if (isMissingSnapshot(err)) {
             scheduleRebuild(`snapshot ${snapshotId} is unavailable`);
@@ -100,6 +95,35 @@ export function createVercelSandboxProvider({ configuredSnapshotId, store }: Opt
       }
     },
   };
+}
+
+const CREATE_ATTEMPTS = 2;
+const RETRY_DELAY_MS = 750;
+
+/**
+ * One throwaway microVM per run. `persistent: false` matters: persistent sandboxes save a ~1 GB
+ * filesystem snapshot every time they stop, which slows every run down and fills snapshot storage.
+ * Creation is retried once because the Sandbox API occasionally rejects a request transiently.
+ */
+async function createSandbox(snapshotId: string, timeoutMs: number): Promise<Sandbox> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= CREATE_ATTEMPTS; attempt++) {
+    try {
+      return await Sandbox.create({
+        source: { type: "snapshot", snapshotId },
+        resources: { vcpus: 1 },
+        timeout: timeoutMs + 20_000,
+        networkPolicy: "deny-all",
+        persistent: false,
+      });
+    } catch (err) {
+      lastError = err;
+      if (isMissingSnapshot(err) || attempt === CREATE_ATTEMPTS) break;
+      console.warn(`Sandbox create failed, retrying: ${describeError(err)}`);
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+    }
+  }
+  throw lastError;
 }
 
 function isMissingSnapshot(err: unknown): boolean {
