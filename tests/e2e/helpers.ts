@@ -3,9 +3,13 @@ import { expect, type Page } from "@playwright/test";
 /** Replaces the editor contents through Monaco's API (typing would trigger auto-closing brackets). */
 export async function setCode(page: Page, code: string): Promise<void> {
   await page.waitForFunction(() => Boolean((window as unknown as { monaco?: unknown }).monaco));
+  await page.waitForFunction(
+    () => ((window as unknown as { monaco?: { editor: { getEditors: () => unknown[] } } }).monaco?.editor.getEditors().length ?? 0) > 0,
+  );
   await page.evaluate((value) => {
-    const monaco = (window as unknown as { monaco: { editor: { getModels: () => { setValue: (v: string) => void }[] } } }).monaco;
-    monaco.editor.getModels()[0]?.setValue(value);
+    type Editor = { setValue: (v: string) => void };
+    const monaco = (window as unknown as { monaco: { editor: { getEditors: () => Editor[] } } }).monaco;
+    monaco.editor.getEditors()[0]?.setValue(value);
   }, code);
 }
 
