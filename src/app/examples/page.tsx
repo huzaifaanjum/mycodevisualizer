@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   description: "Coding 101 Java examples you can visualize step by step: variables, loops, arrays, methods and recursion.",
 };
 
+/** Examples can be curated in MongoDB; refresh the page at most every 5 minutes. */
+export const revalidate = 300;
+
 export default async function ExamplesPage() {
   const examples = await exampleService.list();
   return (

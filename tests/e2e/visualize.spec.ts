@@ -1,0 +1,122 @@
+import { expect, test } from "@playwright/test";
+import { expectNoHorizontalOverflow, setCode, visualize } from "./helpers";
+
+test.describe("visualizer", () => {
+  test("runs the starter program step by step", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByTestId("code-editor").locator(".monaco-editor")).toBeVisible({ timeout: 30_000 });
+    await visualize(page);
+
+    await expect(page.getByText("The program starts in main()")).toBeVisible();
+    await expect(page.getByText(/^Step 1 of \d+$/)).toBeVisible();
+    await expect(page.getByRole("region", { name: "main frame" })).toBeVisible();
+
+    await page.keyboard.press("ArrowRight");
+    await expect(page.getByText(/^Step 2 of \d+$/)).toBeVisible();
+    await page.keyboard.press("ArrowLeft");
+    await expect(page.getByText(/^Step 1 of \d+$/)).toBeVisible();
+
+    await page.keyboard.press("End");
+    await expect(page.getByText(/The program finished/)).toBeVisible();
+    await expect(page.getByLabel("Program output")).toContainText("4! = 24");
+    await expectNoHorizontalOverflow(page);
+  });
+
+  test("shows the recursion tree with return values", async ({ page }) => {
+    await page.goto("/");
+    await visualize(page);
+    await page.keyboard.press("End");
+    await page.getByRole("tab", { name: "Call tree" }).click();
+    const tree = page.getByRole("tree", { name: "Call tree" });
+    await expect(tree).toContainText("factorial(n = 4)");
+    await expect(tree).toContainText("→ 24");
+  });
+
+  test("draws a reference arrow from an array variable to the heap", async ({ page }) => {
+    await page.goto("/?example=array-aliasing");
+    await expect(page.getByText(/^Step 1 of \d+$/)).toBeVisible({ timeout: 30_000 });
+    await page.keyboard.press("End");
+    await page.keyboard.press("ArrowLeft");
+    await expect(page.locator("[data-heap-id]").first()).toBeVisible();
+    await expect(page.locator("svg path[marker-end]").first()).toBeAttached();
+  });
+
+  test("automated mode plays on its own and can be paused", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("radio", { name: "Automated" }).click();
+    await visualize(page);
+    await expect(page.getByText(/^Step [3-9] of \d+$/)).toBeVisible({ timeout: 15_000 });
+    await page.getByRole("button", { name: "Pause" }).click();
+    await expect(page.getByRole("button", { name: "Play" })).toBeVisible();
+  });
+
+  test("explains compile errors with line numbers", async ({ page }) => {
+    await page.goto("/");
+    await setCode(page, 'public class Broken {\n    public static void main(String[] args) {\n        int x = "hello";\n    }\n}\n');
+    await visualize(page);
+    await expect(page.getByText("The code didn't compile")).toBeVisible();
+    await expect(page.getByRole("button", { name: /Line 3, column/ })).toBeVisible();
+    await expect(page.getByText("A String value can't be stored in an int variable.")).toBeVisible();
+  });
+
+  test("explains runtime exceptions", async ({ page }) => {
+    await page.goto("/");
+    await setCode(
+      page,
+      'public class OutOfBounds {\n    public static void main(String[] args) {\n        int[] a = new int[2];\n        System.out.println("before");\n        a[5] = 1;\n        System.out.println("after");\n    }\n}\n',
+    );
+    await visualize(page);
+    await page.keyboard.press("End");
+    await expect(page.getByRole("alert").filter({ hasText: "ArrayIndexOutOfBoundsException on line 5" })).toBeVisible();
+    await expect(page.getByText("Valid indexes are 0 to 1.")).toBeVisible();
+  });
+
+  test("rejects unsupported features with a friendly message", async ({ page }) => {
+    await page.goto("/");
+    await setCode(page, "public class Main {\n    public static void main(String[] a) {\n        new Thread(() -> {}).start();\n    }\n}\n");
+    await page.getByRole("button", { name: /^Visualize/ }).click();
+    await expect(page.getByText("Not supported yet")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(/Line 3: Threads aren't supported/)).toBeVisible();
+  });
+});
+
+test.describe("site", () => {
+  test("examples page filters and opens an example", async ({ page }) => {
+    await page.goto("/examples");
+    await page.getByRole("radio", { name: "Recursion" }).click();
+    await expect(page.getByRole("link", { name: /Factorial with recursion/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Count with a for loop/ })).toHaveCount(0);
+    await page.getByRole("link", { name: /Fibonacci call tree/ }).click();
+    await expect(page).toHaveURL(/example=fibonacci-recursion/);
+    await expect(page.getByText(/^Step 1 of \d+$/)).toBeVisible({ timeout: 30_000 });
+    await expectNoHorizontalOverflow(page);
+  });
+
+  test("accent color can be changed and is remembered", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator("html")).toHaveAttribute("data-accent", "green");
+    await page.getByRole("button", { name: /Accent color/ }).click();
+    await page.getByRole("menuitemradio", { name: "Violet" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-accent", "violet");
+    await page.reload();
+    await expect(page.locator("html")).toHaveAttribute("data-accent", "violet");
+  });
+
+  test("sends security headers", async ({ request }) => {
+    const res = await request.get("/");
+    const headers = res.headers();
+    expect(headers["content-security-policy"]).toContain("frame-ancestors 'none'");
+    expect(headers["x-content-type-options"]).toBe("nosniff");
+    expect(headers["x-powered-by"]).toBeUndefined();
+  });
+
+  test("API rejects cross-origin and oversized requests", async ({ request }) => {
+    const cross = await request.post("/api/runs", {
+      headers: { origin: "https://evil.example", "content-type": "application/json" },
+      data: { language: "java", code: "x", stdin: "" },
+    });
+    expect(cross.status()).toBe(403);
+    const huge = await request.post("/api/runs", { data: { language: "java", code: "x".repeat(200_000), stdin: "" } });
+    expect(huge.status()).toBe(413);
+  });
+});

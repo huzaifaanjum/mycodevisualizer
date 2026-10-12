@@ -4,15 +4,6 @@ export function isAccentId(value: unknown): value is AccentId {
   return typeof value === "string" && (ACCENT_IDS as readonly string[]).includes(value);
 }
 
-export function readStoredAccent(): AccentId | null {
-  try {
-    const value = window.localStorage.getItem(ACCENT_STORAGE_KEY);
-    return isAccentId(value) ? value : null;
-  } catch {
-    return null;
-  }
-}
-
 export function storeAccent(accent: AccentId): void {
   try {
     window.localStorage.setItem(ACCENT_STORAGE_KEY, accent);

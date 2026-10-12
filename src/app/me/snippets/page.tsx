@@ -4,6 +4,7 @@ import { MySnippetsList } from "@/features/snippets";
 import { getSessionUser } from "@/server/auth";
 
 export const metadata: Metadata = { title: "My snippets", robots: { index: false } };
+export const dynamic = "force-dynamic";
 
 export default async function MySnippetsPage() {
   const user = await getSessionUser();
