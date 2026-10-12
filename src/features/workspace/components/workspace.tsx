@@ -50,7 +50,18 @@ export function Workspace({ language, initialCode, initialStdin, title, canShare
   const fullscreen = useFullscreen();
   const fullscreenControl = useMemo(() => ({ active: fullscreen.active, toggle: fullscreen.toggle }), [fullscreen.active, fullscreen.toggle]);
 
-  const visualize = useCallback(() => void run(language, code, stdin), [run, language, code, stdin]);
+  // Read the latest code/input from refs, so a run started right after an edit never uses stale text.
+  const codeRef = useRef(initialCode);
+  const stdinRef = useRef(initialStdin);
+  const updateCode = useCallback((value: string) => {
+    codeRef.current = value;
+    setCode(value);
+  }, []);
+  const updateStdin = useCallback((value: string) => {
+    stdinRef.current = value;
+    setStdin(value);
+  }, []);
+  const visualize = useCallback(() => void run(language, codeRef.current, stdinRef.current), [run, language]);
 
   useEffect(() => {
     if (autoRun) visualize();
@@ -112,7 +123,7 @@ export function Workspace({ language, initialCode, initialStdin, title, canShare
         <div className="min-h-0 flex-1">
           <CodeEditor
             value={code}
-            onChange={setCode}
+            onChange={updateCode}
             language={adapter.monacoLanguage}
             readOnly={viewing}
             currentLine={viewing ? playback.step?.line : undefined}
@@ -124,7 +135,7 @@ export function Workspace({ language, initialCode, initialStdin, title, canShare
           />
         </div>
         <div className="h-36 shrink-0 border-t">
-          <StdinInput value={stdin} onChange={setStdin} disabled={viewing} />
+          <StdinInput value={stdin} onChange={updateStdin} disabled={viewing} />
         </div>
       </section>
 
