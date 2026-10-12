@@ -1,26 +1,66 @@
 "use client";
 
-import { MinusIcon, MousePointerClickIcon, PlusIcon, ScanIcon } from "lucide-react";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import "@xyflow/react/dist/style.css";
+import {
+  Background,
+  BackgroundVariant,
+  BaseEdge,
+  Controls,
+  EdgeLabelRenderer,
+  Handle,
+  Position,
+  ReactFlow,
+  ReactFlowProvider,
+  useReactFlow,
+  type Edge,
+  type EdgeProps,
+  type Node,
+  type NodeProps,
+} from "@xyflow/react";
+import {
+  CodeXmlIcon,
+  CornerDownLeftIcon,
+  LocateFixedIcon,
+  MousePointerClickIcon,
+  PlayIcon,
+  RepeatIcon,
+  SplitIcon,
+  SquareFunctionIcon,
+  SquareIcon,
+  TerminalIcon,
+  type LucideIcon,
+} from "lucide-react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { Trace } from "@/shared/trace";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { buildFlow, nextRunOf, traceTransitions, type FlowEdge, type FlowNode, type FlowNodeKind, type MethodFlow } from "../lib/flow-graph";
 
-const ROW_H = 70;
-const NODE_H = 42;
-const NODE_W = 300;
-const PAD_Y = 14;
-const LANE = 16;
-const GUTTER = 44;
-const ZOOM = { min: 0.4, max: 1.6, step: 0.1 } as const;
+const NODE_W = 280;
+const TERMINAL_W = 150;
+const NODE_H = 52;
+const ROW_H = 96;
+const HEADER_H = 64;
+const PAD = 28;
+const LANE = 18;
+const GUTTER = 36;
+const COLUMN_GAP = 80;
+const ZOOM = { min: 0.3, max: 1.6 } as const;
 
 /**
- * Flowchart of this run, one per method that ran, using standard flowchart symbols. Arrows are
- * the paths execution actually took with this input: thicker = taken more often, dashed = taken
- * later, faded symbols never ran. Click a symbol to jump to the next time it runs.
+ * Flowchart of this run, one column per method that ran, on a pannable canvas. Arrows are the
+ * paths execution actually took with this input: thicker = taken more often, dashed = not taken
+ * yet, faded cards never ran. Click a card to jump to the next time it runs.
  */
-export function FlowView({
+export function FlowView(props: { trace: Trace; sourceLines: string[]; index: number; onSeek: (step: number) => void }) {
+  return (
+    <ReactFlowProvider>
+      <FlowCanvas {...props} />
+    </ReactFlowProvider>
+  );
+}
+
+function FlowCanvas({
   trace,
   sourceLines,
   index,
@@ -33,23 +73,53 @@ export function FlowView({
 }) {
   const transitions = useMemo(() => traceTransitions(trace), [trace]);
   const flows = useMemo(() => buildFlow(trace, sourceLines, index, transitions), [trace, sourceLines, index, transitions]);
-  const layouts = useMemo(() => new Map(flows.map((f) => [f.key, layoutFlow(f)])), [flows]);
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set());
-  const [zoom, setZoom] = useState(1);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const markerId = useId().replace(/:/g, "");
+  const shown = useMemo(() => flows.filter((f) => !hidden.has(f.key)), [flows, hidden]);
+  const graph = useMemo(() => buildGraph(shown, index, onSeek, markerId), [shown, index, onSeek, markerId]);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { setViewport, getViewport, setCenter } = useReactFlow();
 
+  /** Centers the whole chart; tall charts are pinned to the top so the start is visible. */
+  const frame = useCallback(() => {
+    const el = containerRef.current;
+    if (!el || graph.width === 0) return;
+    const w = el.clientWidth;
+    const h = el.clientHeight;
+    // Fit the width always; fit the height only while the text stays readable.
+    const fitW = (w - 48) / graph.width;
+    const fitH = (h - 48) / graph.height;
+    const z = Math.max(ZOOM.min, Math.min(1, fitW, Math.max(fitH, 0.75)));
+    const x = (w - graph.width * z) / 2;
+    const y = graph.height * z <= h - 48 ? (h - graph.height * z) / 2 : 24;
+    void setViewport({ x, y, zoom: z }, { duration: 200 });
+  }, [graph.width, graph.height, setViewport]);
+
+  const shownKey = shown.map((f) => f.key).join("|");
   useEffect(() => {
-    scrollRef.current?.querySelector<HTMLElement>('[data-current="true"]')?.scrollIntoView({ block: "nearest", inline: "nearest" });
-  }, [index, zoom]);
+    const raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(raf);
+    // Re-frame only when the set of methods changes, not on every step.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shownKey]);
+
+  // Keep the current card on screen while stepping, without fighting the user's pan otherwise.
+  useEffect(() => {
+    const el = containerRef.current;
+    const current = graph.nodes.find((n) => n.type === "card" && n.data.isCurrent);
+    if (!el || !current) return;
+    const { x, y, zoom } = getViewport();
+    const cx = current.position.x + (current.width ?? NODE_W) / 2;
+    const cy = current.position.y + NODE_H / 2;
+    const sx = cx * zoom + x;
+    const sy = cy * zoom + y;
+    const margin = 40;
+    if (sx < margin || sy < margin || sx > el.clientWidth - margin || sy > el.clientHeight - margin) {
+      void setCenter(cx, cy, { zoom, duration: 250 });
+    }
+  }, [index, graph.nodes, getViewport, setCenter]);
 
   if (flows.length === 0) return <p className="p-4 text-xs text-muted-foreground">Nothing ran yet.</p>;
-
-  const shown = flows.filter((f) => !hidden.has(f.key));
-  const fit = () => {
-    const available = (scrollRef.current?.clientWidth ?? 600) - 32;
-    const widest = Math.max(...shown.map((f) => layouts.get(f.key)?.width ?? NODE_W));
-    setZoom(clampZoom(available / widest));
-  };
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -80,55 +150,76 @@ export function FlowView({
             );
           })}
         </div>
-        <div className="ml-auto flex items-center gap-0.5" role="group" aria-label="Zoom">
-          <Button variant="ghost" size="icon-sm" aria-label="Zoom out" onClick={() => setZoom((z) => clampZoom(z - ZOOM.step))}>
-            <MinusIcon />
-          </Button>
-          <button type="button" className="w-12 text-center font-mono text-[11px] text-muted-foreground" onClick={() => setZoom(1)} title="Reset zoom">
-            {Math.round(zoom * 100)}%
-          </button>
-          <Button variant="ghost" size="icon-sm" aria-label="Zoom in" onClick={() => setZoom((z) => clampZoom(z + ZOOM.step))}>
-            <PlusIcon />
-          </Button>
-          <Button variant="ghost" size="sm" onClick={fit} className="text-xs">
-            <ScanIcon /> Fit
-          </Button>
-        </div>
+        <Button variant="ghost" size="sm" onClick={frame} className="ml-auto text-xs">
+          <LocateFixedIcon /> Center
+        </Button>
       </div>
       <Legend />
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto p-4">
-        <div className="flex flex-col gap-8" style={{ zoom }}>
-          {shown.map((flow) => {
-            const layout = layouts.get(flow.key);
-            return layout ? <MethodChart key={flow.key} flow={flow} layout={layout} index={index} onSeek={onSeek} /> : null;
-          })}
-        </div>
-      </div>
+      <section ref={containerRef} aria-label="Flowchart" className="relative min-h-0 flex-1">
+        <svg aria-hidden className="absolute size-0">
+          <defs>
+            {(["idle", "taken", "now"] as const).map((state) => (
+              <marker key={state} id={`${markerId}-${state}`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill={EDGE_COLOR[state]} />
+              </marker>
+            ))}
+          </defs>
+        </svg>
+        <ReactFlow
+          nodes={graph.nodes}
+          edges={graph.edges}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          colorMode="dark"
+          minZoom={ZOOM.min}
+          maxZoom={ZOOM.max}
+          nodesDraggable={false}
+          nodesConnectable={false}
+          nodesFocusable={false}
+          edgesFocusable={false}
+          elementsSelectable={false}
+          panOnScroll
+          zoomOnDoubleClick={false}
+          style={{ background: "var(--background)" }}
+        >
+          <Background variant={BackgroundVariant.Dots} gap={20} size={1.4} color="var(--input)" />
+          <Controls showInteractive={false} fitViewOptions={{ padding: 0.15, maxZoom: 1 }} position="bottom-left" />
+        </ReactFlow>
+      </section>
     </div>
   );
 }
 
-const clampZoom = (z: number) => Math.round(Math.min(ZOOM.max, Math.max(ZOOM.min, z)) * 10) / 10;
+// ---- graph -------------------------------------------------------------------------------------
 
-// ---- layout ------------------------------------------------------------------------------------
+type Side = "straight" | "left" | "right";
+type EdgeState = "idle" | "taken" | "now";
+
+const EDGE_COLOR: Record<EdgeState, string> = {
+  idle: "var(--input)",
+  taken: "var(--muted-foreground)",
+  now: "var(--primary)",
+};
+
+type CardData = { node: FlowNode; isCurrent: boolean; onJump: () => void };
+type FrameData = { flow: MethodFlow };
+type ArcData = { edge: FlowEdge; side: Side; out: number; state: EdgeState; marker: string };
+
+type CardNode = Node<CardData, "card">;
+type FrameNode = Node<FrameData, "frame">;
+type FlowCanvasNode = CardNode | FrameNode;
+type ArcEdge = Edge<ArcData, "arc">;
 
 interface Arc {
   edge: FlowEdge;
   i: number;
   j: number;
-  side: "straight" | "left" | "right";
+  side: Side;
   level: number;
 }
 
-interface FlowLayout {
-  arcs: Arc[];
-  left: number;
-  width: number;
-  height: number;
-}
-
-/** Boxes in one column; nested arcs get their own lane so they never overlap. */
-function layoutFlow(flow: MethodFlow): FlowLayout {
+/** Nested side arcs get their own lane so they never overlap. */
+function arcsOf(flow: MethodFlow) {
   const row = new Map(flow.nodes.map((n, i) => [n.line, i]));
   const arcs: Arc[] = [];
   for (const edge of flow.edges) {
@@ -146,192 +237,244 @@ function layoutFlow(flow: MethodFlow): FlowLayout {
     }
     return Math.max(0, ...list.map((a) => a.level));
   };
-  const leftLanes = assign("left");
-  const rightLanes = assign("right");
-  const left = GUTTER + leftLanes * LANE;
-  return {
-    arcs,
-    left,
-    width: left + NODE_W + GUTTER + rightLanes * LANE,
-    height: PAD_Y * 2 + (flow.nodes.length - 1) * ROW_H + NODE_H,
-  };
+  return { arcs, lanes: Math.max(assign("left"), assign("right")) };
 }
 
-const topOf = (i: number) => PAD_Y + i * ROW_H;
+/** One centered column per method, side by side, each inside a frame. */
+function buildGraph(flows: MethodFlow[], index: number, onSeek: (step: number) => void, markerId: string) {
+  const nodes: FlowCanvasNode[] = [];
+  const edges: ArcEdge[] = [];
+  let x0 = 0;
+  let maxH = 0;
 
-// ---- shapes ------------------------------------------------------------------------------------
+  for (const flow of flows) {
+    const { arcs, lanes } = arcsOf(flow);
+    const half = NODE_W / 2 + GUTTER + lanes * LANE;
+    const width = half * 2;
+    const height = HEADER_H + (flow.nodes.length - 1) * ROW_H + NODE_H + PAD;
+    const center = x0 + half;
+    maxH = Math.max(maxH, height);
 
-/** SVG outline for each flowchart symbol, in a box of size w × h at the origin. */
-function shapePath(kind: FlowNodeKind, w: number, h: number): string {
-  switch (kind) {
-    case "start":
-    case "end":
-      return `M ${h / 2} 0 H ${w - h / 2} A ${h / 2} ${h / 2} 0 0 1 ${w - h / 2} ${h} H ${h / 2} A ${h / 2} ${h / 2} 0 0 1 ${h / 2} 0 Z`;
-    case "decision":
-      return `M 0 ${h / 2} L ${w / 2} 0 L ${w} ${h / 2} L ${w / 2} ${h} Z`;
-    case "loop":
-      return `M 0 ${h / 2} L ${h / 2} 0 H ${w - h / 2} L ${w} ${h / 2} L ${w - h / 2} ${h} H ${h / 2} Z`;
-    case "io":
-      return `M 14 0 H ${w} L ${w - 14} ${h} H 0 Z`;
-    case "call":
-    case "statement":
-    case "return":
-      return `M 6 0 H ${w - 6} Q ${w} 0 ${w} 6 V ${h - 6} Q ${w} ${h} ${w - 6} ${h} H 6 Q 0 ${h} 0 ${h - 6} V 6 Q 0 0 6 0 Z`;
-    default: {
-      const exhaustive: never = kind;
-      return exhaustive;
+    nodes.push({
+      id: `${flow.key}:frame`,
+      type: "frame",
+      position: { x: x0, y: 0 },
+      width,
+      height,
+      zIndex: -1,
+      data: { flow },
+    });
+
+    flow.nodes.forEach((node, i) => {
+      const w = isTerminal(node.kind) ? TERMINAL_W : NODE_W;
+      nodes.push({
+        id: `${flow.key}:${node.line}`,
+        type: "card",
+        position: { x: center - w / 2, y: HEADER_H + i * ROW_H },
+        width: w,
+        height: NODE_H,
+        data: {
+          node,
+          isCurrent: flow.currentLine === node.line,
+          onJump: () => {
+            const target = nextRunOf(node, index);
+            if (target !== null) onSeek(target);
+          },
+        },
+      });
+    });
+
+    for (const arc of arcs) {
+      const isNow = flow.lastEdge?.from === arc.edge.from && flow.lastEdge.to === arc.edge.to;
+      const state: EdgeState = isNow ? "now" : arc.edge.count > 0 ? "taken" : "idle";
+      const off = NODE_W / 2 + 14 + arc.level * LANE;
+      edges.push({
+        id: `${flow.key}:${arc.edge.from}-${arc.edge.to}`,
+        type: "arc",
+        source: `${flow.key}:${arc.edge.from}`,
+        target: `${flow.key}:${arc.edge.to}`,
+        sourceHandle: arc.side === "straight" ? "bottom" : `${arc.side}-out`,
+        targetHandle: arc.side === "straight" ? "top" : `${arc.side}-in`,
+        zIndex: isNow ? 1 : 0,
+        data: { edge: arc.edge, side: arc.side, out: arc.side === "left" ? center - off : center + off, state, marker: `url(#${markerId}-${state})` },
+      });
     }
+    x0 += width + COLUMN_GAP;
   }
+  return { nodes, edges, width: Math.max(0, x0 - COLUMN_GAP), height: maxH };
 }
 
-/** Horizontal room for text inside each symbol. */
-const TEXT_INSET: Record<FlowNodeKind, number> = {
-  start: 18,
-  end: 18,
-  decision: 64,
-  loop: 26,
-  io: 20,
-  call: 16,
-  statement: 10,
-  return: 10,
+const isTerminal = (kind: FlowNodeKind) => kind === "start" || kind === "end";
+
+// ---- nodes -------------------------------------------------------------------------------------
+
+const KIND: Record<FlowNodeKind, { label: string; icon: LucideIcon; color: string }> = {
+  start: { label: "start", icon: PlayIcon, color: "var(--primary)" },
+  end: { label: "end", icon: SquareIcon, color: "var(--muted-foreground)" },
+  statement: { label: "statement", icon: CodeXmlIcon, color: "var(--muted-foreground)" },
+  decision: { label: "decision", icon: SplitIcon, color: "var(--changed)" },
+  loop: { label: "loop", icon: RepeatIcon, color: "var(--stdin)" },
+  io: { label: "input / output", icon: TerminalIcon, color: "var(--foreground)" },
+  call: { label: "calls a method", icon: SquareFunctionIcon, color: "var(--primary)" },
+  return: { label: "return", icon: CornerDownLeftIcon, color: "var(--returned)" },
 };
 
-const KIND_LABEL: Record<FlowNodeKind, string> = {
-  start: "start",
-  end: "end",
-  decision: "decision",
-  loop: "loop",
-  io: "input / output",
-  call: "calls a method",
-  statement: "statement",
-  return: "return",
-};
+const HANDLE = "!size-1.5 !min-h-0 !min-w-0 !border-0 !bg-muted-foreground/50";
 
-function Legend() {
-  const items: FlowNodeKind[] = ["start", "statement", "decision", "loop", "io", "call"];
+function Handles() {
   return (
-    <details className="group border-b px-3 py-1.5 text-[11px] text-muted-foreground">
-      <summary className="cursor-pointer select-none">How to read this flowchart</summary>
-      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 pb-1">
-        {items.map((kind) => (
-          <span key={kind} className="flex items-center gap-1.5">
-            <svg width={44} height={18} viewBox="0 0 88 36" aria-hidden>
-              <path d={shapePath(kind, 88, 36)} fill="var(--card)" stroke="var(--muted-foreground)" strokeWidth={2} />
-              {kind === "call" && <path d="M 9 0 V 36 M 79 0 V 36" stroke="var(--muted-foreground)" strokeWidth={2} />}
-            </svg>
-            {kind === "start" ? "start / end" : KIND_LABEL[kind]}
-          </span>
-        ))}
-        <span>Arrows: thicker = taken more often · dashed = taken later · faded symbol = never ran with this input</span>
-        <span className="flex items-center gap-1">
-          <MousePointerClickIcon className="size-3" aria-hidden /> Click a symbol to jump to the next time it runs
-        </span>
-      </div>
-    </details>
+    <>
+      <Handle type="target" id="top" position={Position.Top} isConnectable={false} className={HANDLE} />
+      <Handle type="source" id="bottom" position={Position.Bottom} isConnectable={false} className={HANDLE} />
+      <Handle type="source" id="left-out" position={Position.Left} isConnectable={false} className="!opacity-0" />
+      <Handle type="target" id="left-in" position={Position.Left} isConnectable={false} className="!opacity-0" />
+      <Handle type="source" id="right-out" position={Position.Right} isConnectable={false} className="!opacity-0" />
+      <Handle type="target" id="right-in" position={Position.Right} isConnectable={false} className="!opacity-0" />
+    </>
   );
 }
 
-// ---- chart -------------------------------------------------------------------------------------
-
-function MethodChart({ flow, layout, index, onSeek }: { flow: MethodFlow; layout: FlowLayout; index: number; onSeek: (step: number) => void }) {
-  const markerId = useId().replace(/:/g, "");
-  const { arcs, left, width, height } = layout;
-  const mid = left + NODE_W / 2;
+function CardNodeView({ data }: NodeProps<CardNode>) {
+  const { node, isCurrent, onJump } = data;
+  const kind = KIND[node.kind];
+  const Icon = kind.icon;
+  const terminal = isTerminal(node.kind);
+  const neverRan = node.totalVisits === 0 && node.kind !== "end";
+  const notYet = !neverRan && node.visits === 0;
+  const text = terminal ? node.text : node.text.replace(/\s*\{\s*$/, "");
+  const canJump = node.steps.length > 0;
+  const runs = terminal ? null : `line ${node.line} · ran ${node.visits} of ${node.totalVisits} time${node.totalVisits === 1 ? "" : "s"}`;
 
   return (
-    <section aria-label={`Flow of ${flow.method}`} className="w-fit">
-      <header className="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <code className="rounded-md border bg-card px-2 py-0.5 text-xs font-semibold">{flow.signature ?? `${flow.method}()`}</code>
+    <div className={cn("relative size-full", neverRan ? "opacity-40" : notYet && "opacity-65")}>
+      <Handles />
+      <button
+        type="button"
+        data-current={isCurrent ? "true" : undefined}
+        disabled={!canJump}
+        onClick={onJump}
+        title={neverRan ? `Line ${node.line} never ran with this input` : `${runs ?? node.text}${canJump ? "\nClick to jump to the next time this runs" : ""}`}
+        aria-label={`${kind.label}: ${text}${runs ? `, ${runs}` : ""}`}
+        className={cn(
+          "nodrag nopan flex size-full items-center gap-2.5 border bg-card px-2 text-left shadow-md shadow-black/40 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          terminal ? "justify-center rounded-full" : "rounded-xl",
+          canJump ? "cursor-pointer hover:border-muted-foreground" : "cursor-default",
+          neverRan && "border-dashed",
+          isCurrent && "border-primary bg-[color-mix(in_oklab,var(--primary)_14%,var(--card))] shadow-[0_0_14px_-2px_var(--primary)] hover:border-primary",
+        )}
+      >
+        <span
+          className={cn("grid shrink-0 place-items-center", terminal ? "size-6 rounded-full" : "size-8 rounded-lg")}
+          style={{ background: `color-mix(in oklab, ${kind.color} 18%, transparent)`, color: kind.color }}
+        >
+          <Icon className={terminal ? "size-3" : "size-4"} aria-hidden />
+        </span>
+        {terminal ? (
+          <span className="text-xs font-semibold">{text}</span>
+        ) : (
+          <span className="min-w-0 flex-1">
+            <span className="block truncate font-mono text-[11px] text-foreground">{text}</span>
+            <span className="block text-[10px] text-muted-foreground">
+              line {node.line} · {kind.label}
+            </span>
+          </span>
+        )}
+      </button>
+      {!terminal && (
+        <span
+          className={cn(
+            "pointer-events-none absolute -top-2 right-3 rounded-full border bg-background px-1.5 font-mono text-[10px] leading-4",
+            isCurrent ? "border-primary text-primary" : "text-muted-foreground",
+            neverRan && "border-dashed",
+          )}
+          aria-hidden
+        >
+          {neverRan ? "never" : `×${node.visits}`}
+        </span>
+      )}
+      {node.calls.length > 0 && (
+        <span className="pointer-events-none absolute top-full left-3 flex -translate-y-1/2 gap-1" aria-hidden>
+          {node.calls.map((c) => (
+            <span key={c.method} className="rounded-full border border-primary/40 bg-background px-1.5 font-mono text-[10px] leading-4 text-primary/90">
+              → {c.method}() ×{c.count}
+            </span>
+          ))}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function FrameNodeView({ data }: NodeProps<FrameNode>) {
+  const { flow } = data;
+  return (
+    <section aria-label={`Flow of ${flow.method}`} className="pointer-events-none size-full rounded-2xl border border-dashed bg-card/30">
+      <header className="flex flex-col items-center gap-1 px-3 pt-3 text-center">
+        <code className="max-w-full truncate rounded-md border bg-card px-2 py-0.5 text-xs font-semibold">{flow.signature ?? `${flow.method}()`}</code>
         <span className="text-[11px] text-muted-foreground">
           {flow.method === "main" ? "program start" : `called ${flow.calls} of ${flow.totalCalls} time${flow.totalCalls === 1 ? "" : "s"}`}
         </span>
       </header>
-      <div className="relative" style={{ width, height }}>
-        <svg aria-hidden className="pointer-events-none absolute inset-0 overflow-visible" width={width} height={height}>
-          <defs>
-            {(["idle", "taken", "now"] as const).map((state) => (
-              <marker key={state} id={`${markerId}-${state}`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-                <path d="M 0 0 L 10 5 L 0 10 z" fill={state === "now" ? "var(--primary)" : state === "taken" ? "var(--muted-foreground)" : "var(--border)"} />
-              </marker>
-            ))}
-          </defs>
-          {arcs.map((arc) => {
-            const g = arcGeometry(arc, left, mid);
-            const isNow = flow.lastEdge?.from === arc.edge.from && flow.lastEdge.to === arc.edge.to;
-            const taken = arc.edge.count > 0;
-            const state = isNow ? "now" : taken ? "taken" : "idle";
-            return (
-              <path
-                key={`${arc.edge.from}-${arc.edge.to}`}
-                d={g.d}
-                fill="none"
-                stroke={isNow ? "var(--primary)" : taken ? "var(--muted-foreground)" : "var(--border)"}
-                strokeWidth={taken ? Math.min(5, 1.4 + Math.log2(arc.edge.count + 1)) : 1.4}
-                strokeDasharray={taken ? undefined : "5 5"}
-                markerEnd={`url(#${markerId}-${state})`}
-                opacity={taken ? 1 : 0.7}
-                className={isNow ? "drop-shadow-[0_0_4px_var(--primary)]" : undefined}
-              />
-            );
-          })}
-          {flow.nodes.map((node, i) => (
-            <NodeShape key={node.line} node={node} x={left} y={topOf(i)} isCurrent={flow.currentLine === node.line} />
-          ))}
-        </svg>
-
-        {arcs.map((arc) => {
-          const text = edgeText(arc.edge);
-          if (!text) return null;
-          const g = arcGeometry(arc, left, mid);
-          const isNow = flow.lastEdge?.from === arc.edge.from && flow.lastEdge.to === arc.edge.to;
-          return (
-            <span
-              key={`label-${arc.edge.from}-${arc.edge.to}`}
-              className={cn(
-                "pointer-events-none absolute -translate-y-1/2 rounded-full border bg-background px-1.5 font-mono text-[10px] leading-4 whitespace-nowrap",
-                arc.side === "left" ? "-translate-x-full" : arc.side === "straight" ? "translate-x-2" : undefined,
-                isNow ? "border-primary text-primary" : arc.edge.label === "true" ? "border-primary/40 text-primary/90" : arc.edge.label === "false" ? "border-danger/40 text-danger/90" : "text-muted-foreground",
-                arc.edge.count === 0 && "opacity-60",
-              )}
-              style={{ left: g.lx, top: g.ly }}
-            >
-              {text}
-            </span>
-          );
-        })}
-
-        {flow.nodes.map((node, i) => (
-          <NodeLabel
-            key={node.line}
-            node={node}
-            x={left}
-            y={topOf(i)}
-            isCurrent={flow.currentLine === node.line}
-            onJump={() => {
-              const target = nextRunOf(node, index);
-              if (target !== null) onSeek(target);
-            }}
-          />
-        ))}
-      </div>
     </section>
   );
 }
 
-function arcGeometry(arc: Arc, left: number, mid: number) {
-  const y1 = topOf(arc.i);
-  const y2 = topOf(arc.j);
-  if (arc.side === "straight") {
-    return { d: `M ${mid} ${y1 + NODE_H} L ${mid} ${y2}`, lx: mid, ly: (y1 + NODE_H + y2) / 2 };
-  }
-  const off = 14 + arc.level * LANE;
-  const x = arc.side === "left" ? left : left + NODE_W;
-  const out = arc.side === "left" ? x - off : x + off;
-  const a = y1 + NODE_H / 2;
-  const b = y2 + NODE_H / 2;
-  // For diamonds and hexagons the side tips are at mid-height, so arcs attach exactly there.
-  return { d: `M ${x} ${a} C ${out} ${a}, ${out} ${b}, ${x} ${b}`, lx: arc.side === "left" ? out - 2 : out + 4, ly: (a + b) / 2 };
+const nodeTypes = { card: CardNodeView, frame: FrameNodeView };
+
+// ---- edges -------------------------------------------------------------------------------------
+
+function ArcEdgeView({ sourceX, sourceY, targetX, targetY, data }: EdgeProps<ArcEdge>) {
+  if (!data) return null;
+  const { edge, side, out, state, marker } = data;
+  const taken = edge.count > 0;
+  const d =
+    side === "straight"
+      ? `M ${sourceX} ${sourceY} L ${targetX} ${targetY}`
+      : `M ${sourceX} ${sourceY} C ${out} ${sourceY}, ${out} ${targetY}, ${targetX} ${targetY}`;
+  const lx = side === "straight" ? sourceX : out;
+  const ly = (sourceY + targetY) / 2;
+  const text = edgeText(edge);
+
+  return (
+    <>
+      <BaseEdge
+        path={d}
+        markerEnd={marker}
+        style={{
+          stroke: EDGE_COLOR[state],
+          strokeWidth: taken ? Math.min(5, 1.4 + Math.log2(edge.count + 1)) : 1.4,
+          strokeDasharray: taken ? undefined : "5 5",
+          filter: state === "now" ? "drop-shadow(0 0 4px var(--primary))" : undefined,
+        }}
+      />
+      {text && (
+        <EdgeLabelRenderer>
+          <span
+            className={cn(
+              "pointer-events-none absolute rounded-full border bg-background px-1.5 font-mono text-[10px] leading-4 whitespace-nowrap",
+              state === "now"
+                ? "border-primary text-primary"
+                : edge.label === "true"
+                  ? "border-primary/40 text-primary/90"
+                  : edge.label === "false"
+                    ? "border-danger/40 text-danger/90"
+                    : "text-muted-foreground",
+              !taken && "opacity-60",
+            )}
+            style={{
+              transform: `translate(${side === "left" ? "-100%" : side === "straight" ? "8px" : "4px"}, -50%) translate(${lx}px, ${ly}px)`,
+              ...(side === "left" ? { marginLeft: -2 } : null),
+            }}
+          >
+            {text}
+          </span>
+        </EdgeLabelRenderer>
+      )}
+    </>
+  );
 }
+
+const edgeTypes = { arc: ArcEdgeView };
 
 function edgeText(edge: FlowEdge): string | null {
   const n = `×${edge.count}`;
@@ -345,88 +488,39 @@ function edgeText(edge: FlowEdge): string | null {
     case "return":
       return `return ${n}`;
     case "enter":
+    case undefined:
       return edge.total > 1 ? n : null;
-    default:
-      return edge.total > 1 ? n : null;
+    default: {
+      const exhaustive: never = edge.label;
+      return exhaustive;
+    }
   }
 }
 
-function NodeShape({ node, x, y, isCurrent }: { node: FlowNode; x: number; y: number; isCurrent: boolean }) {
-  const neverRan = node.totalVisits === 0 && node.kind !== "end";
-  const notYet = !neverRan && node.visits === 0;
-  return (
-    <g transform={`translate(${x} ${y})`} opacity={neverRan ? 0.35 : notYet ? 0.6 : 1}>
-      <path
-        d={shapePath(node.kind, NODE_W, NODE_H)}
-        fill={isCurrent ? "color-mix(in oklab, var(--primary) 18%, var(--card))" : "var(--card)"}
-        stroke={isCurrent ? "var(--primary)" : node.kind === "start" || node.kind === "end" ? "var(--muted-foreground)" : "var(--border)"}
-        strokeWidth={isCurrent ? 2.5 : 1.5}
-        strokeDasharray={neverRan ? "5 4" : undefined}
-        className={isCurrent ? "drop-shadow-[0_0_6px_var(--primary)]" : undefined}
-      />
-      {node.kind === "call" && (
-        <path d={`M 9 0 V ${NODE_H} M ${NODE_W - 9} 0 V ${NODE_H}`} stroke={isCurrent ? "var(--primary)" : "var(--border)"} strokeWidth={1.5} />
-      )}
-    </g>
-  );
-}
+// ---- legend ------------------------------------------------------------------------------------
 
-function NodeLabel({ node, x, y, isCurrent, onJump }: { node: FlowNode; x: number; y: number; isCurrent: boolean; onJump: () => void }) {
-  const neverRan = node.totalVisits === 0 && node.kind !== "end";
-  const isTerminal = node.kind === "start" || node.kind === "end";
-  const inset = TEXT_INSET[node.kind];
-  const text = isTerminal ? node.text : node.text.replace(/\s*\{\s*$/, "");
-  const canJump = node.steps.length > 0;
-  const runs = isTerminal ? null : `line ${node.line} · ran ${node.visits} of ${node.totalVisits} time${node.totalVisits === 1 ? "" : "s"}`;
+function Legend() {
+  const items: FlowNodeKind[] = ["start", "statement", "decision", "loop", "io", "call", "return"];
   return (
-    <>
-      <button
-        type="button"
-        data-current={isCurrent ? "true" : undefined}
-        disabled={!canJump}
-        onClick={onJump}
-        title={
-          neverRan
-            ? `Line ${node.line} never ran with this input`
-            : `${runs ?? node.text}${canJump ? "\nClick to jump to the next time this runs" : ""}`
-        }
-        aria-label={`${KIND_LABEL[node.kind]}: ${text}${runs ? `, ${runs}` : ""}`}
-        className={cn(
-          "absolute flex items-center justify-center rounded-md font-mono text-[11px] outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          canJump ? "cursor-pointer hover:text-primary" : "cursor-default",
-          neverRan && "opacity-40",
-          isTerminal && "font-sans font-semibold",
-        )}
-        style={{ left: x + inset, top: y, width: NODE_W - inset * 2, height: NODE_H }}
-      >
-        <span className="truncate">{text}</span>
-      </button>
-      {!isTerminal && (
-        <span
-          className={cn(
-            "pointer-events-none absolute -translate-y-1/2 rounded-full border bg-background px-1.5 font-mono text-[10px] leading-4",
-            isCurrent ? "border-primary text-primary" : "text-muted-foreground",
-            neverRan && "border-dashed",
-          )}
-          style={{ left: x + NODE_W - 34, top: y }}
-          aria-hidden
-        >
-          {neverRan ? "never" : `×${node.visits}`}
+    <details className="group border-b px-3 py-1.5 text-[11px] text-muted-foreground">
+      <summary className="cursor-pointer select-none">How to read this flowchart</summary>
+      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 pb-1">
+        {items.map((k) => {
+          const { icon: Icon, color, label } = KIND[k];
+          return (
+            <span key={k} className="flex items-center gap-1.5">
+              <span className="grid size-5 place-items-center rounded-md" style={{ background: `color-mix(in oklab, ${color} 18%, transparent)`, color }}>
+                <Icon className="size-3" aria-hidden />
+              </span>
+              {k === "start" ? "start / end" : label}
+            </span>
+          );
+        })}
+        <span>Arrows: thicker = taken more often · dashed = not taken yet · faded card = never ran with this input</span>
+        <span className="flex items-center gap-1">
+          <MousePointerClickIcon className="size-3" aria-hidden /> Click a card to jump to the next time it runs · drag to pan, ctrl + scroll to zoom
         </span>
-      )}
-      <span className="pointer-events-none absolute font-mono text-[9px] text-muted-foreground" style={{ left: x - 30, top: y + NODE_H / 2 - 6 }} aria-hidden>
-        {isTerminal ? "" : node.line}
-      </span>
-      {node.calls.map((c, k) => (
-        <span
-          key={c.method}
-          className="pointer-events-none absolute translate-y-1/2 rounded-full border border-primary/40 bg-background px-1.5 font-mono text-[10px] leading-4 text-primary/90"
-          style={{ left: x + 18 + k * 110, top: y + NODE_H - 8 }}
-          aria-hidden
-        >
-          → {c.method}() ×{c.count}
-        </span>
-      ))}
-    </>
+      </div>
+    </details>
   );
 }

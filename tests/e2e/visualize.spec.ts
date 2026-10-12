@@ -151,8 +151,8 @@ test.describe("flow, layout and full screen", () => {
     await expect(page.getByText(/^Step 1 of \d+$/)).toBeVisible({ timeout: 30_000 });
     await page.keyboard.press("End");
     await page.getByRole("tab", { name: "Flow" }).click();
-    const flow = page.getByRole("region", { name: "Flow of main" });
-    await expect(flow).toBeVisible();
+    await expect(page.getByRole("region", { name: "Flow of main" })).toBeVisible();
+    const flow = page.getByRole("region", { name: "Flowchart" });
     await expect(flow).toContainText("for (int i = 0; i < nums.length; i++)");
     await expect(flow.getByRole("button", { name: /^loop: for \(int i = 0; i < nums\.length; i\+\+\), line \d+ · ran 5 of 5 times$/ })).toBeVisible();
     await expect(flow).toContainText("true ×4");
