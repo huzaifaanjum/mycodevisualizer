@@ -153,9 +153,9 @@ test.describe("flow, layout and full screen", () => {
     await page.getByRole("tab", { name: "Flow" }).click();
     const flow = page.getByRole("region", { name: "Flow of main" });
     await expect(flow).toBeVisible();
-    await expect(flow).toContainText("for (int i = 0; i < nums.length; i++) {");
-    await expect(flow.getByRole("button", { name: /^loop: for \(int i = 0; i < nums\.length; i\+\+\), line \d+ · ran 4 of 4 times$/ })).toBeVisible();
-    await expect(flow).toContainText("true ×3");
+    await expect(flow).toContainText("for (int i = 0; i < nums.length; i++)");
+    await expect(flow.getByRole("button", { name: /^loop: for \(int i = 0; i < nums\.length; i\+\+\), line \d+ · ran 5 of 5 times$/ })).toBeVisible();
+    await expect(flow).toContainText("true ×4");
     await expect(page.getByText("How to read this flowchart")).toBeVisible();
     await expect(flow.locator("svg path[marker-end]").first()).toBeAttached();
   });
@@ -174,7 +174,7 @@ test.describe("flow, layout and full screen", () => {
     await page.getByRole("tab", { name: "Flow" }).click();
     await page.getByRole("button", { name: /^loop: for/ }).click();
     await expect(page.getByText(/^Step 1 of \d+$/)).toBeHidden();
-    await expect(page.getByRole("button", { name: /^loop: for .* · ran 1 of 4 times$/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^loop: for .* · ran 1 of 5 times$/ })).toBeVisible();
   });
 
   test("code panel can be resized with the keyboard and remembers its width", async ({ page, isMobile }) => {
