@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * Full-screen mode for the visualization. The panel itself is shown as a fixed overlay and the whole
@@ -9,8 +9,12 @@ import { useCallback, useEffect, useState } from "react";
  */
 export function useFullscreen() {
   const [active, setActive] = useState(false);
+  // True only while WE hold native full screen. Browsers fire "fullscreenchange" asynchronously, so a
+  // late event from a previous exit must not close a full screen the user just re-entered.
+  const native = useRef(false);
 
   const exit = useCallback(async () => {
+    native.current = false;
     setActive(false);
     try {
       if (document.fullscreenElement) await document.exitFullscreen();
@@ -22,7 +26,10 @@ export function useFullscreen() {
   const enter = useCallback(async () => {
     setActive(true);
     try {
-      if (!document.fullscreenElement) await document.documentElement.requestFullscreen?.();
+      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen();
+        native.current = true;
+      }
     } catch {
       // not allowed or unsupported: the overlay still fills the window
     }
@@ -30,10 +37,13 @@ export function useFullscreen() {
 
   const toggle = useCallback(() => void (active ? exit() : enter()), [active, enter, exit]);
 
-  // Leaving browser full screen (Esc, browser UI) also closes the overlay.
+  // Leaving browser full screen through the browser (Esc, F11, browser UI) also closes the overlay.
   useEffect(() => {
     const onChange = () => {
-      if (!document.fullscreenElement) setActive(false);
+      if (!document.fullscreenElement && native.current) {
+        native.current = false;
+        setActive(false);
+      }
     };
     document.addEventListener("fullscreenchange", onChange);
     return () => document.removeEventListener("fullscreenchange", onChange);
