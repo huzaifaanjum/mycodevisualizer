@@ -1,0 +1,10 @@
+{
+  "Factorial": { "status": "ok", "stdout": "4! = 24\n", "lastEvent": "end", "minSteps": 15 },
+  "ArraySum": { "status": "ok", "stdout": "Sum: 8\n", "lastEvent": "end" },
+  "OutOfBounds": { "status": "runtime_error", "stdout": "before\n", "exceptionType": "ArrayIndexOutOfBoundsException", "exceptionLine": 5 },
+  "Forever": { "status": "truncated" },
+  "Broken": { "status": "compile_error", "diagnosticLines": [3, 4] },
+  "Exits": { "status": "ok", "stdout": "bye\n" },
+  "NoMain": { "status": "compile_error" },
+  "Points": { "status": "ok", "stdout": "5 7a2.5\n" }
+}
