@@ -1,3 +1,11 @@
 allowBuilds:
+  esbuild: true
   sharp: false
   unrs-resolver: false
+
+# pnpm rejects packages published less than a day ago (supply-chain protection).
+# Radix published a coordinated release on 2026-10-12 that every radix-ui version pulls in
+# transitively. Remove this exclusion after 2026-10-14.
+minimumReleaseAgeExclude:
+  - radix-ui
+  - "@radix-ui/*"
