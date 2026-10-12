@@ -28,6 +28,7 @@ export function getRunService() {
   runService ??= createRunService({
     provider: getExecutionProvider(),
     rateLimiter: rateLimiter(),
+    rateLimitMultiplier: getConfig().env.RATE_LIMIT_MULTIPLIER,
     recordUsage: getConfig().features.database
       ? (e) => usageRepository.record({ type: "run", language: "java", status: e.status, durationMs: e.durationMs })
       : undefined,
@@ -36,7 +37,11 @@ export function getRunService() {
 }
 
 export function getSnippetService() {
-  snippetService ??= createSnippetService({ repository: snippetsRepository, rateLimiter: rateLimiter() });
+  snippetService ??= createSnippetService({
+    repository: snippetsRepository,
+    rateLimiter: rateLimiter(),
+    rateLimitMultiplier: getConfig().env.RATE_LIMIT_MULTIPLIER,
+  });
   return snippetService;
 }
 

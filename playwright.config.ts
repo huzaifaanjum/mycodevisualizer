@@ -19,6 +19,6 @@ export default defineConfig({
     command: `pnpm start --port ${PORT}`,
     port: PORT,
     reuseExistingServer: !process.env.CI,
-    env: { EXECUTION_PROVIDER: "fixture" },
+    env: { EXECUTION_PROVIDER: "fixture", RATE_LIMIT_MULTIPLIER: "100" },
   },
 });

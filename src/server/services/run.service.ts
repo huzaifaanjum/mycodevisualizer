@@ -14,12 +14,14 @@ export interface RunServiceDeps {
   recordUsage?: (event: { language: string; status: string; durationMs: number }) => Promise<void>;
   clock?: () => number;
   maxConcurrentRuns?: number;
+  rateLimitMultiplier?: number;
 }
 
 /** Orchestrates a run: static checks, rate limit, isolated execution, and trace validation. */
 export function createRunService(deps: RunServiceDeps) {
   const clock = deps.clock ?? Date.now;
   const maxConcurrent = deps.maxConcurrentRuns ?? 8;
+  const multiplier = deps.rateLimitMultiplier ?? 1;
   let inFlight = 0;
 
   return {
@@ -35,7 +37,7 @@ export function createRunService(deps: RunServiceDeps) {
       await deps.rateLimiter.check(
         {
           name: "runs",
-          limit: signedIn ? RATE_LIMITS.runsPerMinuteSignedIn : RATE_LIMITS.runsPerMinuteAnonymous,
+          limit: (signedIn ? RATE_LIMITS.runsPerMinuteSignedIn : RATE_LIMITS.runsPerMinuteAnonymous) * multiplier,
           windowMs: 60_000,
         },
         identity.key,

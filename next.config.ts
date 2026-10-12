@@ -33,8 +33,9 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
-  // The tracer jar is only used by the local dev execution provider.
-  outputFileTracingExcludes: { "*": ["tracer/**/*"] },
+  // Tracer sources ship with the run endpoint so the sandbox runtime can rebuild itself.
+  outputFileTracingIncludes: { "/api/runs": ["./tracer/src/main/java/**/*.java"] },
+  outputFileTracingExcludes: { "*": ["./tracer/build/**/*", "./tracer/src/test/**/*"] },
   turbopack: {
     rules: {
       "*.css": {

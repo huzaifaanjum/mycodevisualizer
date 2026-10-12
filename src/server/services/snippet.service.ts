@@ -13,6 +13,7 @@ const newPublicId = customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefgh
 export interface SnippetServiceDeps {
   repository: typeof SnippetsRepository;
   rateLimiter: RateLimiter;
+  rateLimitMultiplier?: number;
 }
 
 function defaultTitle(code: string): string {
@@ -34,10 +35,10 @@ function toDto(doc: SnippetDoc, viewer: Identity | null): SnippetDto {
 }
 
 /** Snippets are public-by-link. Only owners can rename or delete; checked here, not in the UI. */
-export function createSnippetService({ repository, rateLimiter }: SnippetServiceDeps) {
+export function createSnippetService({ repository, rateLimiter, rateLimitMultiplier = 1 }: SnippetServiceDeps) {
   return {
     async create(input: CreateSnippetInput, identity: Identity): Promise<{ publicId: string }> {
-      await rateLimiter.check({ name: "snippets", limit: RATE_LIMITS.snippetsPerHour, windowMs: 3_600_000 }, identity.key);
+      await rateLimiter.check({ name: "snippets", limit: RATE_LIMITS.snippetsPerHour * rateLimitMultiplier, windowMs: 3_600_000 }, identity.key);
       const doc = await repository.insert({
         publicId: newPublicId(),
         language: input.language,

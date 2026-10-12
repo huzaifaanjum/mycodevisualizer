@@ -3,16 +3,20 @@ import { getConfig } from "@/server/env";
 import { createFixtureProvider } from "./fixture.provider";
 import { createLocalProcessProvider } from "./local-process.provider";
 import type { ExecutionProvider } from "./types";
+import { mongoRuntimeStore } from "@/server/repositories/runtime.repository";
 import { createVercelSandboxProvider } from "./vercel-sandbox.provider";
 
 let provider: ExecutionProvider | undefined;
 
 export function getExecutionProvider(): ExecutionProvider {
   if (provider) return provider;
-  const { env, executionProvider } = getConfig();
+  const { env, executionProvider, features } = getConfig();
   switch (executionProvider) {
     case "vercel-sandbox":
-      provider = createVercelSandboxProvider(env.VERCEL_SANDBOX_SNAPSHOT_ID);
+      provider = createVercelSandboxProvider({
+        configuredSnapshotId: env.VERCEL_SANDBOX_SNAPSHOT_ID,
+        store: features.database ? mongoRuntimeStore : null,
+      });
       break;
     case "local":
       provider = createLocalProcessProvider(env.TRACER_JAR_PATH, env.NODE_ENV);

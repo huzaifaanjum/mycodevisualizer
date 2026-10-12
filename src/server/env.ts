@@ -15,6 +15,8 @@ const EnvSchema = z.object({
   EXECUTION_PROVIDER: z.enum(["vercel-sandbox", "local", "fixture"]).optional(),
   VERCEL_SANDBOX_SNAPSHOT_ID: z.string().min(1).optional(),
   TRACER_JAR_PATH: z.string().min(1).default("tracer/build/tracer.jar"),
+  /** Test environments only: multiplies every rate limit (e.g. 100 for end-to-end tests). */
+  RATE_LIMIT_MULTIPLIER: z.coerce.number().int().min(1).max(1000).default(1),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

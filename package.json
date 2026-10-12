@@ -20,7 +20,7 @@
     "tracer:test": "node tracer/scripts/test.mjs",
     "db:setup": "tsx --conditions=react-server scripts/db-setup.ts",
     "db:seed": "tsx --conditions=react-server scripts/seed-examples.ts",
-    "sandbox:snapshot": "tsx scripts/build-sandbox-snapshot.ts",
+    "sandbox:snapshot": "tsx --conditions=react-server scripts/build-sandbox-snapshot.ts",
     "check": "pnpm lint && pnpm typecheck && pnpm test"
   },
   "dependencies": {
