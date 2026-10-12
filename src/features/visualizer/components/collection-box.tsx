@@ -1,7 +1,7 @@
 import { MinusIcon, PlusIcon } from "lucide-react";
 import type { CollectionObject, Heap } from "@/shared/trace";
 import { cn } from "@/lib/utils";
-import type { CollectionDiff, ItemChange, RemovedItem } from "../lib/collection-diff";
+import type { CollectionDiff, ItemChange, ListDiff, MapDiff, RemovedItem } from "../lib/collection-diff";
 import { ValueText } from "./value-text";
 
 /** How to read the order of each kind of collection. */
@@ -51,9 +51,9 @@ export function CollectionBox({
       ) : object.kind === "map" ? (
         <MapTable id={id} object={object} heap={heap} diff={diff?.kind === "map" ? diff : null} />
       ) : object.kind === "set" ? (
-        <SetChips id={id} items={object.items} heap={heap} diff={diff?.kind === "set" ? diff : null} />
+        <SetChips id={id} items={object.items} heap={heap} diff={diff && diff.kind !== "map" ? diff : null} />
       ) : (
-        <ListCells id={id} items={object.items} heap={heap} diff={diff?.kind === "list" ? diff : null} />
+        <ListCells id={id} items={object.items} heap={heap} diff={diff && diff.kind !== "map" ? diff : null} />
       )}
       {hidden > 0 && <p className="mt-1 text-[11px] text-muted-foreground">+{hidden} more not shown</p>}
     </figure>
@@ -88,7 +88,7 @@ function ListCells({
   id: string;
   items: Extract<CollectionObject, { kind: "list" }>["items"];
   heap: Heap;
-  diff: Extract<CollectionDiff, { kind: "list" }> | null;
+  diff: ListDiff | null;
 }) {
   return (
     <div className="flex flex-wrap overflow-hidden rounded-md border">
@@ -131,7 +131,7 @@ function SetChips({
   id: string;
   items: Extract<CollectionObject, { kind: "set" }>["items"];
   heap: Heap;
-  diff: Extract<CollectionDiff, { kind: "set" }> | null;
+  diff: ListDiff | null;
 }) {
   return (
     <div className="flex flex-wrap items-center gap-1 rounded-md border px-2 py-1.5 font-mono text-xs">
@@ -168,7 +168,7 @@ function MapTable({
   id: string;
   object: Extract<CollectionObject, { kind: "map" }>;
   heap: Heap;
-  diff: Extract<CollectionDiff, { kind: "map" }> | null;
+  diff: MapDiff | null;
 }) {
   return (
     <table className="min-w-36 overflow-hidden rounded-md border text-xs">

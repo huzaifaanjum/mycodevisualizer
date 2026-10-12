@@ -65,7 +65,8 @@ export function diffSequence(
   let j = 0;
   while (i < n || j < m) {
     if (i < n && j < m && a[i] === b[j]) ops.push({ op: "same", i: i++, j: j++ });
-    else if (j < m && (i >= n || lcs(i, j + 1) >= lcs(i + 1, j))) ops.push({ op: "ins", j: j++ });
+    // On ties prefer deleting first, so a delete+insert at the same spot can pair up as a replacement.
+    else if (j < m && (i >= n || lcs(i, j + 1) > lcs(i + 1, j))) ops.push({ op: "ins", j: j++ });
     else ops.push({ op: "del", i: i++ });
   }
 
