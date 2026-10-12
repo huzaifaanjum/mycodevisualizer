@@ -27,9 +27,45 @@ test.describe("visualizer", () => {
     await visualize(page);
     await page.keyboard.press("End");
     await page.getByRole("tab", { name: "Call tree" }).click();
-    const tree = page.getByRole("tree", { name: "Call tree" });
-    await expect(tree).toContainText("factorial(n = 4)");
-    await expect(tree).toContainText("→ 24");
+    const tree = page.getByRole("group", { name: "Call tree diagram" });
+    await expect(tree.getByRole("button", { name: /^Call 2: factorial\(n = 4\), finished, → 24$/ })).toBeVisible();
+    await expect(page.getByText(/calls so far/i)).toBeVisible();
+
+    // Outline layout lists the same calls as an accessible tree.
+    await page.getByRole("radio", { name: "Outline" }).click();
+    await expect(page.getByRole("tree", { name: "Call outline" })).toContainText("factorial(n = 1)");
+  });
+
+  test("clicking a call jumps to the step where it started", async ({ page }) => {
+    await page.goto("/");
+    await visualize(page);
+    await page.keyboard.press("End");
+    await page.getByRole("tab", { name: "Call tree" }).click();
+    await page.getByRole("button", { name: /^Call 3: factorial\(n = 3\)/ }).click();
+    await expect(page.getByRole("button", { name: /^Call 3: factorial\(n = 3\), running now/ })).toBeVisible();
+    await expect(page.getByText(/^Step \d+ of \d+$/)).not.toHaveText(/^Step 1 of/);
+  });
+
+  test("keeps the final memory state after the program ends", async ({ page }) => {
+    await page.goto("/?example=array-sum");
+    await expect(page.getByText(/^Step 1 of \d+$/)).toBeVisible({ timeout: 30_000 });
+    await page.keyboard.press("End");
+    await expect(page.getByText(/Program finished\. This is the final state of memory/)).toBeVisible();
+    await expect(page.getByRole("region", { name: "main frame" })).toBeVisible();
+  });
+
+  test("editing code keeps the last run until Clear is pressed", async ({ page }) => {
+    await page.goto("/");
+    await visualize(page);
+    await page.keyboard.press("End");
+    await page.getByRole("button", { name: "Edit code" }).click();
+    await expect(page.getByText("Showing your last run.")).toBeVisible();
+    await expect(page.getByLabel("Program output")).toContainText("4! = 24");
+    await expect(page.getByRole("button", { name: /^Visualize/ })).toBeVisible();
+
+    await page.getByRole("button", { name: "Clear visualization" }).click();
+    await expect(page.getByLabel("Program output")).toBeHidden();
+    await expect(page.getByText("Showing your last run.")).toBeHidden();
   });
 
   test("draws a reference arrow from an array variable to the heap", async ({ page }) => {
@@ -118,7 +154,9 @@ test.describe("flow, layout and full screen", () => {
     const flow = page.getByRole("region", { name: "Flow of main" });
     await expect(flow).toBeVisible();
     await expect(flow).toContainText("for (int i = 0; i < nums.length; i++) {");
-    await expect(flow.getByLabel("ran 4 times")).toBeVisible();
+    await expect(flow.getByRole("button", { name: /^loop: for \(int i = 0; i < nums\.length; i\+\+\), line \d+ · ran 4 of 4 times$/ })).toBeVisible();
+    await expect(flow).toContainText("true ×3");
+    await expect(page.getByText("How to read this flowchart")).toBeVisible();
     await expect(flow.locator("svg path[marker-end]").first()).toBeAttached();
   });
 
@@ -128,6 +166,15 @@ test.describe("flow, layout and full screen", () => {
     await page.keyboard.press("End");
     await page.getByRole("tab", { name: "Flow" }).click();
     await expect(page.getByRole("region", { name: "Flow of factorial" })).toContainText("called 4 of 4 times");
+  });
+
+  test("clicking a flowchart box jumps to when that line runs", async ({ page }) => {
+    await page.goto("/?example=array-sum");
+    await expect(page.getByText(/^Step 1 of \d+$/)).toBeVisible({ timeout: 30_000 });
+    await page.getByRole("tab", { name: "Flow" }).click();
+    await page.getByRole("button", { name: /^loop: for/ }).click();
+    await expect(page.getByText(/^Step 1 of \d+$/)).toBeHidden();
+    await expect(page.getByRole("button", { name: /^loop: for .* · ran 1 of 4 times$/ })).toBeVisible();
   });
 
   test("code panel can be resized with the keyboard and remembers its width", async ({ page, isMobile }) => {

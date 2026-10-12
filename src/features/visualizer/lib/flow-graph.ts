@@ -7,21 +7,27 @@ import { analyzeLine, findBlockEnd } from "./source-analysis";
  * with source lines used only to name nodes and to show lines that never ran.
  */
 
-export type FlowNodeKind = "statement" | "decision" | "loop" | "return";
+export type FlowNodeKind = "start" | "end" | "statement" | "decision" | "loop" | "io" | "call" | "return";
+
+/** Pseudo line numbers for the start and end terminals of each method's flowchart. */
+export const START_LINE = -1;
+export const END_LINE = 1_000_000;
 
 export interface FlowNode {
   line: number;
   text: string;
   kind: FlowNodeKind;
-  /** Times execution arrived at this line, up to the current step. */
+  /** Times execution arrived here, up to the current step. */
   visits: number;
   /** Times over the whole run. 0 means this line never ran with this input. */
   totalVisits: number;
+  /** Every step index (whole run) at which execution arrived here, in order. */
+  steps: number[];
   /** Methods called from this line over the whole run, with counts up to the current step. */
   calls: { method: string; count: number; total: number }[];
 }
 
-export type FlowEdgeLabel = "true" | "false" | "repeat";
+export type FlowEdgeLabel = "true" | "false" | "repeat" | "enter" | "return";
 
 export interface FlowEdge {
   from: number;
@@ -42,6 +48,7 @@ export interface MethodFlow {
   /** Activations up to the current step / over the whole run. */
   calls: number;
   totalCalls: number;
+  /** Start terminal, lines in source order, end terminal. */
   nodes: FlowNode[];
   edges: FlowEdge[];
   /** Line the program is on now, if the current step is inside this method. */
@@ -53,6 +60,7 @@ export interface MethodFlow {
 type Transition =
   | { type: "visit"; method: string; line: number; activation: boolean }
   | { type: "edge"; method: string; from: number; to: number }
+  | { type: "exit"; method: string; from: number }
   | { type: "call"; method: string; line: number; callee: string };
 
 const methodKey = (className: string, method: string) => `${className}.${method}`;
@@ -61,10 +69,19 @@ const methodKey = (className: string, method: string) => `${className}.${method}
 export function traceTransitions(trace: Trace): Transition[][] {
   return trace.steps.map((step, k) => {
     const out: Transition[] = [];
-    const top = step.frames.at(-1);
-    if (!top || step.event === "end" || step.event === "exception") return out;
-    const key = methodKey(top.className, top.method);
     const prev: Step | undefined = k > 0 ? trace.steps[k - 1] : undefined;
+    // An exception step repeats the frames of the step that threw; nothing new happened.
+    if (step.event === "exception") return out;
+    const ids = new Set(step.frames.map((f) => f.id));
+
+    // Calls that finished: leave their method through its end terminal.
+    for (const f of prev?.frames ?? []) {
+      if (!ids.has(f.id)) out.push({ type: "exit", method: methodKey(f.className, f.method), from: f.line });
+    }
+
+    const top = step.frames.at(-1);
+    if (!top || step.event === "end") return out;
+    const key = methodKey(top.className, top.method);
     const prevTop = prev?.frames.at(-1);
     const isNewActivation = !prevTop || !prev?.frames.some((f) => f.id === top.id);
 
@@ -91,6 +108,7 @@ export function traceTransitions(trace: Trace): Transition[][] {
 
 const BRACE_ONLY = /^\s*(\}\s*)*(else\s*)?\{?\s*$/;
 const COMMENT = /^\s*(\/\/|\/\*|\*)/;
+const IO = /\bSystem\s*\.\s*(out|err)\s*\.\s*print|\.\s*(next|nextLine|nextInt|nextDouble|nextLong|nextBoolean|hasNext\w*)\s*\(/;
 
 /** Lines worth showing as nodes even if they never ran: things that look like statement starts. */
 function isStatementLike(text: string): boolean {
@@ -99,15 +117,21 @@ function isStatementLike(text: string): boolean {
   return /[;{)]\s*(\/\/.*)?$/.test(text);
 }
 
-function nodeKind(lines: string[], line: number): FlowNodeKind {
+function nodeKind(lines: string[], line: number, callsOut: boolean): FlowNodeKind {
   const text = lines[line - 1] ?? "";
-  if (/^\s*return\b/.test(text)) return "return";
   const control = analyzeLine(lines, line);
-  if (!control) return "statement";
-  return control.kind === "for" || control.kind === "while" || control.kind === "do-while" ? "loop" : "decision";
+  if (control) {
+    return control.kind === "for" || control.kind === "while" || control.kind === "do-while" ? "loop" : "decision";
+  }
+  if (/^\s*return\b/.test(text)) return "return";
+  if (callsOut) return "call";
+  if (IO.test(text)) return "io";
+  return "statement";
 }
 
 function edgeLabel(lines: string[], from: number, to: number): FlowEdgeLabel | undefined {
+  if (from === START_LINE) return "enter";
+  if (to === END_LINE) return "return";
   if (to <= from) return "repeat";
   const control = analyzeLine(lines, from);
   if (!control || control.kind === "else" || control.kind === "do-while") return undefined;
@@ -128,13 +152,20 @@ function methodSpan(lines: string[], method: string, firstLine: number): { decl:
   return null;
 }
 
+interface Counter {
+  now: number;
+  total: number;
+}
+
 /** Flow for every method that ran, in order of first execution, with counts up to step `index`. */
 export function buildFlow(trace: Trace, sourceLines: string[], index: number, transitions = traceTransitions(trace)): MethodFlow[] {
   interface Acc {
     flow: MethodFlow;
-    visits: Map<number, { now: number; total: number }>;
+    visits: Map<number, Counter & { steps: number[] }>;
     edges: Map<string, FlowEdge>;
-    calls: Map<number, Map<string, { count: number; total: number }>>;
+    calls: Map<number, Map<string, Counter>>;
+    starts: number[];
+    exits: Counter;
   }
   const methods = new Map<string, Acc>();
   const get = (key: string): Acc => {
@@ -157,39 +188,62 @@ export function buildFlow(trace: Trace, sourceLines: string[], index: number, tr
         visits: new Map(),
         edges: new Map(),
         calls: new Map(),
+        starts: [],
+        exits: { now: 0, total: 0 },
       };
       methods.set(key, acc);
     }
     return acc;
+  };
+  const addEdge = (acc: Acc, from: number, to: number, k: number) => {
+    const id = `${from}->${to}`;
+    const e = acc.edges.get(id) ?? { from, to, count: 0, total: 0, label: edgeLabel(sourceLines, from, to) };
+    e.total++;
+    if (k <= index) e.count++;
+    acc.edges.set(id, e);
+    if (k === index) acc.flow.lastEdge = { from, to };
   };
 
   transitions.forEach((list, k) => {
     const upToNow = k <= index;
     for (const t of list) {
       const acc = get(t.method);
-      if (t.type === "visit") {
-        const v = acc.visits.get(t.line) ?? { now: 0, total: 0 };
-        v.total++;
-        if (upToNow) v.now++;
-        acc.visits.set(t.line, v);
-        if (t.activation) {
-          acc.flow.totalCalls++;
-          if (upToNow) acc.flow.calls++;
+      switch (t.type) {
+        case "visit": {
+          const v = acc.visits.get(t.line) ?? { now: 0, total: 0, steps: [] };
+          v.total++;
+          v.steps.push(k);
+          if (upToNow) v.now++;
+          acc.visits.set(t.line, v);
+          if (t.activation) {
+            acc.flow.totalCalls++;
+            if (upToNow) acc.flow.calls++;
+            acc.starts.push(k);
+            addEdge(acc, START_LINE, t.line, k);
+          }
+          break;
         }
-      } else if (t.type === "edge") {
-        const id = `${t.from}->${t.to}`;
-        const e = acc.edges.get(id) ?? { from: t.from, to: t.to, count: 0, total: 0, label: edgeLabel(sourceLines, t.from, t.to) };
-        e.total++;
-        if (upToNow) e.count++;
-        acc.edges.set(id, e);
-        if (k === index) acc.flow.lastEdge = { from: t.from, to: t.to };
-      } else {
-        const byCallee = acc.calls.get(t.line) ?? new Map<string, { count: number; total: number }>();
-        const c = byCallee.get(t.callee) ?? { count: 0, total: 0 };
-        c.total++;
-        if (upToNow) c.count++;
-        byCallee.set(t.callee, c);
-        acc.calls.set(t.line, byCallee);
+        case "edge":
+          addEdge(acc, t.from, t.to, k);
+          break;
+        case "exit":
+          acc.exits.total++;
+          if (upToNow) acc.exits.now++;
+          addEdge(acc, t.from, END_LINE, k);
+          break;
+        case "call": {
+          const byCallee = acc.calls.get(t.line) ?? new Map<string, Counter>();
+          const c = byCallee.get(t.callee) ?? { now: 0, total: 0 };
+          c.total++;
+          if (upToNow) c.now++;
+          byCallee.set(t.callee, c);
+          acc.calls.set(t.line, byCallee);
+          break;
+        }
+        default: {
+          const exhaustive: never = t;
+          return exhaustive;
+        }
       }
     }
   });
@@ -197,9 +251,9 @@ export function buildFlow(trace: Trace, sourceLines: string[], index: number, tr
   const current = trace.steps[index];
   const currentTop = current?.event === "end" ? undefined : current?.frames.at(-1);
 
-  return [...methods.values()].map(({ flow, visits, edges, calls }) => {
+  return [...methods.values()].map(({ flow, visits, edges, calls, starts, exits }) => {
     const executed = [...visits.keys()];
-    const first = Math.min(...executed);
+    const first = executed.length ? Math.min(...executed) : NaN;
     const span = Number.isFinite(first) ? methodSpan(sourceLines, flow.method, first) : null;
     const lines = new Set(executed);
     if (span) {
@@ -208,26 +262,49 @@ export function buildFlow(trace: Trace, sourceLines: string[], index: number, tr
         if (isStatementLike(sourceLines[l - 1] ?? "")) lines.add(l);
       }
     }
-    flow.nodes = [...lines]
+    const body: FlowNode[] = [...lines]
       .sort((a, b) => a - b)
       .map((line) => {
         const v = visits.get(line);
         const raw = (sourceLines[line - 1] ?? "").trim();
         const isClosingBrace = /^\}+$/.test(raw);
+        const lineCalls = [...(calls.get(line) ?? new Map<string, Counter>()).entries()].map(([method, c]) => ({
+          method,
+          count: c.now,
+          total: c.total,
+        }));
         return {
           line,
           // The closing brace of a method is where it returns when there is no return statement.
-          text: isClosingBrace ? `end of ${flow.method}()` : raw,
-          kind: isClosingBrace ? "return" : nodeKind(sourceLines, line),
+          text: isClosingBrace ? `end of ${flow.method}() body` : raw,
+          kind: isClosingBrace ? "return" : nodeKind(sourceLines, line, lineCalls.length > 0),
           visits: v?.now ?? 0,
           totalVisits: v?.total ?? 0,
-          calls: [...(calls.get(line) ?? new Map<string, { count: number; total: number }>()).entries()].map(([method, c]) => ({
-            method,
-            count: c.count,
-            total: c.total,
-          })),
+          steps: v?.steps ?? [],
+          calls: lineCalls,
         };
       });
+    flow.nodes = [
+      {
+        line: START_LINE,
+        text: flow.method === "main" ? "Start" : `Start ${flow.method}()`,
+        kind: "start",
+        visits: flow.calls,
+        totalVisits: flow.totalCalls,
+        steps: starts,
+        calls: [],
+      },
+      ...body,
+      {
+        line: END_LINE,
+        text: flow.method === "main" ? "End" : `Return to caller`,
+        kind: "end",
+        visits: exits.now,
+        totalVisits: exits.total,
+        steps: [],
+        calls: [],
+      },
+    ];
     flow.edges = [...edges.values()].sort((a, b) => a.from - b.from || a.to - b.to);
     if (currentTop && methodKey(currentTop.className, currentTop.method) === flow.key) {
       flow.currentLine = current?.line ?? null;
@@ -236,4 +313,9 @@ export function buildFlow(trace: Trace, sourceLines: string[], index: number, tr
     }
     return flow;
   });
+}
+
+/** The next step after `index` at which `node` runs, wrapping to its first run. */
+export function nextRunOf(node: FlowNode, index: number): number | null {
+  return node.steps.find((s) => s > index) ?? node.steps[0] ?? null;
 }

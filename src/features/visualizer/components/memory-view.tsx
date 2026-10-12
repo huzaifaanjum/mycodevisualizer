@@ -1,5 +1,6 @@
 "use client";
 
+import { FlagIcon } from "lucide-react";
 import { useMemo, useRef } from "react";
 import type { Step } from "@/shared/trace";
 import { diffCollection } from "../lib/collection-diff";
@@ -9,7 +10,16 @@ import { HeapObjectBox } from "./heap-object";
 import { ReferenceArrows } from "./reference-arrows";
 
 /** Stack frames on the left, heap arrays/objects on the right, arrows for references between them. */
-export function MemoryView({ step, previousStep }: { step: Step | undefined; previousStep: Step | undefined }) {
+export function MemoryView({
+  step,
+  previousStep,
+  finished = false,
+}: {
+  step: Step | undefined;
+  previousStep: Step | undefined;
+  /** The program has ended: `step` is the last moment it was running, shown as its final state. */
+  finished?: boolean;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const changed = useMemo(() => changedLocals(previousStep, step), [previousStep, step]);
   const changedSlots = useMemo(() => changedHeapSlots(previousStep, step), [previousStep, step]);
@@ -19,6 +29,12 @@ export function MemoryView({ step, previousStep }: { step: Step | undefined; pre
 
   return (
     <div ref={containerRef} className="relative h-full overflow-auto p-3">
+      {finished && (
+        <p role="status" className="mb-3 flex items-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs text-primary">
+          <FlagIcon className="size-3.5" aria-hidden />
+          Program finished. This is the final state of memory, just before main() ended.
+        </p>
+      )}
       <div className="grid min-w-fit grid-cols-[minmax(13rem,1fr)_minmax(10rem,1fr)] gap-x-12 gap-y-3">
         <div className="flex flex-col gap-2">
           <h3 className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">

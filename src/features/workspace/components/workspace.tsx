@@ -1,6 +1,6 @@
 "use client";
 
-import { PencilIcon, PlayIcon, SkipForwardIcon, WandSparklesIcon } from "lucide-react";
+import { HistoryIcon, PencilIcon, PlayIcon, SkipForwardIcon, WandSparklesIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getLanguageAdapter } from "@/languages";
 import type { LanguageId } from "@/shared/constants";
@@ -44,7 +44,11 @@ export function Workspace({ language, initialCode, initialStdin, title, canShare
   const { state, run, reset } = useRun();
   const trace = state.status === "ready" ? state.trace : null;
   const playback = usePlayback(trace, mode === "auto");
-  const viewing = state.status === "ready" && trace?.status !== "compile_error";
+  // After "Edit code" the last run stays on screen (memory, call tree, flow, output) until the next
+  // Visualize or a manual Clear; only the editor is unlocked.
+  const [editing, setEditing] = useState(false);
+  const hasRun = state.status === "ready" && trace?.status !== "compile_error";
+  const viewing = hasRun && !editing;
   const splitRef = useRef<HTMLDivElement>(null);
   const [codeWidth, setCodeWidth] = usePersistedNumber(CODE_WIDTH.key, CODE_WIDTH.default, CODE_WIDTH.min, CODE_WIDTH.max);
   const fullscreen = useFullscreen();
@@ -61,7 +65,16 @@ export function Workspace({ language, initialCode, initialStdin, title, canShare
     stdinRef.current = value;
     setStdin(value);
   }, []);
-  const visualize = useCallback(() => void run(language, codeRef.current, stdinRef.current), [run, language]);
+  const visualize = useCallback(() => {
+    setEditing(false);
+    void run(language, codeRef.current, stdinRef.current);
+  }, [run, language]);
+  const exitFullscreen = fullscreen.exit;
+  const clear = useCallback(() => {
+    setEditing(false);
+    void exitFullscreen();
+    reset();
+  }, [reset, exitFullscreen]);
 
   useEffect(() => {
     if (autoRun) visualize();
@@ -108,7 +121,7 @@ export function Workspace({ language, initialCode, initialStdin, title, canShare
               </ToggleGroupItem>
             </ToggleGroup>
             {viewing ? (
-              <Button size="sm" variant="secondary" onClick={reset}>
+              <Button size="sm" variant="secondary" onClick={() => setEditing(true)}>
                 <PencilIcon /> Edit code
               </Button>
             ) : (
@@ -158,6 +171,12 @@ export function Workspace({ language, initialCode, initialStdin, title, canShare
         {state.status === "idle" && <IdleState />}
         {state.status === "running" && <RunningState />}
         {state.status === "error" && <RunError error={state.error} onRetry={visualize} />}
+        {state.status === "ready" && editing && (
+          <p role="status" className="flex items-center gap-2 border-b bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+            <HistoryIcon className="size-3.5 shrink-0" aria-hidden />
+            Showing your last run. Edit the code, then press Visualize to run it again.
+          </p>
+        )}
         {state.status === "ready" && (
           <Visualizer
             language={language}
@@ -167,6 +186,7 @@ export function Workspace({ language, initialCode, initialStdin, title, canShare
             playback={playback}
             onSelectLine={(line) => setReveal({ line, nonce: Date.now() })}
             fullscreen={fullscreenControl}
+            onClear={clear}
           />
         )}
       </section>

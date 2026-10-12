@@ -2,7 +2,6 @@ import arraySum from "@tests/fixtures/traces/array-sum.json";
 import factorial from "@tests/fixtures/traces/factorial.json";
 import { expandTrace, TraceSchema } from "@/shared/trace";
 import {
-  buildCallTree,
   changedHeapSlots,
   changedLocals,
   currentFrame,
@@ -56,22 +55,6 @@ describe("trace helpers", () => {
     expect(drawn).toHaveLength(1);
     expect(drawn[0]?.[1].kind).toBe("array");
     expect(drawableHeap(undefined)).toEqual([]);
-  });
-
-  it("builds a recursion tree with return values", () => {
-    const tree = buildCallTree(fact, fact.steps.length - 2);
-    const main = tree.nodes.get(tree.roots[0] ?? "");
-    expect(main?.method).toBe("main");
-    const first = tree.nodes.get(main?.children[0] ?? "");
-    expect(first).toMatchObject({ method: "factorial", args: "n = 4", returnValue: "24", status: "returned" });
-    expect(tree.nodes.size).toBe(5);
-  });
-
-  it("marks the current call while recursing", () => {
-    const deepest = fact.steps.findIndex((s) => s.frames.length === 5);
-    const tree = buildCallTree(fact, deepest);
-    const statuses = [...tree.nodes.values()].map((n) => n.status);
-    expect(statuses.filter((s) => s === "current")).toHaveLength(1);
   });
 
   it("detects changed locals and heap slots", () => {

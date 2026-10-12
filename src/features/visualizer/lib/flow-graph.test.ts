@@ -1,7 +1,7 @@
 import arraySum from "@tests/fixtures/traces/array-sum.json";
 import factorial from "@tests/fixtures/traces/factorial.json";
 import { expandTrace, TraceSchema, type Trace } from "@/shared/trace";
-import { buildFlow, type MethodFlow } from "./flow-graph";
+import { buildFlow, END_LINE, nextRunOf, START_LINE, type MethodFlow } from "./flow-graph";
 
 const FACTORIAL = `import java.util.Scanner;
 
@@ -68,7 +68,7 @@ describe("buildFlow", () => {
     const main = method(buildFlow(fact, FACTORIAL, last(fact)), "main");
     expect(node(main, 14)?.calls).toEqual([{ method: "factorial", count: 1, total: 1 }]);
     expect(node(main, 14)?.totalVisits).toBe(1);
-    expect(node(main, 16)?.text).toBe("end of main()");
+    expect(node(main, 16)?.text).toBe("end of main() body");
   });
 
   it("shows loop repetitions and the exit", () => {
@@ -86,6 +86,33 @@ describe("buildFlow", () => {
     expect(main.lastEdge).toEqual({ from: 6, to: 7 });
     expect(edge(main, 6, 7)).toMatchObject({ count: 1, total: 3 });
     expect(node(main, 9)).toMatchObject({ visits: 0, totalVisits: 1 });
+  });
+
+  it("adds start and end terminals with entry and exit edges", () => {
+    const f = method(buildFlow(fact, FACTORIAL, last(fact)), "factorial");
+    expect(f.nodes[0]).toMatchObject({ kind: "start", totalVisits: 4 });
+    expect(f.nodes.at(-1)).toMatchObject({ kind: "end", totalVisits: 4 });
+    expect(edge(f, START_LINE, 5)).toMatchObject({ total: 4, label: "enter" });
+    expect(edge(f, 8, END_LINE)).toMatchObject({ total: 3, label: "return" });
+    expect(edge(f, 6, END_LINE)).toMatchObject({ total: 1, label: "return" });
+  });
+
+  it("classifies input/output and call lines", () => {
+    const flows = buildFlow(fact, FACTORIAL, last(fact));
+    const main = method(flows, "main");
+    expect(node(main, 13)?.kind).toBe("io");
+    expect(node(main, 14)?.kind).toBe("call");
+    expect(node(main, 15)?.kind).toBe("io");
+  });
+
+  it("finds the next time a line runs, for click-to-jump", () => {
+    const main = method(buildFlow(sum, ARRAY_SUM, 0), "main");
+    const body = node(main, 7);
+    if (!body) throw new Error("fixture changed");
+    expect(body.steps).toHaveLength(3);
+    expect(nextRunOf(body, 0)).toBe(body.steps[0]);
+    expect(nextRunOf(body, body.steps[0] ?? 0)).toBe(body.steps[1]);
+    expect(nextRunOf(body, sum.steps.length)).toBe(body.steps[0]);
   });
 
   it("includes lines that never ran so untaken paths are visible", () => {
@@ -117,6 +144,6 @@ describe("buildFlow", () => {
     const main = method(buildFlow(trace, code, 2), "main");
     expect(node(main, 5)).toMatchObject({ totalVisits: 0 });
     expect(edge(main, 4, 7)).toMatchObject({ label: "false", total: 1 });
-    expect(main.nodes.map((n) => n.line)).toEqual([3, 4, 5, 7]);
+    expect(main.nodes.map((n) => n.line)).toEqual([START_LINE, 3, 4, 5, 7, END_LINE]);
   });
 });

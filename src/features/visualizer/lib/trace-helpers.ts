@@ -122,59 +122,6 @@ export function stdinSlice(stdin: string, fromBytes: number, toBytes: number): s
   return new TextDecoder().decode(bytes.slice(fromBytes, toBytes)).trim();
 }
 
-export interface CallNode {
-  id: string;
-  method: string;
-  args: string;
-  parentId: string | null;
-  depth: number;
-  returnValue?: string;
-  status: "active" | "current" | "returned";
-  children: string[];
-}
-
-/** Builds the call tree for steps 0..index, used for the recursion view. */
-export function buildCallTree(trace: Trace, index: number): { roots: string[]; nodes: Map<string, CallNode> } {
-  const nodes = new Map<string, CallNode>();
-  const roots: string[] = [];
-  let previous: Frame[] = [];
-  const upto = Math.min(index, trace.steps.length - 1);
-  for (let i = 0; i <= upto; i++) {
-    const step = trace.steps[i];
-    if (!step) break;
-    const ids = new Set(step.frames.map((f) => f.id));
-    const popped = previous.filter((f) => !ids.has(f.id));
-    popped.forEach((f) => {
-      const node = nodes.get(f.id);
-      if (node) node.status = "returned";
-    });
-    const topPopped = popped.at(-1);
-    if (topPopped && step.returned) {
-      const node = nodes.get(topPopped.id);
-      if (node) node.returnValue = formatValue(step.returned.value, step.heap);
-    }
-    step.frames.forEach((frame, depth) => {
-      if (nodes.has(frame.id)) return;
-      const parentId = depth > 0 ? (step.frames[depth - 1]?.id ?? null) : null;
-      const args = frame.locals
-        .filter((l) => l.name !== "this" && !(frame.method === "main" && l.name === "args"))
-        .map((l) => `${l.name} = ${formatValue(l.value, step.heap)}`)
-        .join(", ");
-      nodes.set(frame.id, { id: frame.id, method: frame.method, args, parentId, depth, status: "active", children: [] });
-      if (parentId) nodes.get(parentId)?.children.push(frame.id);
-      else roots.push(frame.id);
-    });
-    previous = step.frames;
-  }
-  const last = trace.steps[upto];
-  const currentId = last?.frames.at(-1)?.id;
-  if (currentId) {
-    const node = nodes.get(currentId);
-    if (node) node.status = "current";
-  }
-  return { roots, nodes };
-}
-
 /**
  * Keys (`frameId:name`) of locals that are new or changed compared with the previous step.
  * A reference only counts as changed when it points at a different object.
