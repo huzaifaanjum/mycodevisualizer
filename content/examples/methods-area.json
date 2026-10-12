@@ -1,0 +1,11 @@
+{
+  "slug": "methods-area",
+  "title": "Methods with parameters",
+  "topic": "Methods",
+  "difficulty": "Easy",
+  "language": "java",
+  "description": "Call a method, pass values in, and get a result back.",
+  "code": "public class Main {\n    static int area(int width, int height) {\n        int result = width * height;\n        return result;\n    }\n\n    public static void main(String[] args) {\n        int small = area(2, 3);\n        int big = area(10, 4);\n        System.out.println(small + \" and \" + big);\n    }\n}\n",
+  "stdin": "",
+  "order": 12
+}

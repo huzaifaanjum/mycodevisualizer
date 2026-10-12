@@ -1,0 +1,11 @@
+{
+  "slug": "types-and-division",
+  "title": "Integer vs decimal division",
+  "topic": "Variables",
+  "difficulty": "Easy",
+  "language": "java",
+  "description": "See why 7 / 2 is 3 for ints but 3.5 for doubles.",
+  "code": "public class Main {\n    public static void main(String[] args) {\n        int x = 7;\n        int y = 2;\n        int intResult = x / y;\n        int remainder = x % y;\n        double decimalResult = (double) x / y;\n        System.out.println(intResult + \" remainder \" + remainder);\n        System.out.println(decimalResult);\n    }\n}\n",
+  "stdin": "",
+  "order": 3
+}

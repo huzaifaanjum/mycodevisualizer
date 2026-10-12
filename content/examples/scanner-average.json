@@ -1,0 +1,11 @@
+{
+  "slug": "scanner-average",
+  "title": "Average of input numbers",
+  "topic": "Input",
+  "difficulty": "Easy",
+  "language": "java",
+  "description": "Read how many numbers to expect, then read and average them.",
+  "code": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int count = sc.nextInt();\n        int total = 0;\n        for (int i = 0; i < count; i++) {\n            int value = sc.nextInt();\n            total += value;\n        }\n        double average = (double) total / count;\n        System.out.println(\"Average: \" + average);\n    }\n}\n",
+  "stdin": "3\n10 20 45\n",
+  "order": 15
+}

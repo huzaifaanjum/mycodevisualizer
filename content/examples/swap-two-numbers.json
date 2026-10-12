@@ -1,0 +1,11 @@
+{
+  "slug": "swap-two-numbers",
+  "title": "Swap two numbers",
+  "topic": "Variables",
+  "difficulty": "Beginner",
+  "language": "java",
+  "description": "Use a temporary variable to swap two values.",
+  "code": "public class Main {\n    public static void main(String[] args) {\n        int a = 10;\n        int b = 20;\n        int temp = a;\n        a = b;\n        b = temp;\n        System.out.println(\"a = \" + a + \", b = \" + b);\n    }\n}\n",
+  "stdin": "",
+  "order": 2
+}

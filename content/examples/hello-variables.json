@@ -1,0 +1,11 @@
+{
+  "slug": "hello-variables",
+  "title": "Variables and assignment",
+  "topic": "Variables",
+  "difficulty": "Beginner",
+  "language": "java",
+  "description": "Create variables, change them, and print the result.",
+  "code": "public class Main {\n    public static void main(String[] args) {\n        int apples = 3;\n        int oranges = 5;\n        int total = apples + oranges;\n        apples = apples + 2;\n        String message = \"Total fruit: \" + total;\n        System.out.println(message);\n        System.out.println(\"Apples now: \" + apples);\n    }\n}\n",
+  "stdin": "",
+  "order": 1
+}

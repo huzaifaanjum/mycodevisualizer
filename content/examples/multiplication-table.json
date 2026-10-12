@@ -1,0 +1,11 @@
+{
+  "slug": "multiplication-table",
+  "title": "Nested loops: times table",
+  "topic": "Loops",
+  "difficulty": "Medium",
+  "language": "java",
+  "description": "An inner loop runs completely for every pass of the outer loop.",
+  "code": "public class Main {\n    public static void main(String[] args) {\n        for (int row = 1; row <= 3; row++) {\n            String line = \"\";\n            for (int col = 1; col <= 3; col++) {\n                line = line + (row * col) + \" \";\n            }\n            System.out.println(line);\n        }\n    }\n}\n",
+  "stdin": "",
+  "order": 8
+}

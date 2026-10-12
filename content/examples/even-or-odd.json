@@ -1,0 +1,11 @@
+{
+  "slug": "even-or-odd",
+  "title": "Even or odd",
+  "topic": "Conditions",
+  "difficulty": "Beginner",
+  "language": "java",
+  "description": "Read a number and decide whether it is even or odd.",
+  "code": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        if (n % 2 == 0) {\n            System.out.println(n + \" is even\");\n        } else {\n            System.out.println(n + \" is odd\");\n        }\n    }\n}\n",
+  "stdin": "7\n",
+  "order": 4
+}

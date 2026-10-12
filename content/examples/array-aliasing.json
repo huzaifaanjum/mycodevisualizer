@@ -1,0 +1,11 @@
+{
+  "slug": "array-aliasing",
+  "title": "Two variables, one array",
+  "topic": "Arrays",
+  "difficulty": "Medium",
+  "language": "java",
+  "description": "Changing an array through one variable changes it for the other too.",
+  "code": "public class Main {\n    public static void main(String[] args) {\n        int[] original = {1, 2, 3};\n        int[] alias = original;\n        int[] copy = new int[3];\n        for (int i = 0; i < original.length; i++) {\n            copy[i] = original[i];\n        }\n        alias[0] = 99;\n        System.out.println(original[0] + \" \" + copy[0]);\n    }\n}\n",
+  "stdin": "",
+  "order": 11
+}

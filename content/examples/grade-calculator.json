@@ -1,0 +1,11 @@
+{
+  "slug": "grade-calculator",
+  "title": "Grade calculator",
+  "topic": "Conditions",
+  "difficulty": "Easy",
+  "language": "java",
+  "description": "An if / else if chain turns a score into a letter grade.",
+  "code": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int score = sc.nextInt();\n        char grade;\n        if (score >= 90) {\n            grade = 'A';\n        } else if (score >= 80) {\n            grade = 'B';\n        } else if (score >= 70) {\n            grade = 'C';\n        } else {\n            grade = 'F';\n        }\n        System.out.println(\"Grade: \" + grade);\n    }\n}\n",
+  "stdin": "84\n",
+  "order": 5
+}

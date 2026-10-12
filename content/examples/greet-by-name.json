@@ -1,0 +1,11 @@
+{
+  "slug": "greet-by-name",
+  "title": "Read words and lines",
+  "topic": "Input",
+  "difficulty": "Beginner",
+  "language": "java",
+  "description": "Scanner reads a word with next() and a whole line with nextLine().",
+  "code": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        String name = sc.nextLine();\n        int age = sc.nextInt();\n        System.out.println(\"Hi \" + name + \"!\");\n        System.out.println(\"Next year you'll be \" + (age + 1));\n    }\n}\n",
+  "stdin": "Ada Lovelace\n36\n",
+  "order": 16
+}

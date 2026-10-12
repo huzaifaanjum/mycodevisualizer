@@ -1,0 +1,11 @@
+{
+  "slug": "factorial-recursion",
+  "title": "Factorial with recursion",
+  "topic": "Recursion",
+  "difficulty": "Medium",
+  "language": "java",
+  "description": "Each call waits on the stack until the base case returns.",
+  "code": "import java.util.Scanner;\n\npublic class Main {\n    static int factorial(int n) {\n        if (n <= 1) {\n            return 1;\n        }\n        return n * factorial(n - 1);\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        System.out.println(n + \"! = \" + factorial(n));\n    }\n}\n",
+  "stdin": "4\n",
+  "order": 13
+}
