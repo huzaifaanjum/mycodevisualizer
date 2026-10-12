@@ -1,8 +1,8 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useMemo, useSyncExternalStore } from "react";
 import type { AccentId } from "@/shared/constants";
-import { applyAccent, readStoredAccent, storeAccent } from "../lib/accent";
+import { applyAccent, isAccentId, storeAccent } from "../lib/accent";
 
 interface AccentContextValue {
   accent: AccentId;
@@ -10,6 +10,17 @@ interface AccentContextValue {
 }
 
 const AccentContext = createContext<AccentContextValue | null>(null);
+const ACCENT_EVENT = "mcv:accent";
+
+/**
+ * The accent lives on <html data-accent>, set before paint by ACCENT_INIT_SCRIPT (from local storage)
+ * or by the server (from the account). React reads it as an external store, so there is no flash and
+ * no hydration mismatch.
+ */
+function subscribe(callback: () => void): () => void {
+  window.addEventListener(ACCENT_EVENT, callback);
+  return () => window.removeEventListener(ACCENT_EVENT, callback);
+}
 
 export function AccentProvider({
   initialAccent,
@@ -21,21 +32,20 @@ export function AccentProvider({
   persistToAccount: boolean;
   children: React.ReactNode;
 }) {
-  const [accent, setAccentState] = useState<AccentId>(initialAccent);
-
-  useEffect(() => {
-    if (persistToAccount) return; // the server-provided account preference wins
-    const stored = readStoredAccent();
-    if (stored && stored !== accent) setAccentState(stored);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- read storage once on mount
-  }, []);
-
-  useEffect(() => applyAccent(accent), [accent]);
+  const accent = useSyncExternalStore(
+    subscribe,
+    () => {
+      const current = document.documentElement.dataset.accent;
+      return isAccentId(current) ? current : initialAccent;
+    },
+    () => initialAccent,
+  );
 
   const setAccent = useCallback(
     (next: AccentId) => {
-      setAccentState(next);
+      applyAccent(next);
       storeAccent(next);
+      window.dispatchEvent(new Event(ACCENT_EVENT));
       if (persistToAccount) {
         void fetch("/api/me/preferences", {
           method: "PATCH",

@@ -60,7 +60,9 @@ export function CodeEditor({
   const monacoRef = useRef<Monaco | null>(null);
   const decorationsRef = useRef<ReturnType<MonacoEditor["createDecorationsCollection"]> | null>(null);
   const toggleRef = useRef(onToggleBreakpoint);
-  toggleRef.current = onToggleBreakpoint;
+  useEffect(() => {
+    toggleRef.current = onToggleBreakpoint;
+  }, [onToggleBreakpoint]);
 
   const onMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
@@ -80,7 +82,7 @@ export function CodeEditor({
     const monaco = monacoRef.current;
     const collection = decorationsRef.current;
     if (!monaco || !collection) return;
-    const decorations: Parameters<typeof collection.set>[0] = [];
+    const decorations: Parameters<typeof collection.set>[0][number][] = [];
     if (previousLine && previousLine !== currentLine) {
       decorations.push({ range: new monaco.Range(previousLine, 1, previousLine, 1), options: { isWholeLine: true, className: "mcv-previous-line" } });
     }

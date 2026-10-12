@@ -25,8 +25,8 @@ export function createLocalProcessProvider(tracerJarPath: string, nodeEnv: strin
         return await new Promise<ExecutionResult>((resolvePromise, reject) => {
           const child = spawn(plan.command, plan.args, {
             cwd: dir,
-            env: { PATH: process.env.PATH ?? "", HOME: dir, JAVA_TOOL_OPTIONS: "" },
-            stdio: ["ignore", "pipe", "pipe"],
+            env: { NODE_ENV: process.env.NODE_ENV, PATH: process.env.PATH ?? "", HOME: dir, JAVA_TOOL_OPTIONS: "" },
+            stdio: ["ignore", "pipe", "pipe"] as const,
           });
           let stdout = "";
           let stderr = "";
