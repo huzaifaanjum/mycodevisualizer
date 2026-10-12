@@ -39,11 +39,11 @@ export function useFullscreen() {
     return () => document.removeEventListener("fullscreenchange", onChange);
   }, []);
 
-  // Esc closes the overlay when the browser isn't in native full screen.
+  // Esc closes the overlay (browsers in native full screen usually handle Esc themselves first).
   useEffect(() => {
     if (!active) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !document.fullscreenElement) void exit();
+      if (e.key === "Escape") void exit();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
