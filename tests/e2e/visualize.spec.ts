@@ -68,7 +68,7 @@ test.describe("visualizer", () => {
     await visualize(page);
     await page.keyboard.press("End");
     await expect(page.getByRole("alert").filter({ hasText: "ArrayIndexOutOfBoundsException on line 5" })).toBeVisible();
-    await expect(page.getByText("Valid indexes are 0 to 1.")).toBeVisible();
+    await expect(page.getByText(/Valid indexes are 0 to 1\./)).toBeVisible();
   });
 
   test("rejects unsupported features with a friendly message", async ({ page }) => {
