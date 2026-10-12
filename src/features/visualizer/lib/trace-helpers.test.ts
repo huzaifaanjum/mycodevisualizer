@@ -8,6 +8,7 @@ import {
   currentFrame,
   drawableHeap,
   formatValue,
+  heapObjectLabels,
   isDrawnOnHeap,
   stdinSlice,
   stdinTokens,
@@ -80,5 +81,20 @@ describe("trace helpers", () => {
     const write = sum.steps.findIndex((s, idx) => idx > 0 && changedHeapSlots(sum.steps[idx - 1], s).size > 0);
     expect(write).toBeGreaterThan(0);
     expect(changedLocals(undefined, undefined).size).toBe(0);
+  });
+});
+
+describe("heapObjectLabels", () => {
+  it("names every variable that refers to an object, so aliases are visible", () => {
+    const step = sum.steps.find((s) => s.frames[0]?.locals.some((l) => l.name === "alias"));
+    if (!step) throw new Error("fixture changed");
+    const labels = [...heapObjectLabels(step).values()];
+    expect(labels).toContainEqual(["nums", "alias"]);
+  });
+
+  it("qualifies variables of callers with their method name", () => {
+    const inCall = fact.steps.find((s) => s.frames.length === 2);
+    if (!inCall) throw new Error("fixture changed");
+    expect([...heapObjectLabels(inCall).values()].flat()).toContain("main: sc");
   });
 });

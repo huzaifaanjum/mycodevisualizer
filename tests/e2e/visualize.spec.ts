@@ -38,6 +38,7 @@ test.describe("visualizer", () => {
     await page.keyboard.press("End");
     await page.keyboard.press("ArrowLeft");
     await expect(page.locator("[data-heap-id]").first()).toBeVisible();
+    await expect(page.locator("[data-heap-id] figcaption").first()).toContainText("original = alias");
     await expect(page.locator("svg path[marker-end]").first()).toBeAttached();
   });
 
@@ -49,6 +50,7 @@ test.describe("visualizer", () => {
     await expect(page.getByText('"apples" was added to shopping at index 1. shopping now has 4 elements.')).toBeVisible();
     const list = page.locator("figure", { hasText: "ArrayList" });
     await expect(list).toContainText("size 4");
+    await expect(list.locator("figcaption")).toContainText("shopping");
     await expect(list.getByText("(added)")).toHaveCount(1);
     await page.keyboard.press("ArrowRight");
     await expect(page.getByText('shopping[0] was replaced: "milk" → "oat milk".')).toBeVisible();
@@ -64,6 +66,7 @@ test.describe("visualizer", () => {
     await expect(page.getByText('grades: the value for "Ali" changed from 92 to 95.')).toBeVisible();
     const table = page.locator("figure", { hasText: "TreeMap" });
     await expect(table).toContainText("sorted by key");
+    await expect(table.locator("figcaption")).toContainText("grades");
     await expect(table.getByRole("row")).toHaveCount(4);
   });
 

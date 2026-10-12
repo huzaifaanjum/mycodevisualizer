@@ -3,7 +3,7 @@
 import { useMemo, useRef } from "react";
 import type { Step } from "@/shared/trace";
 import { diffCollection } from "../lib/collection-diff";
-import { changedHeapSlots, changedLocals, drawableHeap } from "../lib/trace-helpers";
+import { changedHeapSlots, changedLocals, drawableHeap, heapObjectLabels } from "../lib/trace-helpers";
 import { FrameCard } from "./frame-card";
 import { HeapObjectBox } from "./heap-object";
 import { ReferenceArrows } from "./reference-arrows";
@@ -14,6 +14,7 @@ export function MemoryView({ step, previousStep }: { step: Step | undefined; pre
   const changed = useMemo(() => changedLocals(previousStep, step), [previousStep, step]);
   const changedSlots = useMemo(() => changedHeapSlots(previousStep, step), [previousStep, step]);
   const heapObjects = useMemo(() => drawableHeap(step), [step]);
+  const labels = useMemo(() => (step ? heapObjectLabels(step) : new Map<string, string[]>()), [step]);
   const frames = step?.frames ?? [];
 
   return (
@@ -45,6 +46,7 @@ export function MemoryView({ step, previousStep }: { step: Step | undefined; pre
                 object={obj}
                 heap={step?.heap ?? {}}
                 changed={changedSlots}
+                names={labels.get(id) ?? []}
                 collectionDiff={diffCollection(id, previousStep, step)}
               />
             ))

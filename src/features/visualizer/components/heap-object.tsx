@@ -1,6 +1,7 @@
 import type { Heap, HeapObject } from "@/shared/trace";
 import type { CollectionDiff } from "../lib/collection-diff";
 import { CollectionBox } from "./collection-box";
+import { VariableNames } from "./variable-names";
 import { cn } from "@/lib/utils";
 import { ValueText } from "./value-text";
 
@@ -11,24 +12,30 @@ export function HeapObjectBox({
   object,
   heap,
   changed,
+  names = [],
   collectionDiff,
 }: {
   id: string;
   object: DrawableObject;
   heap: Heap;
   changed: Set<string>;
+  /** Variables that refer to this object (aliases when there are several). */
+  names?: string[];
   /** Changes since the previous step, for lists, sets and maps. */
   collectionDiff?: CollectionDiff | null;
 }) {
   if (object.kind === "list" || object.kind === "set" || object.kind === "map") {
-    return <CollectionBox id={id} object={object} heap={heap} diff={collectionDiff ?? null} />;
+    return <CollectionBox id={id} object={object} heap={heap} diff={collectionDiff ?? null} names={names} />;
   }
   if (object.kind === "array") {
     const hidden = object.length - object.items.length;
     return (
       <figure data-heap-id={id} className="mcv-frame-in w-fit max-w-full">
-        <figcaption className="mb-1 font-mono text-[11px] text-muted-foreground">
-          {object.elementType}[{object.length}]
+        <figcaption className="mb-1 flex flex-wrap items-baseline gap-x-2 font-mono text-[11px] text-muted-foreground">
+          <VariableNames names={names} />
+          <span>
+            {object.elementType}[{object.length}]
+          </span>
         </figcaption>
         {object.length === 0 ? (
           <div className="rounded-md border border-dashed px-3 py-2 text-xs text-muted-foreground">empty</div>
@@ -50,7 +57,10 @@ export function HeapObjectBox({
   }
   return (
     <figure data-heap-id={id} className="mcv-frame-in w-fit min-w-36 rounded-md border bg-card">
-      <figcaption className="border-b px-3 py-1 font-mono text-xs font-semibold">{object.className}</figcaption>
+      <figcaption className="flex flex-wrap items-baseline gap-x-2 border-b px-3 py-1 font-mono text-xs">
+        <VariableNames names={names} />
+        <span className="font-semibold">{object.className}</span>
+      </figcaption>
       {object.opaque || object.fields.length === 0 ? (
         <p className={cn("px-3 py-1.5 text-[11px] text-muted-foreground")}>
           {object.opaque ? "Java library object" : "No fields"}

@@ -3,6 +3,7 @@ import type { CollectionObject, Heap } from "@/shared/trace";
 import { cn } from "@/lib/utils";
 import type { CollectionDiff, ItemChange, ListDiff, MapDiff, RemovedItem } from "../lib/collection-diff";
 import { ValueText } from "./value-text";
+import { VariableNames } from "./variable-names";
 
 /** How to read the order of each kind of collection. */
 const ORDER_HINTS: Record<string, string> = {
@@ -30,11 +31,14 @@ export function CollectionBox({
   object,
   heap,
   diff,
+  names,
 }: {
   id: string;
   object: CollectionObject;
   heap: Heap;
   diff: CollectionDiff | null;
+  /** Variables that refer to this collection. */
+  names: string[];
 }) {
   const shown = object.kind === "map" ? object.entries.length : object.items.length;
   const hidden = object.size - shown;
@@ -42,6 +46,7 @@ export function CollectionBox({
   return (
     <figure data-heap-id={id} className="mcv-frame-in w-fit max-w-full">
       <figcaption className="mb-1 flex flex-wrap items-baseline gap-x-2 font-mono text-[11px] text-muted-foreground">
+        <VariableNames names={names} />
         <span className="font-semibold text-foreground">{object.className}</span>
         <span>size {object.size}</span>
         {hint && <span className="font-sans italic">{hint}</span>}

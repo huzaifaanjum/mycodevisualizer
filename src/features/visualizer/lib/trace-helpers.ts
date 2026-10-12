@@ -218,6 +218,36 @@ export function describeValue(value: Value, heap: Heap): string {
   }
 }
 
+/**
+ * Every variable (or field) that refers to each heap object, current frame first. Several names
+ * for one object means they are aliases. Locals of other frames are qualified with their method.
+ */
+export function heapObjectLabels(step: Step): Map<string, string[]> {
+  const labels = new Map<string, string[]>();
+  const add = (id: string, label: string) => {
+    const list = labels.get(id) ?? [];
+    if (!list.includes(label)) list.push(label);
+    labels.set(id, list);
+  };
+  const frames = [...step.frames].reverse(); // current frame first
+  frames.forEach((frame, i) => {
+    for (const local of frame.locals) {
+      if (local.value.kind !== "ref" || local.name === "this") continue;
+      if (frame.method === "main" && local.name === "args") continue;
+      add(local.value.heapId, i === 0 ? local.name : `${frame.method}: ${local.name}`);
+    }
+  });
+  for (const [id, names] of [...labels]) {
+    const obj = step.heap[id];
+    if (obj?.kind !== "object") continue;
+    const owner = names[0];
+    for (const f of obj.fields) {
+      if (f.value.kind === "ref" && owner) add(f.value.heapId, `${owner}.${f.name}`);
+    }
+  }
+  return labels;
+}
+
 /** A readable name for each heap object: the local variable (or field) that refers to it. */
 export function heapObjectNames(step: Step): Map<string, string> {
   const names = new Map<string, string>();
