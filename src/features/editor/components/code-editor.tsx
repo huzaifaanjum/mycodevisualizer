@@ -68,6 +68,48 @@ const EDITOR_THEMES = {
       "scrollbarSlider.background": "#0000001a",
     },
   },
+  sepia: {
+    base: "vs",
+    colors: {
+      "editor.background": "#f4ecd8",
+      "editor.foreground": "#433422",
+      "editorGutter.background": "#f4ecd8",
+      "editor.lineHighlightBackground": "#ebe1c8",
+      "editorLineNumber.foreground": "#a8977a",
+      "editorLineNumber.activeForeground": "#433422",
+      "editorWidget.background": "#fbf6ea",
+      "editorIndentGuide.background1": "#ddd0b3",
+      "scrollbarSlider.background": "#0000001a",
+    },
+  },
+  midnight: {
+    base: "vs-dark",
+    colors: {
+      "editor.background": "#0b1020",
+      "editor.foreground": "#c8d3e6",
+      "editorGutter.background": "#0b1020",
+      "editor.lineHighlightBackground": "#121a2e",
+      "editorLineNumber.foreground": "#4a5672",
+      "editorLineNumber.activeForeground": "#dbe3f0",
+      "editorWidget.background": "#131b30",
+      "editorIndentGuide.background1": "#1e2943",
+      "scrollbarSlider.background": "#ffffff1a",
+    },
+  },
+  mocha: {
+    base: "vs-dark",
+    colors: {
+      "editor.background": "#1e1915",
+      "editor.foreground": "#e0d3c0",
+      "editorGutter.background": "#1e1915",
+      "editor.lineHighlightBackground": "#28211b",
+      "editorLineNumber.foreground": "#6b5d4e",
+      "editorLineNumber.activeForeground": "#e8dccb",
+      "editorWidget.background": "#2a231d",
+      "editorIndentGuide.background1": "#3a3028",
+      "scrollbarSlider.background": "#ffffff1a",
+    },
+  },
 } as const satisfies Record<ThemeId, { base: "vs" | "vs-dark"; colors: Record<string, string> }>;
 
 const editorThemeName = (theme: ThemeId) => `mcv-${theme}`;
@@ -111,6 +153,8 @@ export function CodeEditor({
     editorRef.current = editor;
     monacoRef.current = monaco;
     decorationsRef.current = editor.createDecorationsCollection();
+    // Monaco measures glyphs on mount; re-measure once the web code font has loaded.
+    void document.fonts.ready.then(() => monaco.editor.remeasureFonts());
     editor.onMouseDown((e) => {
       const t = e.target.type;
       const line = e.target.position?.lineNumber;
@@ -194,7 +238,8 @@ export function CodeEditor({
         options={{
           readOnly,
           fontSize,
-          fontFamily: "var(--font-geist-mono), ui-monospace, monospace",
+          fontFamily: "var(--font-code), ui-monospace, monospace",
+          fontLigatures: false,
           minimap: { enabled: false },
           glyphMargin: true,
           lineNumbersMinChars: 3,

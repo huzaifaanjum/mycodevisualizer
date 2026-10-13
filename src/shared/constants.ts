@@ -27,10 +27,16 @@ export const BASE_STEP_INTERVAL_MS = 800;
 
 export const ACCENTS = [
   { id: "green", label: "Electric green", hex: "#22C55E" },
+  { id: "lime", label: "Lime", hex: "#A3E635" },
+  { id: "teal", label: "Teal", hex: "#2DD4BF" },
   { id: "cyan", label: "Cyan", hex: "#22D3EE" },
+  { id: "blue", label: "Blue", hex: "#3B82F6" },
+  { id: "indigo", label: "Indigo", hex: "#818CF8" },
   { id: "violet", label: "Violet", hex: "#A78BFA" },
-  { id: "amber", label: "Amber", hex: "#F59E0B" },
   { id: "pink", label: "Pink", hex: "#F472B6" },
+  { id: "rose", label: "Rose", hex: "#FB7185" },
+  { id: "orange", label: "Orange", hex: "#FB923C" },
+  { id: "amber", label: "Amber", hex: "#F59E0B" },
   { id: "mono", label: "Monochrome", hex: "#FAFAFA" },
 ] as const;
 export type AccentId = (typeof ACCENTS)[number]["id"];
@@ -38,10 +44,16 @@ export const DEFAULT_ACCENT: AccentId = "green";
 export const ACCENT_IDS = ACCENTS.map((a) => a.id) as [AccentId, ...AccentId[]];
 export const ACCENT_STORAGE_KEY = "mcv-accent";
 
-/** Black is pure #000 (OLED); dim is a soft dark gray for large or bright screens; light is light. */
+/**
+ * Black is pure #000 (OLED); dim is a soft dark gray for large or bright screens; light is light.
+ * Sepia is a warm paper tone, midnight a deep navy and mocha a warm dark brown.
+ */
 export const THEMES = [
   { id: "light", label: "Light", dark: false },
+  { id: "sepia", label: "Sepia", dark: false },
   { id: "dim", label: "Dim", dark: true },
+  { id: "midnight", label: "Midnight", dark: true },
+  { id: "mocha", label: "Mocha", dark: true },
   { id: "black", label: "Black", dark: true },
 ] as const;
 export type ThemeId = (typeof THEMES)[number]["id"];

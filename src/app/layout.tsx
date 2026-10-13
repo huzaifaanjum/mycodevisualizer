@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
 import { NavigationTracker } from "@/components/common/back-button";
 import { SiteHeader } from "@/components/common/site-header";
@@ -10,8 +10,9 @@ import { usersRepository } from "@/server/repositories/users.repository";
 import { DEFAULT_ACCENT, DEFAULT_THEME, SITE, type AccentId } from "@/shared/constants";
 import "./globals.css";
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+/** Inter for the interface; JetBrains Mono for code, where 0/O and 1/l/I must never be confused. */
+const uiFont = Inter({ variable: "--font-ui", subsets: ["latin"], display: "swap" });
+const codeFont = JetBrains_Mono({ variable: "--font-code", subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
   title: { default: `${SITE.name}: see Java code run step by step`, template: `%s · ${SITE.name}` },
@@ -36,7 +37,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       data-theme={DEFAULT_THEME}
       data-accent={saved ?? DEFAULT_ACCENT}
       data-server-accent={saved ? "1" : undefined}
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${uiFont.variable} ${codeFont.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full">

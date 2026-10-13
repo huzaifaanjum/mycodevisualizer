@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 
 /* `dark:` follows the chosen theme, not the OS preference. */
-@custom-variant dark (&:where([data-theme="dim"], [data-theme="dim"] *, [data-theme="black"], [data-theme="black"] *));
+@custom-variant dark (&:where(:is([data-theme="dim"], [data-theme="midnight"], [data-theme="mocha"], [data-theme="black"]), :is([data-theme="dim"], [data-theme="midnight"], [data-theme="mocha"], [data-theme="black"]) *));
 
 /*
  * Pure-black theme expressed as shadcn tokens. The accent is user-selectable via data-accent on <html>
@@ -43,6 +43,12 @@
 :root[data-accent="violet"] { --accent-color: #a78bfa; }
 :root[data-accent="amber"] { --accent-color: #f59e0b; }
 :root[data-accent="pink"] { --accent-color: #f472b6; }
+:root[data-accent="lime"] { --accent-color: #a3e635; }
+:root[data-accent="teal"] { --accent-color: #2dd4bf; }
+:root[data-accent="blue"] { --accent-color: #3b82f6; }
+:root[data-accent="indigo"] { --accent-color: #818cf8; }
+:root[data-accent="rose"] { --accent-color: #fb7185; }
+:root[data-accent="orange"] { --accent-color: #fb923c; }
 :root[data-accent="mono"] { --accent-color: #fafafa; }
 
 /*
@@ -77,6 +83,12 @@
 :root[data-theme="dim"][data-accent="violet"] { --accent-color: #b083f0; }
 :root[data-theme="dim"][data-accent="amber"] { --accent-color: #daaa3f; }
 :root[data-theme="dim"][data-accent="pink"] { --accent-color: #e275ad; }
+:root[data-theme="dim"][data-accent="lime"] { --accent-color: #8fbf4a; }
+:root[data-theme="dim"][data-accent="teal"] { --accent-color: #3fb9a8; }
+:root[data-theme="dim"][data-accent="blue"] { --accent-color: #539bf5; }
+:root[data-theme="dim"][data-accent="indigo"] { --accent-color: #8a8ff0; }
+:root[data-theme="dim"][data-accent="rose"] { --accent-color: #e5687a; }
+:root[data-theme="dim"][data-accent="orange"] { --accent-color: #e0823d; }
 :root[data-theme="dim"][data-accent="mono"] { --accent-color: #cdd3da; }
 
 /* Light: off-white page, darker accents so they stay readable on white. */
@@ -103,12 +115,93 @@
   --danger: #dc2626;
   color-scheme: light;
 }
-:root[data-theme="light"][data-accent="green"] { --accent-color: #15803d; }
-:root[data-theme="light"][data-accent="cyan"] { --accent-color: #0e7490; }
-:root[data-theme="light"][data-accent="violet"] { --accent-color: #7c3aed; }
-:root[data-theme="light"][data-accent="amber"] { --accent-color: #b45309; }
-:root[data-theme="light"][data-accent="pink"] { --accent-color: #be185d; }
-:root[data-theme="light"][data-accent="mono"] { --accent-color: #18181b; }
+:root:is([data-theme="light"], [data-theme="sepia"])[data-accent="green"] { --accent-color: #15803d; }
+:root:is([data-theme="light"], [data-theme="sepia"])[data-accent="cyan"] { --accent-color: #0e7490; }
+:root:is([data-theme="light"], [data-theme="sepia"])[data-accent="violet"] { --accent-color: #7c3aed; }
+:root:is([data-theme="light"], [data-theme="sepia"])[data-accent="amber"] { --accent-color: #b45309; }
+:root:is([data-theme="light"], [data-theme="sepia"])[data-accent="pink"] { --accent-color: #be185d; }
+:root:is([data-theme="light"], [data-theme="sepia"])[data-accent="lime"] { --accent-color: #4d7c0f; }
+:root:is([data-theme="light"], [data-theme="sepia"])[data-accent="teal"] { --accent-color: #0f766e; }
+:root:is([data-theme="light"], [data-theme="sepia"])[data-accent="blue"] { --accent-color: #1d4ed8; }
+:root:is([data-theme="light"], [data-theme="sepia"])[data-accent="indigo"] { --accent-color: #4338ca; }
+:root:is([data-theme="light"], [data-theme="sepia"])[data-accent="rose"] { --accent-color: #be123c; }
+:root:is([data-theme="light"], [data-theme="sepia"])[data-accent="orange"] { --accent-color: #c2410c; }
+:root:is([data-theme="light"], [data-theme="sepia"])[data-accent="mono"] { --accent-color: #18181b; }
+
+/* Sepia: warm paper tone, easy on the eyes for long reading; uses the light accents. */
+:root[data-theme="sepia"] {
+  --background: #f4ecd8;
+  --foreground: #433422;
+  --card: #fbf6ea;
+  --card-foreground: #433422;
+  --popover: #fbf6ea;
+  --popover-foreground: #433422;
+  --primary-foreground: #fbf6ea;
+  --secondary: #ebe1c8;
+  --secondary-foreground: #433422;
+  --muted: #efe6cf;
+  --muted-foreground: #7a6a52;
+  --accent: #e6dbc0;
+  --accent-foreground: #433422;
+  --destructive: #b91c1c;
+  --border: #ddd0b3;
+  --input: #cfc09f;
+  --changed: #a16207;
+  --returned: #8a7a62;
+  --stdin: #1d4ed8;
+  --danger: #b91c1c;
+  color-scheme: light;
+}
+
+/* Midnight: deep navy dark theme. */
+:root[data-theme="midnight"] {
+  --background: #0b1020;
+  --foreground: #dbe3f0;
+  --card: #10172a;
+  --card-foreground: #dbe3f0;
+  --popover: #131b30;
+  --popover-foreground: #dbe3f0;
+  --primary-foreground: #0b1020;
+  --secondary: #161f36;
+  --secondary-foreground: #dbe3f0;
+  --muted: #121a2e;
+  --muted-foreground: #8a96ad;
+  --accent: #1b2540;
+  --accent-foreground: #dbe3f0;
+  --destructive: #f87171;
+  --border: #1e2943;
+  --input: #27324f;
+  --changed: #facc15;
+  --returned: #7c879c;
+  --stdin: #7aa2f7;
+  --danger: #f87171;
+  color-scheme: dark;
+}
+
+/* Mocha: warm dark brown theme. */
+:root[data-theme="mocha"] {
+  --background: #1e1915;
+  --foreground: #e8dccb;
+  --card: #241e19;
+  --card-foreground: #e8dccb;
+  --popover: #2a231d;
+  --popover-foreground: #e8dccb;
+  --primary-foreground: #1e1915;
+  --secondary: #2c251f;
+  --secondary-foreground: #e8dccb;
+  --muted: #28211b;
+  --muted-foreground: #a5927c;
+  --accent: #342b23;
+  --accent-foreground: #e8dccb;
+  --destructive: #ef6b5b;
+  --border: #3a3028;
+  --input: #463a30;
+  --changed: #e0b354;
+  --returned: #8f7f6c;
+  --stdin: #7fb4e8;
+  --danger: #ef6b5b;
+  color-scheme: dark;
+}
 
 @theme inline {
   --color-background: var(--background);
@@ -137,8 +230,8 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  --font-sans: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-code), ui-monospace, SFMono-Regular, monospace;
 }
 
 @layer base {

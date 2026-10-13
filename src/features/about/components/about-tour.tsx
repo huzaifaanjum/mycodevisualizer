@@ -217,9 +217,9 @@ function StepDetail({ step, languages }: { step: AboutStep; languages: LanguageT
                   href={l.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-muted/50 hover:bg-primary/10 hover:text-primary inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors"
+                  className="border-border bg-card hover:border-foreground/30 hover:bg-accent inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors"
                 >
-                  <Icon aria-hidden className="text-primary size-4" />
+                  <Icon aria-hidden className="text-muted-foreground size-4" />
                   {l.label}
                   <ExternalMark />
                 </a>
@@ -271,11 +271,16 @@ function StepContent({
       )}
     >
       {step.id === "creator" && (
-        <div>
-          <p className={cn("text-primary font-semibold tracking-tight", large ? "text-2xl" : "text-lg")}>
+        <div className="space-y-1">
+          <p
+            className={cn(
+              "text-foreground leading-tight font-bold tracking-tight",
+              large ? "text-4xl sm:text-5xl" : "text-3xl sm:text-4xl",
+            )}
+          >
             {CREATOR.name}
           </p>
-          <p className="text-primary/70 font-medium">{CREATOR.role}</p>
+          <p className="text-muted-foreground text-sm font-medium tracking-wide uppercase">{CREATOR.role}</p>
         </div>
       )}
       <div className="max-w-3xl space-y-4 text-justify hyphens-auto">
@@ -379,13 +384,13 @@ export function AboutTour({ languages }: { languages: LanguageTab[] }) {
               {/* Highlight that slides to the current step. */}
               <span
                 aria-hidden
-                className="bg-accent absolute inset-x-0 top-0 h-10 translate-y-[calc(var(--step)*2.5rem)] rounded-md transition-transform duration-300 ease-out"
+                className="bg-accent absolute inset-x-0 top-0 h-12 translate-y-[calc(var(--step)*3rem)] rounded-md transition-transform duration-300 ease-out"
               />
               {/* Rail through every step, filled up to the current one. */}
-              <span aria-hidden className="bg-muted absolute top-5 bottom-5 left-[19px] w-0.5 rounded-full" />
+              <span aria-hidden className="bg-muted absolute top-6 bottom-6 left-[19px] w-0.5 rounded-full" />
               <span
                 aria-hidden
-                className="bg-primary absolute top-5 left-[19px] h-[calc(var(--step)*2.5rem)] w-0.5 rounded-full transition-[height] duration-500 ease-out"
+                className="bg-primary absolute top-6 left-[19px] h-[calc(var(--step)*3rem)] w-0.5 rounded-full transition-[height] duration-500 ease-out"
               />
               {ABOUT_STEPS.map((s, i) => {
                 const done = i < index;
@@ -397,7 +402,7 @@ export function AboutTour({ languages }: { languages: LanguageTab[] }) {
                       onClick={() => goTo(i)}
                       aria-current={current ? "step" : undefined}
                       className={cn(
-                        "flex h-10 w-full items-center gap-3 rounded-md px-2 text-left text-base transition-colors duration-300",
+                        "flex h-12 w-full items-center gap-3 rounded-md px-2 text-left text-base transition-colors duration-300",
                         current
                           ? "text-foreground font-medium"
                           : done
@@ -440,9 +445,9 @@ export function AboutTour({ languages }: { languages: LanguageTab[] }) {
 
       {showAll ? (
         <div className="min-w-0 flex-1 px-4 pt-5 pb-10 sm:px-8 lg:px-16 lg:pt-8">
-          <div className="mb-10 flex items-center justify-between gap-3">
-            <h1 className="text-3xl font-semibold tracking-tight">About</h1>
-            {toggle}
+          <div className="mb-12 flex flex-col items-start gap-3">
+            <div className="-ml-2">{toggle}</div>
+            <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">About</h1>
           </div>
           <div className="grid gap-x-16 gap-y-16 lg:grid-cols-2 lg:gap-y-24">
             {ABOUT_STEPS.map((s, i) => (
@@ -452,12 +457,12 @@ export function AboutTour({ languages }: { languages: LanguageTab[] }) {
                 className={cn("min-w-0", FULL_WIDTH_SECTIONS.has(s.id) && "lg:col-span-2")}
               >
                 <div className="space-y-1">
-                  <p className="text-primary font-mono text-sm">{String(i + 1).padStart(2, "0")}</p>
-                  <h2 id={`about-${s.id}`} className="text-2xl font-semibold tracking-tight">
+                  <p className="text-primary font-mono text-base">{String(i + 1).padStart(2, "0")}</p>
+                  <h2 id={`about-${s.id}`} className="text-3xl font-semibold tracking-tight">
                     {s.title}
                   </h2>
                 </div>
-                <StepContent step={s} languages={languages} />
+                <StepContent step={s} languages={languages} large />
               </section>
             ))}
           </div>
@@ -483,7 +488,7 @@ export function AboutTour({ languages }: { languages: LanguageTab[] }) {
             {/* In the page flow, so it sits bottom-right when there's room and below the text when there isn't. */}
             <span
               aria-hidden
-              className="pointer-events-none mt-auto -mr-2 -mb-3 flex self-end overflow-hidden px-2 pt-8 font-mono text-[4.5rem] leading-[1.15] font-semibold tracking-tighter tabular-nums opacity-60 select-none sm:text-[6.5rem] lg:text-[8.5rem]"
+              className="pointer-events-none mt-auto -mr-2 -mb-3 flex self-end overflow-hidden px-2 pt-8 font-mono text-[4.5rem] leading-[1.15] font-semibold tracking-tighter tabular-nums opacity-85 select-none sm:text-[6.5rem] lg:text-[8.5rem]"
             >
               {String(index + 1)
                 .padStart(2, "0")
