@@ -21,6 +21,8 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       canShare={features.database}
       canNarrate={features.narration}
       narrationIntro={problemStatement}
+      canExplain={features.explanations}
+      explainContext={example ? { title: example.title, description: example.description } : undefined}
       autoRun={Boolean(example)}
       banner={
         example ? <ExampleBanner example={example} canListen={features.narration} /> : undefined

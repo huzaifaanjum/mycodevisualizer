@@ -41,6 +41,10 @@ export interface WorkspaceProps {
   canNarrate?: boolean;
   /** Read aloud before the first step when narration is on (an example's problem statement). */
   narrationIntro?: string;
+  /** AI line-by-line explanations are set up on the server. */
+  canExplain?: boolean;
+  /** Example title and description, given to the AI as context. */
+  explainContext?: { title: string; description: string };
 }
 
 /** Editor + input on the left, visualization on the right. Owns run and playback state. */
@@ -54,6 +58,8 @@ export function Workspace({
   banner,
   canNarrate = false,
   narrationIntro,
+  canExplain = false,
+  explainContext,
 }: WorkspaceProps) {
   const adapter = getLanguageAdapter(language);
   const [code, setCode] = useState(initialCode);
@@ -233,6 +239,8 @@ export function Workspace({
             onClear={clear}
             canNarrate={canNarrate}
             narrationIntro={narrationIntro}
+            canExplain={canExplain}
+            explainContext={explainContext}
           />
         )}
       </section>

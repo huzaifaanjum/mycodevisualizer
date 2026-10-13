@@ -1,6 +1,7 @@
 import "server-only";
 import { getConfig } from "@/server/env";
 import { getExecutionProvider } from "@/server/execution";
+import { createGroqProvider } from "@/server/explanation/groq.provider";
 import { createElevenLabsProvider } from "@/server/narration/elevenlabs.provider";
 import { mongoRateLimitStore } from "@/server/repositories/rate-limit.repository";
 import { snippetsRepository } from "@/server/repositories/snippets.repository";
@@ -10,6 +11,7 @@ import { AppError } from "@/server/security/errors";
 import { MemoryRateLimitStore, RateLimiter } from "@/server/security/rate-limit";
 import { getSessionUser } from "./auth";
 import { anonymousIdentity, userIdentity, type Identity } from "./services/identity";
+import { createExplanationService } from "./services/explanation.service";
 import { createNarrationService } from "./services/narration.service";
 import { createRunService } from "./services/run.service";
 import { createSnippetService } from "./services/snippet.service";
@@ -27,6 +29,7 @@ function rateLimiter(): RateLimiter {
 let runService: ReturnType<typeof createRunService> | undefined;
 let snippetService: ReturnType<typeof createSnippetService> | undefined;
 let narrationService: ReturnType<typeof createNarrationService> | undefined;
+let explanationService: ReturnType<typeof createExplanationService> | undefined;
 
 export function getRunService() {
   runService ??= createRunService({
@@ -68,6 +71,17 @@ export function getNarrationService() {
     rateLimitMultiplier: env.RATE_LIMIT_MULTIPLIER,
   });
   return narrationService;
+}
+
+export function getExplanationService() {
+  const { env } = getConfig();
+  if (!env.GROQ_API_KEY) throw new AppError("SERVICE_UNAVAILABLE", "AI explanations aren't set up on this site.");
+  explanationService ??= createExplanationService({
+    provider: createGroqProvider({ apiKey: env.GROQ_API_KEY, model: env.GROQ_MODEL_ID }),
+    rateLimiter: rateLimiter(),
+    rateLimitMultiplier: env.RATE_LIMIT_MULTIPLIER,
+  });
+  return explanationService;
 }
 
 export async function resolveIdentity(request: Request): Promise<Identity> {

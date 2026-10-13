@@ -18,14 +18,17 @@ export function useStepNarration({
   playback,
   scriptFor,
   intro,
+  ready = true,
   onError,
 }: {
   enabled: boolean;
   playback: PlaybackController;
-  /** Spoken text for a step index, or "" when there is nothing to say. */
-  scriptFor: (index: number) => string;
+  /** Spoken clips for a step index, in order (empty when there is nothing to say). */
+  scriptFor: (index: number) => string[];
   /** Read once before step 1, e.g. the example's title and description. */
   intro?: string;
+  /** False while the script isn't final yet (an AI explanation is loading); narration waits. */
+  ready?: boolean;
   /** Narration failed (for example rate limited); receives a message that is safe to show. */
   onError: (message: string) => void;
 }) {
@@ -40,12 +43,17 @@ export function useStepNarration({
 
   useEffect(() => {
     if (!enabled) return;
+    if (!ready) {
+      // Autoplay waits on this step until the explanation arrives (or fails), then narration starts.
+      setHold(true);
+      return;
+    }
     const { scriptFor: script, speed: rate } = latest.current;
-    const texts = [index === 0 && intro ? intro : "", script(index)];
+    const texts = [index === 0 && intro ? intro : "", ...script(index)];
     const mine = ++generation.current;
     setHold(true);
     // Fetch the next step's audio now, so it starts as soon as the learner (or autoplay) moves on.
-    preload(script(index + 1));
+    script(index + 1).forEach(preload);
     speak(texts, { owner: STEP_NARRATION_OWNER, rate: voiceRate(rate) }).then(
       () => {
         // A newer step owns the hold now; otherwise (finished, or stopped by another speaker) release it.
@@ -57,7 +65,7 @@ export function useStepNarration({
         latest.current.onError(err instanceof Error ? err.message : "Narration failed. Try again.");
       },
     );
-  }, [enabled, index, intro, setHold]);
+  }, [enabled, ready, index, intro, setHold]);
 
   // Turning narration off (or leaving the page) silences it and lets autoplay run freely again.
   useEffect(() => {

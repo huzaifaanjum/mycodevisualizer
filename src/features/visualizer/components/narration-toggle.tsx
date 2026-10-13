@@ -10,17 +10,20 @@ import { STEP_NARRATION_OWNER } from "../hooks/use-step-narration";
 /** Turns spoken, line-by-line narration of the run on or off. */
 export function NarrationToggle({
   enabled,
+  preparing = false,
   onToggle,
   error,
 }: {
   enabled: boolean;
+  /** Waiting for the AI explanation before the first words are spoken. */
+  preparing?: boolean;
   onToggle: () => void;
   /** Why narration stopped by itself, shown until it is turned on again. */
   error?: string;
 }) {
   const status = useNarratorStatus();
   const mine = status.state !== "idle" && status.owner === STEP_NARRATION_OWNER;
-  const loading = enabled && mine && status.state === "loading";
+  const loading = preparing || (enabled && mine && status.state === "loading");
   const speaking = enabled && mine && status.state === "speaking";
 
   return (
@@ -45,7 +48,9 @@ export function NarrationToggle({
           </Button>
         </TooltipTrigger>
         <TooltipContent className="max-w-64">
-          {enabled
+          {preparing
+            ? "Preparing a line-by-line explanation of your code…"
+            : enabled
             ? "Stop reading the steps aloud"
             : "Read each step aloud as it runs. While playing, the player waits for the voice before moving on."}
         </TooltipContent>

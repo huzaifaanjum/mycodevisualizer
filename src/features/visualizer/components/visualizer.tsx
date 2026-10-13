@@ -2,6 +2,7 @@
 
 import { BrainIcon, EraserIcon, Maximize2Icon, Minimize2Icon, NetworkIcon, WorkflowIcon } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
+import { useCodeExplanation } from "@/features/explanation";
 import { getLanguageAdapter } from "@/languages";
 import type { LanguageId } from "@/shared/constants";
 import type { Trace } from "@/shared/trace";
@@ -17,7 +18,7 @@ import type { PlaybackController } from "../hooks/use-playback";
 import { usePlaybackShortcuts } from "../hooks/use-playback-shortcuts";
 import { useStepNarration } from "../hooks/use-step-narration";
 import { EXPLAIN } from "../lib/explanations";
-import { spokenStep } from "../lib/narration-script";
+import { firstVisits, narrationClips } from "../lib/narration-script";
 import { describeStep } from "../lib/step-notes";
 import { stdoutAt } from "../lib/trace-helpers";
 import { CallTree } from "./call-tree";
@@ -56,6 +57,10 @@ export interface VisualizerProps {
   canNarrate?: boolean;
   /** Read aloud before the first step, e.g. the example's title and description. */
   narrationIntro?: string;
+  /** AI line-by-line explanations are set up on the server. */
+  canExplain?: boolean;
+  /** Example title and description, given to the AI as context. */
+  explainContext?: { title: string; description: string };
 }
 
 /**
@@ -73,6 +78,8 @@ export function Visualizer({
   onClear,
   canNarrate = false,
   narrationIntro,
+  canExplain = false,
+  explainContext,
 }: VisualizerProps) {
   const adapter = getLanguageAdapter(language);
   const sourceLines = useMemo(() => source.split("\n"), [source]);
@@ -100,15 +107,44 @@ export function Visualizer({
     [trace, state.index, sourceLines, stdin, adapter],
   );
 
+  const explanationState = useCodeExplanation(
+    useMemo(
+      () =>
+        canExplain && trace.status !== "compile_error"
+          ? { language, code: source, stdin, ...(explainContext && { context: explainContext }) }
+          : null,
+      [canExplain, trace.status, language, source, stdin, explainContext],
+    ),
+  );
+  const explanation = explanationState.status === "ready" ? explanationState.explanation : undefined;
+  const firstVisitOf = useMemo(() => firstVisits(trace.steps.map((s) => s.line)), [trace]);
+  const upcomingLine = (index: number) => {
+    const s = trace.steps[index];
+    return s && s.event !== "end" && s.event !== "exception" ? s.line : undefined;
+  };
+  const currentLineExplanation = (() => {
+    const line = upcomingLine(state.index);
+    const entry = line === undefined ? undefined : explanation?.lines.find((l) => l.line === line);
+    if (!entry || line === undefined) return undefined;
+    return firstVisitOf.get(line) === state.index ? entry.explain : entry.brief;
+  })();
+
   const [narrating, setNarrating] = useState(false);
   const [narrationError, setNarrationError] = useState<string>();
   const scriptFor = useCallback(
     (index: number) => {
-      if (!trace.steps[index]) return "";
-      const stepNotes = describeStep({ trace, index, sourceLines, stdin, explainException: adapter.explainException });
-      return spokenStep(stepNotes, trace.steps[index - 1]?.line);
+      const s = trace.steps[index];
+      if (!s) return [];
+      const nextLine = s.event !== "end" && s.event !== "exception" ? s.line : undefined;
+      return narrationClips({
+        notes: describeStep({ trace, index, sourceLines, stdin, explainException: adapter.explainException }),
+        lineThatRan: trace.steps[index - 1]?.line,
+        nextLine,
+        firstVisit: nextLine !== undefined && firstVisitOf.get(nextLine) === index,
+        explanation,
+      });
     },
-    [trace, sourceLines, stdin, adapter],
+    [trace, sourceLines, stdin, adapter, firstVisitOf, explanation],
   );
   const onNarrationError = useCallback((message: string) => {
     setNarrating(false);
@@ -118,7 +154,8 @@ export function Visualizer({
     enabled: canNarrate && narrating && trace.status !== "compile_error",
     playback,
     scriptFor,
-    intro: narrationIntro,
+    intro: narrationIntro ?? explanation?.summary,
+    ready: explanationState.status !== "loading",
     onError: onNarrationError,
   });
 
@@ -177,6 +214,7 @@ export function Visualizer({
               {canNarrate && (
                 <NarrationToggle
                   enabled={narrating}
+                  preparing={narrating && explanationState.status === "loading"}
                   error={narrationError}
                   onToggle={() => {
                     setNarrationError(undefined);
@@ -254,6 +292,18 @@ export function Visualizer({
             total={total}
             line={step && step.event !== "end" ? step.line : undefined}
             lineText={step && step.event !== "end" ? sourceLines[step.line - 1]?.trim() : undefined}
+            ai={
+              explanationState.status === "off"
+                ? undefined
+                : {
+                    loading: explanationState.status === "loading",
+                    error: explanationState.status === "error" ? explanationState.message : undefined,
+                    lineText: currentLineExplanation,
+                    summary: state.index === 0 ? explanation?.summary : undefined,
+                    insights: finished ? explanation?.keyInsights : undefined,
+                    closing: finished ? explanation?.closing : undefined,
+                  }
+            }
           />
           <div className="min-h-0 flex-1 overflow-hidden">
             <ConsolePanel

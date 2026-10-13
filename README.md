@@ -12,6 +12,7 @@ Paste code, add input, press **Visualize**, then step through it or let it play.
 - **Call tree** for recursion, with return values, as a tree diagram or an outline.
 - **Flowchart** of each method, highlighting the path the program actually took.
 - **Voice narration** (optional, ElevenLabs): listen to an example's problem statement, and turn on *Narrate* to hear each line explained as it runs. Autoplay waits for the voice before moving on.
+- **AI explanations** (optional, Groq): any program, including your own, gets a friendly summary, a line-by-line explanation and key insights, shown under the player and used by narration. The master prompt lives in `src/server/explanation/master-prompt.ts`.
 - **Plain-English notes** for every step ("The loop condition i < nums.length is true (i is 0), so its body runs.").
 - **Console and input tape** showing output so far and which input tokens Scanner has consumed.
 - Beginner-friendly explanations of **compile errors** and **exceptions**.
@@ -71,7 +72,7 @@ cp .env.example .env.local # everything is optional for local dev
 yarn dev
 ```
 
-Without `MONGODB_URI` the app still works: examples come from `/content/examples`, sharing and sign-in are hidden, rate limits are kept in memory. Without `ELEVENLABS_API_KEY` the narration buttons are hidden. In development, code runs through the `local` provider (the tracer jar on your machine). It is refused in production.
+Without `MONGODB_URI` the app still works: examples come from `/content/examples`, sharing and sign-in are hidden, rate limits are kept in memory. Without `ELEVENLABS_API_KEY` the narration buttons are hidden; without `GROQ_API_KEY` narration reads the built-in step notes instead of AI explanations. In development, code runs through the `local` provider (the tracer jar on your machine). It is refused in production.
 
 ## Deploying to Vercel
 1. Import the repo into Vercel (framework: Next.js).

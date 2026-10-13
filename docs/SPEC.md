@@ -32,6 +32,7 @@ See `src/shared/trace/schema.ts` (schema version 1). Frames are ordered outermos
 | GET / PATCH / DELETE | `/api/snippets/[publicId]` | Read; owner-only rename and delete |
 | GET | `/api/me/snippets` | Signed-in user's snippets |
 | PATCH | `/api/me/preferences` | Save accent color |
+| POST | `/api/explanations` | AI line-by-line explanation of a program (Groq, strict JSON); only when `GROQ_API_KEY` is set |
 | POST | `/api/narration` | Read a short text aloud with the ElevenLabs voice (MP3); only when `ELEVENLABS_API_KEY` is set |
 
 All errors use `{ error: { code, message, retryAfterSeconds?, fields? } }`.

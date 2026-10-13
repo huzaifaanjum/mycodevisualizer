@@ -66,3 +66,36 @@ export const NarrationRequestSchema = z.strictObject({
   text: z.string().trim().min(1, "Nothing to read aloud.").max(LIMITS.maxNarrationChars, "That text is too long to read aloud."),
 });
 export type NarrationRequest = z.infer<typeof NarrationRequestSchema>;
+
+/** Code to explain line by line. Examples pass their title and description as context. */
+export const ExplainRequestSchema = z.strictObject({
+  language: LanguageSchema,
+  code: CodeSchema.refine(
+    (s) => byteLength(s) <= LIMITS.maxExplainCodeBytes && s.split("\n").length <= LIMITS.maxExplainLines,
+    "This program is too long for an AI explanation.",
+  ),
+  stdin: StdinSchema.default(""),
+  context: z
+    .strictObject({ title: z.string().max(120), description: z.string().max(1000) })
+    .optional(),
+});
+export type ExplainRequest = z.infer<typeof ExplainRequestSchema>;
+
+/** One source line, explained twice: in full the first time it runs, briefly every time after. */
+export const LineExplanationSchema = z.strictObject({
+  line: z.number().int().min(1),
+  explain: z.string().min(1).max(400),
+  brief: z.string().min(1).max(120),
+});
+
+/** A plain-English, line-by-line explanation of a program, written to be read aloud. */
+export const CodeExplanationSchema = z.strictObject({
+  summary: z.string().min(1).max(600),
+  keyInsights: z
+    .array(z.strictObject({ title: z.string().min(1).max(80), detail: z.string().min(1).max(300) }))
+    .max(5),
+  lines: z.array(LineExplanationSchema).max(LIMITS.maxExplainLines),
+  closing: z.string().max(300),
+});
+export type CodeExplanation = z.infer<typeof CodeExplanationSchema>;
+export type LineExplanation = z.infer<typeof LineExplanationSchema>;

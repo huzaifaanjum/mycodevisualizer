@@ -14,6 +14,9 @@ export const LIMITS = {
   maxSnippetTitleLength: 80,
   /** Longest text sent for one spoken narration (one step note or one problem statement). */
   maxNarrationChars: 700,
+  /** Programs longer than this are narrated from step notes only (no AI explanation). */
+  maxExplainCodeBytes: 16 * 1024,
+  maxExplainLines: 300,
 } as const;
 
 export const RATE_LIMITS = {
@@ -23,6 +26,9 @@ export const RATE_LIMITS = {
   /** Narration clips that reach the voice service; repeated text is served from cache and free. */
   narrationsPerMinuteAnonymous: 40,
   narrationsPerMinuteSignedIn: 80,
+  /** AI code explanations that reach the model; the same code is explained once and cached. */
+  explanationsPerHourAnonymous: 30,
+  explanationsPerHourSignedIn: 100,
 } as const;
 
 export const PLAYBACK_SPEEDS = [0.25, 0.5, 1, 2, 4] as const;

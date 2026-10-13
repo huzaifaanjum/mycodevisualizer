@@ -51,6 +51,10 @@ export const noteTemplates = {
   nextLine: (line: number) => `Next, line ${line} runs.`,
   /** Spoken before a step's notes, naming the line whose effects the notes describe. */
   spokenLineRan: (line: number) => `Line ${line} ran.`,
+  /** The AI explanation of the line that runs next, spoken after the effects of the last one. */
+  spokenNextLine: (line: number, explanation: string) => `Line ${line}. ${explanation}`,
+  /** Spoken at the end, after the AI's closing line. */
+  keyTakeaways: (details: string[]) => `Here's what to remember. ${details.join(" ")}`,
   valuesSuffix: (pairs: string) => ` (${pairs})`,
 } as const;
 

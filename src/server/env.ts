@@ -24,6 +24,10 @@ const EnvSchema = z.object({
   ELEVENLABS_VOICE_ID: blankAsUnset(z.string().regex(/^[A-Za-z0-9]{10,40}$/).default("JBFqnCBsd6RMkjVDRZzb")),
   /** Flash is the fastest and cheapest model; eleven_multilingual_v2 sounds richer but is slower. */
   ELEVENLABS_MODEL_ID: blankAsUnset(z.string().regex(/^[a-z0-9_]{3,64}$/).default("eleven_flash_v2_5")),
+  /** Groq (groq.com) for AI line-by-line code explanations. Without a key, narration uses step notes only. */
+  GROQ_API_KEY: blankAsUnset(z.string().min(1).optional()),
+  /** Must support strict structured outputs on Groq (gpt-oss-120b, gpt-oss-20b). */
+  GROQ_MODEL_ID: blankAsUnset(z.string().regex(/^[\w./-]{3,80}$/).default("openai/gpt-oss-120b")),
   /** Test environments only: multiplies every rate limit (e.g. 100 for end-to-end tests). */
   RATE_LIMIT_MULTIPLIER: z.coerce.number().int().min(1).max(1000).default(1),
 });
@@ -40,6 +44,7 @@ export interface ServerConfig {
     github: boolean;
     google: boolean;
     narration: boolean;
+    explanations: boolean;
   };
 }
 
@@ -70,6 +75,7 @@ export function getConfig(): ServerConfig {
       github,
       google,
       narration: Boolean(env.ELEVENLABS_API_KEY),
+      explanations: Boolean(env.GROQ_API_KEY),
     },
   };
   return cached;

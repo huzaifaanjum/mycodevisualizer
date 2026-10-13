@@ -37,6 +37,7 @@ export default async function SharedSnippetPage({ params }: PageProps<"/s/[publi
       canShare
       autoRun
       canNarrate={getConfig().features.narration}
+      canExplain={getConfig().features.explanations}
       banner={
         <div className="flex items-center gap-1.5 border-b bg-card/60 px-3 py-1 text-xs text-muted-foreground">
           <BackButton className="mr-1 h-6 px-2 text-xs" />
