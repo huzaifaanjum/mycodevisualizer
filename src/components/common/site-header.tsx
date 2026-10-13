@@ -4,7 +4,7 @@ import { getConfig } from "@/server/env";
 import { SITE } from "@/shared/constants";
 import { Button } from "@/components/ui/button";
 import { SignInDialog, UserMenu } from "@/features/auth";
-import { AccentPicker } from "@/features/theme";
+import { AccentPicker, ThemePicker } from "@/features/theme";
 
 export async function SiteHeader() {
   const { features } = getConfig();
@@ -31,6 +31,7 @@ export async function SiteHeader() {
         <Button variant="ghost" size="sm" asChild className="sm:hidden">
           <Link href="/examples">Examples</Link>
         </Button>
+        <ThemePicker />
         <AccentPicker />
         {features.auth &&
           (user ? <UserMenu name={user.name} image={user.image} /> : <SignInDialog github={features.github} google={features.google} />)}

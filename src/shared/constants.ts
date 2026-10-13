@@ -38,6 +38,17 @@ export const DEFAULT_ACCENT: AccentId = "green";
 export const ACCENT_IDS = ACCENTS.map((a) => a.id) as [AccentId, ...AccentId[]];
 export const ACCENT_STORAGE_KEY = "mcv-accent";
 
+/** Black is pure #000 (OLED); dim is a soft dark gray for large or bright screens; light is light. */
+export const THEMES = [
+  { id: "light", label: "Light", dark: false },
+  { id: "dim", label: "Dim", dark: true },
+  { id: "black", label: "Black", dark: true },
+] as const;
+export type ThemeId = (typeof THEMES)[number]["id"];
+export const DEFAULT_THEME: ThemeId = "black";
+export const THEME_IDS = THEMES.map((t) => t.id) as [ThemeId, ...ThemeId[]];
+export const THEME_STORAGE_KEY = "mcv-theme";
+
 export const SUPPORTED_LANGUAGES = ["java"] as const;
 export type LanguageId = (typeof SUPPORTED_LANGUAGES)[number];
 

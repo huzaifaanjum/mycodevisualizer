@@ -22,7 +22,7 @@ export function AccentPicker() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" aria-label={`Accent color: ${current.label}`}>
           <PaletteIcon />
-          <span className="size-3 rounded-full ring-1 ring-white/20" style={{ background: current.hex }} />
+          <span className="size-3 rounded-full ring-1 ring-foreground/20" style={{ background: current.hex }} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -30,7 +30,7 @@ export function AccentPicker() {
         <DropdownMenuRadioGroup value={accent} onValueChange={(v) => isAccentId(v) && setAccent(v)}>
           {ACCENTS.map((a) => (
             <DropdownMenuRadioItem key={a.id} value={a.id}>
-              <span className="size-3 rounded-full ring-1 ring-white/20" style={{ background: a.hex }} />
+              <span className="size-3 rounded-full ring-1 ring-foreground/20" style={{ background: a.hex }} />
               {a.label}
             </DropdownMenuRadioItem>
           ))}

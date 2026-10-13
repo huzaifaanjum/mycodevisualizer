@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* `dark:` follows the chosen theme, not the OS preference. */
+@custom-variant dark (&:where([data-theme="dim"], [data-theme="dim"] *, [data-theme="black"], [data-theme="black"] *));
+
 /*
  * Pure-black theme expressed as shadcn tokens. The accent is user-selectable via data-accent on <html>
  * and drives --primary / --ring / the current-line highlight.
@@ -41,6 +44,71 @@
 :root[data-accent="amber"] { --accent-color: #f59e0b; }
 :root[data-accent="pink"] { --accent-color: #f472b6; }
 :root[data-accent="mono"] { --accent-color: #fafafa; }
+
+/*
+ * Dim: soft gray with lower contrast and muted accents, so large or bright screens (TVs,
+ * projectors) don't glare. Selected via data-theme on <html>; black is the :root default.
+ */
+:root[data-theme="dim"] {
+  --background: #22272e;
+  --foreground: #cdd3da;
+  --card: #282e36;
+  --card-foreground: #cdd3da;
+  --popover: #2d333b;
+  --popover-foreground: #cdd3da;
+  --primary-foreground: #1c2128;
+  --secondary: #2d333b;
+  --secondary-foreground: #cdd3da;
+  --muted: #2a3038;
+  --muted-foreground: #8b949e;
+  --accent: #373e47;
+  --accent-foreground: #cdd3da;
+  --destructive: #e5534b;
+  --border: #373e47;
+  --input: #444c56;
+  --changed: #daaa3f;
+  --returned: #768390;
+  --stdin: #6cb6ff;
+  --danger: #f47067;
+  color-scheme: dark;
+}
+:root[data-theme="dim"][data-accent="green"] { --accent-color: #57ab5a; }
+:root[data-theme="dim"][data-accent="cyan"] { --accent-color: #39c5cf; }
+:root[data-theme="dim"][data-accent="violet"] { --accent-color: #b083f0; }
+:root[data-theme="dim"][data-accent="amber"] { --accent-color: #daaa3f; }
+:root[data-theme="dim"][data-accent="pink"] { --accent-color: #e275ad; }
+:root[data-theme="dim"][data-accent="mono"] { --accent-color: #cdd3da; }
+
+/* Light: off-white page, darker accents so they stay readable on white. */
+:root[data-theme="light"] {
+  --background: #fafafa;
+  --foreground: #18181b;
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+  --primary-foreground: #ffffff;
+  --secondary: #f0f0f2;
+  --secondary-foreground: #18181b;
+  --muted: #f1f1f3;
+  --muted-foreground: #5f5f6a;
+  --accent: #ececef;
+  --accent-foreground: #18181b;
+  --destructive: #dc2626;
+  --border: #e2e2e6;
+  --input: #d4d4d8;
+  --changed: #a16207;
+  --returned: #71717a;
+  --stdin: #2563eb;
+  --danger: #dc2626;
+  color-scheme: light;
+}
+:root[data-theme="light"][data-accent="green"] { --accent-color: #15803d; }
+:root[data-theme="light"][data-accent="cyan"] { --accent-color: #0e7490; }
+:root[data-theme="light"][data-accent="violet"] { --accent-color: #7c3aed; }
+:root[data-theme="light"][data-accent="amber"] { --accent-color: #b45309; }
+:root[data-theme="light"][data-accent="pink"] { --accent-color: #be185d; }
+:root[data-theme="light"][data-accent="mono"] { --accent-color: #18181b; }
 
 @theme inline {
   --color-background: var(--background);

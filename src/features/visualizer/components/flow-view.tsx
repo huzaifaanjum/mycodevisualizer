@@ -34,6 +34,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import type { Trace } from "@/shared/trace";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { isDarkTheme, useTheme } from "@/features/theme";
 import { buildFlow, nextRunOf, traceTransitions, type FlowEdge, type FlowNode, type FlowNodeKind, type MethodFlow } from "../lib/flow-graph";
 
 const NODE_W = 280;
@@ -71,6 +72,7 @@ function FlowCanvas({
   index: number;
   onSeek: (step: number) => void;
 }) {
+  const { theme } = useTheme();
   const transitions = useMemo(() => traceTransitions(trace), [trace]);
   const flows = useMemo(() => buildFlow(trace, sourceLines, index, transitions), [trace, sourceLines, index, transitions]);
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set());
@@ -170,7 +172,7 @@ function FlowCanvas({
           edges={graph.edges}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
-          colorMode="dark"
+          colorMode={isDarkTheme(theme) ? "dark" : "light"}
           minZoom={ZOOM.min}
           maxZoom={ZOOM.max}
           nodesDraggable={false}
@@ -356,7 +358,7 @@ function CardNodeView({ data }: NodeProps<CardNode>) {
         title={neverRan ? `Line ${node.line} never ran with this input` : `${runs ?? node.text}${canJump ? "\nClick to jump to the next time this runs" : ""}`}
         aria-label={`${kind.label}: ${text}${runs ? `, ${runs}` : ""}`}
         className={cn(
-          "nodrag nopan flex size-full items-center gap-2.5 border bg-card px-2 text-left shadow-md shadow-black/40 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          "nodrag nopan flex size-full items-center gap-2.5 border bg-card px-2 text-left shadow-md shadow-black/10 dark:shadow-black/40 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring",
           terminal ? "justify-center rounded-full" : "rounded-xl",
           canJump ? "cursor-pointer hover:border-muted-foreground" : "cursor-default",
           neverRan && "border-dashed",
