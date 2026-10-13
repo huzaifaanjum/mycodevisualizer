@@ -10,11 +10,27 @@ interface Rule {
  * security boundary; these checks give students a clear message instead of a confusing failure.
  */
 const RULES: Rule[] = [
-  { pattern: /\b(Thread|ExecutorService|Executors|CompletableFuture)\b/, message: "Threads aren't supported yet - this tool shows one line running at a time." },
-  { pattern: /\bjava\.net\b|\b(Socket|ServerSocket|HttpClient|URL)\b/, message: "Network access isn't available in the visualizer." },
-  { pattern: /\b(ProcessBuilder|Runtime\s*\.\s*getRuntime)\b/, message: "Starting other programs isn't allowed in the visualizer." },
-  { pattern: /\bjava\.nio\.file\b|\b(FileReader|FileWriter|FileInputStream|FileOutputStream|Files)\b|\bnew\s+File\s*\(/, message: "Reading or writing files isn't supported. Use the Input box and System.in instead." },
-  { pattern: /\bjava\.lang\.reflect\b|\bgetDeclaredMethod\b|\bsetAccessible\b/, message: "Reflection isn't supported in the visualizer." },
+  {
+    pattern: /\b(Thread|ExecutorService|Executors|CompletableFuture)\b/,
+    message: "Threads aren't supported yet - this tool shows one line running at a time.",
+  },
+  {
+    pattern: /\bjava\.net\b|\b(Socket|ServerSocket|HttpClient|URL)\b/,
+    message: "Network access isn't available in the visualizer.",
+  },
+  {
+    pattern: /\b(ProcessBuilder|Runtime\s*\.\s*getRuntime)\b/,
+    message: "Starting other programs isn't allowed in the visualizer.",
+  },
+  {
+    pattern:
+      /\bjava\.nio\.file\b|\b(FileReader|FileWriter|FileInputStream|FileOutputStream|Files)\b|\bnew\s+File\s*\(/,
+    message: "Reading or writing files isn't supported. Use the Input box and System.in instead.",
+  },
+  {
+    pattern: /\bjava\.lang\.reflect\b|\bgetDeclaredMethod\b|\bsetAccessible\b/,
+    message: "Reflection isn't supported in the visualizer.",
+  },
   { pattern: /\bnative\s+\w/, message: "Native methods aren't supported." },
 ];
 

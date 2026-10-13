@@ -17,6 +17,15 @@ export interface RunPlan {
   args: string[];
 }
 
+/** Plain-English summary of a language's support, shown on the About page. */
+export interface LanguageGuide {
+  /** What a program needs to look like, e.g. "One file with a main method." */
+  requirements: string;
+  supported: string[];
+  /** Mirrors findUnsupportedFeatures, in student-friendly words. */
+  notAvailable: string[];
+}
+
 /**
  * Everything the platform needs to support a language. Adding a language means adding a folder
  * that implements this interface and registering it; the UI only ever sees the shared Trace type.
@@ -27,10 +36,17 @@ export interface LanguageAdapter {
   monacoLanguage: string;
   starterCode: string;
   starterStdin: string;
+  guide: LanguageGuide;
   /** Fast, static checks that reject programs we know we cannot (or must not) run. */
   findUnsupportedFeatures(code: string): SourceIssue[];
   /** Builds the files and command that run the tracer inside an execution environment. */
-  buildRunPlan(input: { code: string; stdin: string; toolsDir: string; maxSteps: number; timeoutMs: number }): RunPlan;
+  buildRunPlan(input: {
+    code: string;
+    stdin: string;
+    toolsDir: string;
+    maxSteps: number;
+    timeoutMs: number;
+  }): RunPlan;
   /** Beginner-friendly explanation of a runtime exception. */
   explainException(type: string, message: string): string;
   /** Beginner-friendly rewording of a compiler message. */

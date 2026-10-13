@@ -37,12 +37,14 @@ export function explainJavaException(type: string, message: string): string {
 const DIAGNOSTICS: { pattern: RegExp; explain: (m: RegExpExecArray) => string }[] = [
   {
     pattern: /cannot find symbol\s+symbol:\s+(?:variable|method|class) (\w+)/,
-    explain: (m) => `Java doesn't know the name "${m[1]}". Check the spelling and that it was declared before this line.`,
+    explain: (m) =>
+      `Java doesn't know the name "${m[1]}". Check the spelling and that it was declared before this line.`,
   },
   { pattern: /';' expected/, explain: () => "A semicolon (;) is missing at the end of a statement." },
   {
     pattern: /incompatible types: (\S+) cannot be converted to (\S+)/,
-    explain: (m) => `${capitalize(withArticle(simple(m[1])))} value can't be stored in ${withArticle(simple(m[2]))} variable.`,
+    explain: (m) =>
+      `${capitalize(withArticle(simple(m[1])))} value can't be stored in ${withArticle(simple(m[2]))} variable.`,
   },
   {
     pattern: /variable (\w+) might not have been initialized/,

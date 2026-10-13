@@ -79,11 +79,20 @@ export const SITE = {
 export const CREATOR = {
   name: "Mohammed Huzaifa",
   role: "Full Stack AI Developer at Air Canada",
-  bio: "I love building web applications and designing products that make hard ideas feel simple. I made mycodevisualizer so Coding 101 students can see what their code is really doing.",
+  /** First-person paragraphs for the About page. */
+  bio: [
+    "I build web apps and AI tools for a living, and I care a lot about making hard ideas feel simple.",
+    "I made mycodevisualizer because code usually clicks the moment you can see it run. I wanted every student in a first programming course to have that moment, for free.",
+    "If it helped you, or something looks wrong, I'd love to hear about it.",
+  ],
   links: [
     { kind: "portfolio", label: "Portfolio", href: "https://mohammedhuzaifa.vercel.app/" },
     { kind: "github", label: "GitHub", href: "https://github.com/huzaifaanjum" },
     { kind: "linkedin", label: "LinkedIn", href: "https://www.linkedin.com/in/huzaifa-anjum/" },
-    { kind: "resume", label: "Resume", href: "https://mohammedhuzaifa.vercel.app/mohammed_huzaifa_resume.pdf" },
+    {
+      kind: "resume",
+      label: "Resume",
+      href: "https://mohammedhuzaifa.vercel.app/mohammed_huzaifa_resume.pdf",
+    },
   ],
 } as const;

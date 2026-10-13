@@ -1,5 +1,6 @@
 import type { LanguageAdapter } from "../types";
 import { explainJavaDiagnostic, explainJavaException } from "./explanations";
+import { JAVA_GUIDE } from "./guide";
 import { JAVA_STARTER_CODE, JAVA_STARTER_STDIN } from "./starter";
 import { findUnsupportedJavaFeatures } from "./unsupported";
 
@@ -9,6 +10,7 @@ export const javaAdapter: LanguageAdapter = {
   monacoLanguage: "java",
   starterCode: JAVA_STARTER_CODE,
   starterStdin: JAVA_STARTER_STDIN,
+  guide: JAVA_GUIDE,
   findUnsupportedFeatures: findUnsupportedJavaFeatures,
   buildRunPlan({ code, stdin, toolsDir, maxSteps, timeoutMs }) {
     return {
