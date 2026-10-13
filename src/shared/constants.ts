@@ -45,15 +45,23 @@ export const ACCENT_IDS = ACCENTS.map((a) => a.id) as [AccentId, ...AccentId[]];
 export const ACCENT_STORAGE_KEY = "mcv-accent";
 
 /**
- * Black is pure #000 (OLED); dim is a soft dark gray for large or bright screens; light is light.
- * Sepia is a warm paper tone, midnight a deep navy and mocha a warm dark brown.
+ * Black is pure #000 (OLED) and white is pure #fff; dim is a soft dark gray for large or bright
+ * screens. Sepia is a warm paper tone, midnight a deep navy and mocha a warm dark brown. The rest
+ * follow well-known editor color schemes so students feel at home.
  */
 export const THEMES = [
   { id: "light", label: "Light", dark: false },
+  { id: "white", label: "White", dark: false },
   { id: "sepia", label: "Sepia", dark: false },
+  { id: "solarized-light", label: "Solarized Light", dark: false },
   { id: "dim", label: "Dim", dark: true },
   { id: "midnight", label: "Midnight", dark: true },
   { id: "mocha", label: "Mocha", dark: true },
+  { id: "nord", label: "Nord", dark: true },
+  { id: "dracula", label: "Dracula", dark: true },
+  { id: "one-dark", label: "One Dark", dark: true },
+  { id: "gruvbox", label: "Gruvbox", dark: true },
+  { id: "solarized-dark", label: "Solarized Dark", dark: true },
   { id: "black", label: "Black", dark: true },
 ] as const;
 export type ThemeId = (typeof THEMES)[number]["id"];

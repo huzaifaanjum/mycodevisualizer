@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 
 /* `dark:` follows the chosen theme, not the OS preference. */
-@custom-variant dark (&:where(:is([data-theme="dim"], [data-theme="midnight"], [data-theme="mocha"], [data-theme="black"]), :is([data-theme="dim"], [data-theme="midnight"], [data-theme="mocha"], [data-theme="black"]) *));
+@custom-variant dark (&:where(:is([data-theme="dim"], [data-theme="midnight"], [data-theme="mocha"], [data-theme="nord"], [data-theme="dracula"], [data-theme="one-dark"], [data-theme="gruvbox"], [data-theme="solarized-dark"], [data-theme="black"]), :is([data-theme="dim"], [data-theme="midnight"], [data-theme="mocha"], [data-theme="nord"], [data-theme="dracula"], [data-theme="one-dark"], [data-theme="gruvbox"], [data-theme="solarized-dark"], [data-theme="black"]) *));
 
 /*
  * Pure-black theme expressed as shadcn tokens. The accent is user-selectable via data-accent on <html>
@@ -57,25 +57,25 @@
  */
 :root[data-theme="dim"] {
   --background: #22272e;
-  --foreground: #cdd3da;
+  --foreground: #eceff1;
   --card: #282e36;
-  --card-foreground: #cdd3da;
+  --card-foreground: #eceff1;
   --popover: #2d333b;
-  --popover-foreground: #cdd3da;
+  --popover-foreground: #eceff1;
   --primary-foreground: #1c2128;
   --secondary: #2d333b;
-  --secondary-foreground: #cdd3da;
+  --secondary-foreground: #eceff1;
   --muted: #2a3038;
-  --muted-foreground: #8b949e;
+  --muted-foreground: #adb3ba;
   --accent: #373e47;
-  --accent-foreground: #cdd3da;
-  --destructive: #e5534b;
+  --accent-foreground: #eceff1;
+  --destructive: #ed857f;
   --border: #373e47;
   --input: #444c56;
   --changed: #daaa3f;
-  --returned: #768390;
+  --returned: #909ba5;
   --stdin: #6cb6ff;
-  --danger: #f47067;
+  --danger: #f58078;
   color-scheme: dark;
 }
 :root[data-theme="dim"][data-accent="green"] { --accent-color: #57ab5a; }
@@ -103,51 +103,51 @@
   --secondary: #f0f0f2;
   --secondary-foreground: #18181b;
   --muted: #f1f1f3;
-  --muted-foreground: #5f5f6a;
+  --muted-foreground: #5a5a65;
   --accent: #ececef;
   --accent-foreground: #18181b;
-  --destructive: #dc2626;
+  --destructive: #d12424;
   --border: #e2e2e6;
   --input: #d4d4d8;
-  --changed: #a16207;
+  --changed: #9b5e07;
   --returned: #71717a;
-  --stdin: #2563eb;
-  --danger: #dc2626;
+  --stdin: #2562e9;
+  --danger: #d12424;
   color-scheme: light;
 }
-:root:is([data-theme="light"], [data-theme="sepia"])[data-accent="green"] { --accent-color: #15803d; }
-:root:is([data-theme="light"], [data-theme="sepia"])[data-accent="cyan"] { --accent-color: #0e7490; }
-:root:is([data-theme="light"], [data-theme="sepia"])[data-accent="violet"] { --accent-color: #7c3aed; }
-:root:is([data-theme="light"], [data-theme="sepia"])[data-accent="amber"] { --accent-color: #b45309; }
-:root:is([data-theme="light"], [data-theme="sepia"])[data-accent="pink"] { --accent-color: #be185d; }
-:root:is([data-theme="light"], [data-theme="sepia"])[data-accent="lime"] { --accent-color: #4d7c0f; }
-:root:is([data-theme="light"], [data-theme="sepia"])[data-accent="teal"] { --accent-color: #0f766e; }
-:root:is([data-theme="light"], [data-theme="sepia"])[data-accent="blue"] { --accent-color: #1d4ed8; }
-:root:is([data-theme="light"], [data-theme="sepia"])[data-accent="indigo"] { --accent-color: #4338ca; }
-:root:is([data-theme="light"], [data-theme="sepia"])[data-accent="rose"] { --accent-color: #be123c; }
-:root:is([data-theme="light"], [data-theme="sepia"])[data-accent="orange"] { --accent-color: #c2410c; }
-:root:is([data-theme="light"], [data-theme="sepia"])[data-accent="mono"] { --accent-color: #18181b; }
+:root:is([data-theme="light"], [data-theme="white"], [data-theme="sepia"], [data-theme="solarized-light"])[data-accent="green"] { --accent-color: #15803d; }
+:root:is([data-theme="light"], [data-theme="white"], [data-theme="sepia"], [data-theme="solarized-light"])[data-accent="cyan"] { --accent-color: #0e7490; }
+:root:is([data-theme="light"], [data-theme="white"], [data-theme="sepia"], [data-theme="solarized-light"])[data-accent="violet"] { --accent-color: #7c3aed; }
+:root:is([data-theme="light"], [data-theme="white"], [data-theme="sepia"], [data-theme="solarized-light"])[data-accent="amber"] { --accent-color: #b45309; }
+:root:is([data-theme="light"], [data-theme="white"], [data-theme="sepia"], [data-theme="solarized-light"])[data-accent="pink"] { --accent-color: #be185d; }
+:root:is([data-theme="light"], [data-theme="white"], [data-theme="sepia"], [data-theme="solarized-light"])[data-accent="lime"] { --accent-color: #4d7c0f; }
+:root:is([data-theme="light"], [data-theme="white"], [data-theme="sepia"], [data-theme="solarized-light"])[data-accent="teal"] { --accent-color: #0f766e; }
+:root:is([data-theme="light"], [data-theme="white"], [data-theme="sepia"], [data-theme="solarized-light"])[data-accent="blue"] { --accent-color: #1d4ed8; }
+:root:is([data-theme="light"], [data-theme="white"], [data-theme="sepia"], [data-theme="solarized-light"])[data-accent="indigo"] { --accent-color: #4338ca; }
+:root:is([data-theme="light"], [data-theme="white"], [data-theme="sepia"], [data-theme="solarized-light"])[data-accent="rose"] { --accent-color: #be123c; }
+:root:is([data-theme="light"], [data-theme="white"], [data-theme="sepia"], [data-theme="solarized-light"])[data-accent="orange"] { --accent-color: #c2410c; }
+:root:is([data-theme="light"], [data-theme="white"], [data-theme="sepia"], [data-theme="solarized-light"])[data-accent="mono"] { --accent-color: #18181b; }
 
 /* Sepia: warm paper tone, easy on the eyes for long reading; uses the light accents. */
 :root[data-theme="sepia"] {
   --background: #f4ecd8;
-  --foreground: #433422;
+  --foreground: #3c2f1f;
   --card: #fbf6ea;
-  --card-foreground: #433422;
+  --card-foreground: #3c2f1f;
   --popover: #fbf6ea;
-  --popover-foreground: #433422;
+  --popover-foreground: #3c2f1f;
   --primary-foreground: #fbf6ea;
   --secondary: #ebe1c8;
-  --secondary-foreground: #433422;
+  --secondary-foreground: #3c2f1f;
   --muted: #efe6cf;
-  --muted-foreground: #7a6a52;
+  --muted-foreground: #5f5340;
   --accent: #e6dbc0;
-  --accent-foreground: #433422;
+  --accent-foreground: #3c2f1f;
   --destructive: #b91c1c;
   --border: #ddd0b3;
   --input: #cfc09f;
-  --changed: #a16207;
-  --returned: #8a7a62;
+  --changed: #8f5706;
+  --returned: #776954;
   --stdin: #1d4ed8;
   --danger: #b91c1c;
   color-scheme: light;
@@ -165,7 +165,7 @@
   --secondary: #161f36;
   --secondary-foreground: #dbe3f0;
   --muted: #121a2e;
-  --muted-foreground: #8a96ad;
+  --muted-foreground: #8f9ab0;
   --accent: #1b2540;
   --accent-foreground: #dbe3f0;
   --destructive: #f87171;
@@ -190,18 +190,230 @@
   --secondary: #2c251f;
   --secondary-foreground: #e8dccb;
   --muted: #28211b;
-  --muted-foreground: #a5927c;
+  --muted-foreground: #b09f8c;
   --accent: #342b23;
   --accent-foreground: #e8dccb;
   --destructive: #ef6b5b;
   --border: #3a3028;
   --input: #463a30;
   --changed: #e0b354;
-  --returned: #8f7f6c;
+  --returned: #988978;
   --stdin: #7fb4e8;
   --danger: #ef6b5b;
   color-scheme: dark;
 }
+
+/* White: pure #fff with crisp contrast, the light counterpart to black; uses the light accents. */
+:root[data-theme="white"] {
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --card: #ffffff;
+  --card-foreground: #0a0a0a;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0a;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #0a0a0a;
+  --muted: #f4f4f5;
+  --muted-foreground: #52525b;
+  --accent: #f0f0f1;
+  --accent-foreground: #0a0a0a;
+  --destructive: #d52525;
+  --border: #e4e4e7;
+  --input: #d4d4d8;
+  --changed: #9f6107;
+  --returned: #71717a;
+  --stdin: #2563eb;
+  --danger: #d52525;
+  color-scheme: light;
+}
+
+/* Solarized Light; uses the light accents. */
+:root[data-theme="solarized-light"] {
+  --background: #fdf6e3;
+  --foreground: #073642;
+  --card: #fffbef;
+  --card-foreground: #073642;
+  --popover: #fffbef;
+  --popover-foreground: #073642;
+  --primary-foreground: #fdf6e3;
+  --secondary: #eee8d5;
+  --secondary-foreground: #073642;
+  --muted: #eee8d5;
+  --muted-foreground: #48575d;
+  --accent: #e9e2cb;
+  --accent-foreground: #073642;
+  --destructive: #c82e2b;
+  --border: #e4ddc8;
+  --input: #d6cfb8;
+  --changed: #866500;
+  --returned: #687272;
+  --stdin: #1e6ea6;
+  --danger: #c82e2b;
+  color-scheme: light;
+}
+
+/* Nord: cool arctic blue-gray. */
+:root[data-theme="nord"] {
+  --background: #2e3440;
+  --foreground: #ffffff;
+  --card: #3b4252;
+  --card-foreground: #ffffff;
+  --popover: #3b4252;
+  --popover-foreground: #ffffff;
+  --primary-foreground: #2e3440;
+  --secondary: #3b4252;
+  --secondary-foreground: #ffffff;
+  --muted: #353b49;
+  --muted-foreground: #c4c9d2;
+  --accent: #434c5e;
+  --accent-foreground: #ffffff;
+  --destructive: #ddabb0;
+  --border: #434c5e;
+  --input: #4c566a;
+  --changed: #ebcb8b;
+  --returned: #a5aebf;
+  --stdin: #a3bad2;
+  --danger: #ddabb0;
+  color-scheme: dark;
+}
+
+/* Dracula: dark purple-gray with vivid colors. */
+:root[data-theme="dracula"] {
+  --background: #282a36;
+  --foreground: #f8f8f2;
+  --card: #2f3241;
+  --card-foreground: #f8f8f2;
+  --popover: #343746;
+  --popover-foreground: #f8f8f2;
+  --primary-foreground: #282a36;
+  --secondary: #343746;
+  --secondary-foreground: #f8f8f2;
+  --muted: #2e303e;
+  --muted-foreground: #b5b8ce;
+  --accent: #44475a;
+  --accent-foreground: #f8f8f2;
+  --destructive: #ff8585;
+  --border: #3a3d4f;
+  --input: #44475a;
+  --changed: #f1fa8c;
+  --returned: #96a1c2;
+  --stdin: #8be9fd;
+  --danger: #ff8585;
+  color-scheme: dark;
+}
+
+/* One Dark: the classic Atom editor dark theme. */
+:root[data-theme="one-dark"] {
+  --background: #282c34;
+  --foreground: #eaecef;
+  --card: #2c313a;
+  --card-foreground: #eaecef;
+  --popover: #21252b;
+  --popover-foreground: #eaecef;
+  --primary-foreground: #282c34;
+  --secondary: #2c313a;
+  --secondary-foreground: #eaecef;
+  --muted: #2c313a;
+  --muted-foreground: #acb1ba;
+  --accent: #3e4451;
+  --accent-foreground: #eaecef;
+  --destructive: #e5858c;
+  --border: #3b4048;
+  --input: #4b5263;
+  --changed: #e5c07b;
+  --returned: #9398a1;
+  --stdin: #61afef;
+  --danger: #e5858c;
+  color-scheme: dark;
+}
+
+/* Gruvbox: warm retro dark theme. */
+:root[data-theme="gruvbox"] {
+  --background: #282828;
+  --foreground: #fbf9f1;
+  --card: #32302f;
+  --card-foreground: #fbf9f1;
+  --popover: #3c3836;
+  --popover-foreground: #fbf9f1;
+  --primary-foreground: #282828;
+  --secondary: #3c3836;
+  --secondary-foreground: #fbf9f1;
+  --muted: #32302f;
+  --muted-foreground: #c4baab;
+  --accent: #45403d;
+  --accent-foreground: #fbf9f1;
+  --destructive: #fc8b7d;
+  --border: #3c3836;
+  --input: #504945;
+  --changed: #fabd2f;
+  --returned: #aba094;
+  --stdin: #93b1a5;
+  --danger: #fc8b7d;
+  color-scheme: dark;
+}
+
+/* Solarized Dark. */
+:root[data-theme="solarized-dark"] {
+  --background: #002b36;
+  --foreground: #eaeded;
+  --card: #073642;
+  --card-foreground: #eaeded;
+  --popover: #073642;
+  --popover-foreground: #eaeded;
+  --primary-foreground: #002b36;
+  --secondary: #0a3f4c;
+  --secondary-foreground: #eaeded;
+  --muted: #073642;
+  --muted-foreground: #a7b3b4;
+  --accent: #0d4654;
+  --accent-foreground: #eaeded;
+  --destructive: #ea8482;
+  --border: #0e4351;
+  --input: #14505f;
+  --changed: #c29d2b;
+  --returned: #8a9ba1;
+  --stdin: #5ca8dd;
+  --danger: #ea8482;
+  color-scheme: dark;
+}
+
+/* Per-theme accent shades where the shared shade is too faint on that background. */
+:root[data-theme="light"][data-accent="lime"] { --accent-color: #4c7b0f; }
+:root[data-theme="sepia"][data-accent="green"] { --accent-color: #137638; }
+:root[data-theme="sepia"][data-accent="cyan"] { --accent-color: #0d6f8a; }
+:root[data-theme="sepia"][data-accent="amber"] { --accent-color: #a74d08; }
+:root[data-theme="sepia"][data-accent="lime"] { --accent-color: #47720e; }
+:root[data-theme="sepia"][data-accent="teal"] { --accent-color: #0f726b; }
+:root[data-theme="sepia"][data-accent="orange"] { --accent-color: #b63d0b; }
+:root[data-theme="midnight"][data-accent="blue"] { --accent-color: #4186f6; }
+:root[data-theme="mocha"][data-accent="blue"] { --accent-color: #4f8ef7; }
+:root[data-theme="solarized-light"][data-accent="green"] { --accent-color: #157d3c; }
+:root[data-theme="solarized-light"][data-accent="amber"] { --accent-color: #b05109; }
+:root[data-theme="solarized-light"][data-accent="lime"] { --accent-color: #4b780f; }
+:root[data-theme="nord"][data-accent="green"] { --accent-color: #3dcc71; }
+:root[data-theme="nord"][data-accent="violet"] { --accent-color: #bca7fb; }
+:root[data-theme="nord"][data-accent="amber"] { --accent-color: #f5a215; }
+:root[data-theme="nord"][data-accent="pink"] { --accent-color: #f794c8; }
+:root[data-theme="nord"][data-accent="blue"] { --accent-color: #8bb5fa; }
+:root[data-theme="nord"][data-accent="indigo"] { --accent-color: #a7aefa; }
+:root[data-theme="nord"][data-accent="rose"] { --accent-color: #fc96a5; }
+:root[data-theme="nord"][data-accent="orange"] { --accent-color: #fb9d50; }
+:root[data-theme="dracula"][data-accent="violet"] { --accent-color: #b097fa; }
+:root[data-theme="dracula"][data-accent="pink"] { --accent-color: #f57fbd; }
+:root[data-theme="dracula"][data-accent="blue"] { --accent-color: #74a6f9; }
+:root[data-theme="dracula"][data-accent="indigo"] { --accent-color: #96a0f9; }
+:root[data-theme="dracula"][data-accent="rose"] { --accent-color: #fb8192; }
+:root[data-theme="one-dark"][data-accent="blue"] { --accent-color: #669ef8; }
+:root[data-theme="one-dark"][data-accent="indigo"] { --accent-color: #8b95f9; }
+:root[data-theme="gruvbox"][data-accent="violet"] { --accent-color: #b198fb; }
+:root[data-theme="gruvbox"][data-accent="pink"] { --accent-color: #f580bd; }
+:root[data-theme="gruvbox"][data-accent="blue"] { --accent-color: #76a8f9; }
+:root[data-theme="gruvbox"][data-accent="indigo"] { --accent-color: #98a1f9; }
+:root[data-theme="gruvbox"][data-accent="rose"] { --accent-color: #fb8294; }
+:root[data-theme="solarized-dark"][data-accent="violet"] { --accent-color: #a88cfa; }
+:root[data-theme="solarized-dark"][data-accent="blue"] { --accent-color: #669ef8; }
+:root[data-theme="solarized-dark"][data-accent="indigo"] { --accent-color: #8b95f9; }
 
 @theme inline {
   --color-background: var(--background);
