@@ -3,65 +3,196 @@
 import { useLayoutEffect, useState, type RefObject } from "react";
 
 interface Arrow {
+  /** Source + target, so a reference that now points elsewhere draws in again. */
   key: string;
-  d: string;
+  source: string;
+  target: string;
+  line: string;
+  head: string;
+}
+
+interface Box {
+  left: number;
+  right: number;
+  top: number;
+  height: number;
+}
+
+const HEAD = 7;
+/** How long arrows keep following boxes after an entry/exit animation starts. */
+const FOLLOW_MS = 500;
+
+/**
+ * One curve from a reference dot at (sx, sy) to a heap box. Targets to the right or left get an
+ * S-curve into the near edge; targets in the same column (heap to heap) loop around the right side.
+ */
+export function routeArrow(sx: number, sy: number, t: Box): { line: string; head: string } {
+  const ty = t.top + Math.min(14, t.height / 2);
+  let dir: 1 | -1;
+  let tip: number;
+  let c1: number;
+  let c2: number;
+  if (t.left >= sx + 12) {
+    dir = 1;
+    tip = t.left - 2;
+    const bend = Math.max(30, (tip - sx) / 2);
+    c1 = sx + bend;
+    c2 = tip - HEAD - bend;
+  } else if (t.right <= sx - 12) {
+    dir = -1;
+    tip = t.right + 2;
+    const bend = Math.max(30, (sx - tip) / 2);
+    c1 = sx - bend;
+    c2 = tip + HEAD + bend;
+  } else {
+    dir = -1;
+    tip = t.right + 2;
+    const out = Math.max(sx, tip) + 28 + Math.min(60, Math.abs(ty - sy) * 0.2);
+    c1 = out;
+    c2 = out;
+  }
+  const end = tip - dir * HEAD;
+  return {
+    line: `M ${sx} ${sy} C ${c1} ${sy}, ${c2} ${ty}, ${end} ${ty}`,
+    head: `M ${tip} ${ty} L ${end} ${ty - HEAD / 1.6} L ${end} ${ty + HEAD / 1.6} Z`,
+  };
 }
 
 /**
  * Draws SVG arrows from every [data-ref-source] dot to the [data-heap-id] box it points to.
- * Positions are measured from the DOM so layout stays plain HTML/CSS.
+ * Positions are measured from the DOM so layout stays plain HTML/CSS; while boxes animate the
+ * arrows follow them frame by frame. Hovering a dot, frame or heap box highlights its arrows.
  */
-export function ReferenceArrows({ containerRef, deps }: { containerRef: RefObject<HTMLElement | null>; deps: unknown }) {
+export function ReferenceArrows({
+  containerRef,
+  deps,
+}: {
+  containerRef: RefObject<HTMLElement | null>;
+  deps: unknown;
+}) {
   const [arrows, setArrows] = useState<Arrow[]>([]);
   const [size, setSize] = useState({ width: 0, height: 0 });
+  const [focus, setFocus] = useState<Set<string> | null>(null);
 
   useLayoutEffect(() => {
     const container = containerRef.current;
     if (!container) return;
+    let signature = "";
     const measure = () => {
       const base = container.getBoundingClientRect();
+      const dx = container.scrollLeft - base.left;
+      const dy = container.scrollTop - base.top;
       const next: Arrow[] = [];
       container.querySelectorAll<HTMLElement>("[data-ref-source]").forEach((source) => {
-        const targetId = source.dataset.refTarget;
-        if (!targetId) return;
-        const target = container.querySelector<HTMLElement>(`[data-heap-id="${CSS.escape(targetId)}"]`);
-        if (!target) return;
+        const target = source.dataset.refTarget;
+        const sourceKey = source.dataset.refSource;
+        if (!target || !sourceKey || source.closest("[data-exiting]")) return;
+        const box = [
+          ...container.querySelectorAll<HTMLElement>(`[data-heap-id="${CSS.escape(target)}"]`),
+        ].find((el) => !el.closest("[data-exiting]"));
+        if (!box) return;
         const s = source.getBoundingClientRect();
-        const t = target.getBoundingClientRect();
-        const sx = s.left + s.width / 2 - base.left + container.scrollLeft;
-        const sy = s.top + s.height / 2 - base.top + container.scrollTop;
-        const pointsRight = t.left >= s.right;
-        const tx = (pointsRight ? t.left - 3 : t.right + 3) - base.left + container.scrollLeft;
-        const ty = t.top + Math.min(14, t.height / 2) - base.top + container.scrollTop;
-        const bend = Math.max(30, Math.abs(tx - sx) / 2);
-        const c1 = pointsRight ? sx + bend : sx - bend;
-        const c2 = pointsRight ? tx - bend : tx + bend;
-        next.push({ key: source.dataset.refSource ?? `${sx}-${sy}`, d: `M ${sx} ${sy} C ${c1} ${sy}, ${c2} ${ty}, ${tx} ${ty}` });
+        const t = box.getBoundingClientRect();
+        const route = routeArrow(s.left + s.width / 2 + dx, s.top + s.height / 2 + dy, {
+          left: t.left + dx,
+          right: t.right + dx,
+          top: t.top + dy,
+          height: t.height,
+        });
+        next.push({ key: `${sourceKey}->${target}`, source: sourceKey, target, ...route });
       });
+      const nextSignature = `${container.scrollWidth}x${container.scrollHeight}|${next.map((a) => a.key + a.line).join("|")}`;
+      if (nextSignature === signature) return;
+      signature = nextSignature;
       setArrows(next);
       setSize({ width: container.scrollWidth, height: container.scrollHeight });
     };
+
+    let frame = 0;
+    let followUntil = 0;
+    const tick = () => {
+      measure();
+      frame = performance.now() < followUntil ? requestAnimationFrame(tick) : 0;
+    };
+    const startFollowing = () => {
+      followUntil = performance.now() + FOLLOW_MS;
+      if (!frame) frame = requestAnimationFrame(tick);
+    };
+    const follow = (event: Event) => {
+      if (event.target instanceof Element && event.target.closest("[data-arrow-layer]")) return;
+      startFollowing();
+    };
+
     measure();
+    startFollowing();
     const observer = new ResizeObserver(measure);
     observer.observe(container);
-    return () => observer.disconnect();
+    if (container.firstElementChild) observer.observe(container.firstElementChild);
+    container.addEventListener("animationstart", follow);
+    container.addEventListener("transitionrun", follow);
+    return () => {
+      observer.disconnect();
+      container.removeEventListener("animationstart", follow);
+      container.removeEventListener("transitionrun", follow);
+      cancelAnimationFrame(frame);
+    };
   }, [containerRef, deps]);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const onOver = (event: PointerEvent) => {
+      const el = event.target instanceof Element ? event.target : null;
+      const region = el?.closest<HTMLElement>("[data-ref-source], [data-heap-id], [data-frame]");
+      if (!region || region.closest("[data-exiting]")) return setFocus(null);
+      const keys = new Set<string>();
+      const sources = region.matches("[data-ref-source]")
+        ? [region]
+        : [...region.querySelectorAll<HTMLElement>("[data-ref-source]")];
+      sources.forEach((s) => s.dataset.refSource && keys.add(`source:${s.dataset.refSource}`));
+      if (region.dataset.heapId) keys.add(`target:${region.dataset.heapId}`);
+      setFocus(keys.size > 0 ? keys : null);
+    };
+    const onLeave = () => setFocus(null);
+    container.addEventListener("pointerover", onOver);
+    container.addEventListener("pointerleave", onLeave);
+    return () => {
+      container.removeEventListener("pointerover", onOver);
+      container.removeEventListener("pointerleave", onLeave);
+    };
+  }, [containerRef]);
+
+  const isFocused = (a: Arrow) => focus?.has(`source:${a.source}`) || focus?.has(`target:${a.target}`);
 
   return (
     <svg
       aria-hidden
+      data-arrow-layer
       className="pointer-events-none absolute top-0 left-0 overflow-visible"
       width={size.width}
       height={size.height}
     >
-      <defs>
-        <marker id="mcv-arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--primary)" />
-        </marker>
-      </defs>
-      {arrows.map((a) => (
-        <path key={a.key} d={a.d} fill="none" stroke="var(--primary)" strokeWidth={1.5} strokeOpacity={0.85} markerEnd="url(#mcv-arrowhead)" />
-      ))}
+      {arrows.map((a) => {
+        const lit = focus !== null && isFocused(a);
+        return (
+          <g
+            key={a.key}
+            className="transition-opacity duration-200"
+            opacity={focus === null ? 0.8 : lit ? 1 : 0.15}
+          >
+            <path
+              d={a.line}
+              pathLength={1}
+              fill="none"
+              stroke="var(--primary)"
+              strokeWidth={lit ? 2.25 : 1.5}
+              strokeLinecap="round"
+              className="mcv-arrow-draw transition-[stroke-width] duration-200"
+            />
+            <path d={a.head} fill="var(--primary)" className="mcv-arrow-head" />
+          </g>
+        );
+      })}
     </svg>
   );
 }

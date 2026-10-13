@@ -21,14 +21,17 @@ export function ValueText({
   if (isDrawnOnHeap(value, heap)) {
     return (
       <span
-        className="inline-flex items-center gap-1 text-muted-foreground"
+        className="text-muted-foreground inline-flex items-center gap-1"
         title={formatValue(value, heap)}
         aria-label={`reference to ${formatValue(value, heap)}`}
       >
         <span
           data-ref-source={sourceId}
           data-ref-target={value.heapId}
-          className={cn("inline-block size-2.5 rounded-full bg-primary", changed && "ring-2 ring-changed")}
+          className={cn(
+            "bg-primary inline-block size-2.5 rounded-full",
+            changed && "mcv-dot-pop ring-changed ring-2",
+          )}
         />
       </span>
     );
@@ -38,7 +41,7 @@ export function ValueText({
     <span
       key={text}
       className={cn(
-        "rounded px-1 font-mono",
+        "inline-block rounded px-1 font-mono",
         value.kind === "null" && "text-muted-foreground italic",
         changed && "mcv-changed",
       )}

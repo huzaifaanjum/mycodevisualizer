@@ -75,7 +75,7 @@ test.describe("visualizer", () => {
     await page.keyboard.press("ArrowLeft");
     await expect(page.locator("[data-heap-id]").first()).toBeVisible();
     await expect(page.locator("[data-heap-id] figcaption").first()).toContainText("original = alias");
-    await expect(page.locator("svg path[marker-end]").first()).toBeAttached();
+    await expect(page.locator("svg[data-arrow-layer] path").first()).toBeAttached();
   });
 
   test("shows collection contents and highlights what changed", async ({ page }) => {
@@ -157,7 +157,7 @@ test.describe("flow, layout and full screen", () => {
     await expect(flow.getByRole("button", { name: /^loop: for \(int i = 0; i < nums\.length; i\+\+\), line \d+ · ran 5 of 5 times$/ })).toBeVisible();
     await expect(flow).toContainText("true ×4");
     await expect(page.getByText("How to read this flowchart")).toBeVisible();
-    await expect(flow.locator("svg path[marker-end]").first()).toBeAttached();
+    await expect(flow.locator("svg[data-arrow-layer] path").first()).toBeAttached();
   });
 
   test("flow tab follows recursion into each method", async ({ page }) => {

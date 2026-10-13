@@ -484,7 +484,8 @@
 
 /* Value-change pulse, disabled for reduced motion. */
 @keyframes mcv-pulse {
-  0% { background-color: color-mix(in oklab, var(--changed) 35%, transparent); }
+  0% { background-color: color-mix(in oklab, var(--changed) 35%, transparent); transform: scale(1.15); }
+  30% { transform: scale(1); }
   100% { background-color: transparent; }
 }
 .mcv-changed {
@@ -496,6 +497,44 @@
   to { opacity: 1; transform: none; }
 }
 .mcv-frame-in { animation: mcv-frame-in 200ms ease-out; }
+@keyframes mcv-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.mcv-fade-in { animation: mcv-fade-in 250ms ease-out; }
+
+/* Memory view: frames push onto the stack, heap objects pop into existence, both leave by collapsing. */
+@keyframes mcv-push-in {
+  from { opacity: 0; transform: translateY(-14px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+.mcv-push-in { animation: mcv-push-in 320ms cubic-bezier(0.34, 1.4, 0.64, 1); }
+@keyframes mcv-pop-in {
+  from { opacity: 0; transform: scale(0.88); }
+  to { opacity: 1; transform: none; }
+}
+.mcv-pop-in { animation: mcv-pop-in 300ms cubic-bezier(0.34, 1.5, 0.64, 1); transform-origin: top left; }
+@keyframes mcv-exit {
+  0% { opacity: 1; grid-template-rows: 1fr; }
+  45% { opacity: 0; transform: translateX(-8px) scale(0.96); grid-template-rows: 1fr; margin-bottom: 0; }
+  100% { opacity: 0; transform: translateX(-8px) scale(0.96); grid-template-rows: 0fr; margin-bottom: calc(-1 * var(--mcv-gap, 0px)); }
+}
+.mcv-exit { animation: mcv-exit 420ms ease-in-out forwards; }
+@keyframes mcv-dot-pop {
+  0% { transform: scale(1.8); }
+  100% { transform: scale(1); }
+}
+.mcv-dot-pop { animation: mcv-dot-pop 350ms cubic-bezier(0.34, 1.5, 0.64, 1); }
+@keyframes mcv-arrow-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+.mcv-arrow-draw { stroke-dasharray: 1; animation: mcv-arrow-draw 450ms ease-out; }
+@keyframes mcv-arrow-head {
+  0%, 70% { opacity: 0; }
+  100% { opacity: 1; }
+}
+.mcv-arrow-head { animation: mcv-arrow-head 450ms ease-out; }
 
 /* About page: the big step number slides in the direction you moved. */
 @keyframes mcv-step-forward {

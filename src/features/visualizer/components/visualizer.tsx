@@ -5,6 +5,7 @@ import { useMemo, useRef, useState } from "react";
 import { getLanguageAdapter } from "@/languages";
 import type { LanguageId } from "@/shared/constants";
 import type { Trace } from "@/shared/trace";
+import { InfoTip } from "@/components/common/info-tip";
 import { SplitHandle } from "@/components/common/split-handle";
 import { ZoomControls } from "@/components/common/zoom-controls";
 import { Button } from "@/components/ui/button";
@@ -14,24 +15,27 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { usePersistedNumber } from "@/lib/use-persisted-number";
 import type { PlaybackController } from "../hooks/use-playback";
 import { usePlaybackShortcuts } from "../hooks/use-playback-shortcuts";
+import { EXPLAIN } from "../lib/explanations";
 import { describeStep } from "../lib/step-notes";
 import { stdoutAt } from "../lib/trace-helpers";
 import { CallTree } from "./call-tree";
 import { CompileErrors } from "./compile-errors";
 import { ConsolePanel } from "./console-panel";
 import { FlowView } from "./flow-view";
-import { MemoryView } from "./memory-view";
+import { MemoryLegend, MemoryView } from "./memory-view";
 import { PlaybackBar } from "./playback-bar";
 import { StatusBanner } from "./status-banner";
 import { StepNoteBar } from "./step-note-bar";
 
-/** Tabs (memory, call tree, flow) share of the tabs + console area. */
-const TABS_HEIGHT = { key: "mcv-tabs-height", default: 75, min: 25, max: 92 } as const;
+/** Tabs (memory, flow, call tree) share of the tabs + step note + input/output area. */
+const TABS_HEIGHT = { key: "mcv-tabs-height", default: 65, min: 25, max: 88 } as const;
 
 /** Memory and call tree zoom in percent. The flow tab has its own pan/zoom. */
 const VIZ_ZOOM = { key: "mcv-viz-zoom", default: 100, min: 50, max: 250 } as const;
 
-type Tab = "memory" | "calls" | "flow";
+type Tab = "memory" | "flow" | "calls";
+
+const TAB_INFO = { memory: EXPLAIN.memoryTab, flow: EXPLAIN.flowTab, calls: EXPLAIN.callsTab } as const;
 const isTab = (v: string): v is Tab => v === "memory" || v === "calls" || v === "flow";
 
 export interface VisualizerProps {
@@ -47,8 +51,20 @@ export interface VisualizerProps {
   onClear?: () => void;
 }
 
-/** The right-hand panel: step notes, memory, call tree, console and playback for one trace. */
-export function Visualizer({ language, trace, source, stdin, playback, onSelectLine, fullscreen, onClear }: VisualizerProps) {
+/**
+ * The right-hand panel for one trace, top to bottom: the player, the views (memory, flow, call
+ * tree), the plain-English note for this step, input and output side by side, then the legend.
+ */
+export function Visualizer({
+  language,
+  trace,
+  source,
+  stdin,
+  playback,
+  onSelectLine,
+  fullscreen,
+  onClear,
+}: VisualizerProps) {
   const adapter = getLanguageAdapter(language);
   const sourceLines = useMemo(() => source.split("\n"), [source]);
   const { step, previousStep, state, total } = playback;
@@ -56,10 +72,22 @@ export function Visualizer({ language, trace, source, stdin, playback, onSelectL
   const [tab, setTab] = useState<Tab>("memory");
   const [zoom, setZoom] = usePersistedNumber(VIZ_ZOOM.key, VIZ_ZOOM.default, VIZ_ZOOM.min, VIZ_ZOOM.max);
   const splitRef = useRef<HTMLDivElement>(null);
-  const [tabsHeight, setTabsHeight] = usePersistedNumber(TABS_HEIGHT.key, TABS_HEIGHT.default, TABS_HEIGHT.min, TABS_HEIGHT.max);
+  const [tabsHeight, setTabsHeight] = usePersistedNumber(
+    TABS_HEIGHT.key,
+    TABS_HEIGHT.default,
+    TABS_HEIGHT.min,
+    TABS_HEIGHT.max,
+  );
 
   const notes = useMemo(
-    () => describeStep({ trace, index: state.index, sourceLines, stdin, explainException: adapter.explainException }),
+    () =>
+      describeStep({
+        trace,
+        index: state.index,
+        sourceLines,
+        stdin,
+        explainException: adapter.explainException,
+      }),
     [trace, state.index, sourceLines, stdin, adapter],
   );
 
@@ -71,39 +99,59 @@ export function Visualizer({ language, trace, source, stdin, playback, onSelectL
   );
 
   if (trace.status === "compile_error") {
-    return <CompileErrors diagnostics={trace.diagnostics ?? []} explain={adapter.explainDiagnostic} onSelectLine={onSelectLine} />;
+    return (
+      <CompileErrors
+        diagnostics={trace.diagnostics ?? []}
+        explain={adapter.explainDiagnostic}
+        onSelectLine={onSelectLine}
+      />
+    );
   }
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <StatusBanner trace={trace} step={step} isLastStep={state.index >= total - 1} explainException={adapter.explainException} />
-      <StepNoteBar
-        notes={notes}
-        stepNumber={state.index + 1}
-        total={total}
-        line={step && step.event !== "end" ? step.line : undefined}
-        lineText={step && step.event !== "end" ? sourceLines[step.line - 1]?.trim() : undefined}
+      <PlaybackBar playback={playback} />
+      <StatusBanner
+        trace={trace}
+        step={step}
+        isLastStep={state.index >= total - 1}
+        explainException={adapter.explainException}
       />
       <div
         ref={splitRef}
         className="grid min-h-0 flex-1 grid-rows-[minmax(0,var(--tabs-height))_auto_minmax(0,1fr)]"
         style={{ "--tabs-height": `${tabsHeight}%` } as React.CSSProperties}
       >
-        <Tabs value={tab} onValueChange={(v) => isTab(v) && setTab(v)} className="flex min-h-0 flex-col overflow-hidden">
-          <div className="flex flex-wrap items-center justify-between gap-2 px-3 pt-2">
-            <TabsList>
-              <TabsTrigger value="memory">
-                <BrainIcon aria-hidden /> Memory
-              </TabsTrigger>
-              <TabsTrigger value="calls">
-                <NetworkIcon aria-hidden /> Call tree
-              </TabsTrigger>
-              <TabsTrigger value="flow">
-                <WorkflowIcon aria-hidden /> Flow
-              </TabsTrigger>
-            </TabsList>
+        <Tabs
+          value={tab}
+          onValueChange={(v) => isTab(v) && setTab(v)}
+          className="flex min-h-0 flex-col overflow-hidden"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b px-3 py-2">
+            <div className="flex items-center gap-2">
+              <TabsList>
+                <TabsTrigger value="memory">
+                  <BrainIcon aria-hidden /> Memory
+                </TabsTrigger>
+                <TabsTrigger value="flow">
+                  <WorkflowIcon aria-hidden /> Flow
+                </TabsTrigger>
+                <TabsTrigger value="calls">
+                  <NetworkIcon aria-hidden /> Call tree
+                </TabsTrigger>
+              </TabsList>
+              <InfoTip title={TAB_INFO[tab].title} text={TAB_INFO[tab].text} />
+            </div>
             <div className="flex items-center gap-1">
-              {tab !== "flow" && <ZoomControls label="Visualization" value={zoom} onChange={setZoom} min={VIZ_ZOOM.min} max={VIZ_ZOOM.max} />}
+              {tab !== "flow" && (
+                <ZoomControls
+                  label="Visualization"
+                  value={zoom}
+                  onChange={setZoom}
+                  min={VIZ_ZOOM.min}
+                  max={VIZ_ZOOM.max}
+                />
+              )}
               {onClear && (
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -141,28 +189,42 @@ export function Visualizer({ language, trace, source, stdin, playback, onSelectL
               <MemoryView step={step} previousStep={previousStep} zoom={zoom} />
             )}
           </TabsContent>
-          <TabsContent value="calls" className="min-h-0 flex-1">
-            <CallTree trace={trace} index={state.index} onSeek={playback.seek} zoom={zoom} />
-          </TabsContent>
           <TabsContent value="flow" className="min-h-0 flex-1">
             <FlowView trace={trace} sourceLines={sourceLines} index={state.index} onSeek={playback.seek} />
+          </TabsContent>
+          <TabsContent value="calls" className="min-h-0 flex-1">
+            <CallTree trace={trace} index={state.index} onSeek={playback.seek} zoom={zoom} />
           </TabsContent>
         </Tabs>
         <SplitHandle
           containerRef={splitRef}
           direction="column"
-          label="Resize output panel"
+          label="Resize step and input/output panel"
           value={tabsHeight}
           onChange={setTabsHeight}
           min={TABS_HEIGHT.min}
           max={TABS_HEIGHT.max}
           defaultValue={TABS_HEIGHT.default}
         />
-        <div className="min-h-0 overflow-hidden">
-          <ConsolePanel output={stdoutAt(trace, step)} stdin={stdin} stdinConsumed={step?.stdinConsumed ?? 0} />
+        <div className="flex min-h-0 flex-col overflow-hidden">
+          <StepNoteBar
+            notes={notes}
+            stepNumber={state.index + 1}
+            total={total}
+            line={step && step.event !== "end" ? step.line : undefined}
+            lineText={step && step.event !== "end" ? sourceLines[step.line - 1]?.trim() : undefined}
+          />
+          <div className="min-h-0 flex-1 overflow-hidden">
+            <ConsolePanel
+              output={stdoutAt(trace, step)}
+              previousOutput={stdoutAt(trace, previousStep)}
+              stdin={stdin}
+              stdinConsumed={step?.stdinConsumed ?? 0}
+            />
+          </div>
         </div>
       </div>
-      <PlaybackBar playback={playback} />
+      {tab === "memory" && <MemoryLegend />}
     </div>
   );
 }

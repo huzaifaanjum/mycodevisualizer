@@ -7,54 +7,24 @@ const example = {
   description: "Push every opening bracket; pop when its partner closes.",
 } as const;
 
-/** jsdom has no layout, so fake whether the one-line description is cut off. */
-function mockOverflow(overflowing: boolean) {
-  vi.spyOn(HTMLElement.prototype, "scrollWidth", "get").mockReturnValue(overflowing ? 400 : 100);
-  vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(200);
-}
-
-beforeEach(() => {
-  vi.stubGlobal(
-    "ResizeObserver",
-    class {
-      observe() {}
-      disconnect() {}
-    },
-  );
-});
-
-afterEach(() => {
-  vi.restoreAllMocks();
-  vi.unstubAllGlobals();
-});
-
 describe("ExampleBanner", () => {
-  it("shows the title, topic and full description text", () => {
-    mockOverflow(false);
+  it("shows the title and topic, with the description collapsed", () => {
     render(<ExampleBanner example={example} />);
     expect(screen.getByRole("heading", { name: example.title })).toBeInTheDocument();
     expect(screen.getByText("Collections")).toBeInTheDocument();
-    expect(screen.getByText(example.description)).toBeInTheDocument();
+    expect(screen.getByText(example.description)).not.toBeVisible();
   });
 
-  it("hides the toggle when the description fits on one line", () => {
-    mockOverflow(false);
+  it("expands to show the full description and collapses to hide it", () => {
     render(<ExampleBanner example={example} />);
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
-  });
-
-  it("expands and collapses a description that is cut off", () => {
-    mockOverflow(true);
-    render(<ExampleBanner example={example} />);
-    const toggle = screen.getByRole("button", { name: "More" });
+    const toggle = screen.getByRole("button", { name: "Show description" });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
-    expect(screen.getByText(example.description)).toHaveClass("truncate");
 
     fireEvent.click(toggle);
-    expect(screen.getByRole("button", { name: "Less" })).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByText(example.description)).not.toHaveClass("truncate");
+    expect(screen.getByRole("button", { name: "Hide description" })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByText(example.description)).toBeVisible();
 
-    fireEvent.click(screen.getByRole("button", { name: "Less" }));
-    expect(screen.getByRole("button", { name: "More" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Hide description" }));
+    expect(screen.getByText(example.description)).not.toBeVisible();
   });
 });
