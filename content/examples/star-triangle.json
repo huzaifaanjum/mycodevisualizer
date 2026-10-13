@@ -1,0 +1,11 @@
+{
+  "slug": "star-triangle",
+  "title": "Nested loops: a star triangle",
+  "topic": "Loops",
+  "difficulty": "Easy",
+  "language": "java",
+  "description": "An inner loop runs completely for every turn of the outer loop.",
+  "code": "public class Main {\n    public static void main(String[] args) {\n        for (int row = 1; row <= 4; row++) {\n            String line = \"\";\n            for (int col = 1; col <= row; col++) {\n                line += \"*\";\n            }\n            System.out.println(line);\n        }\n    }\n}\n",
+  "stdin": "",
+  "order": 19
+}

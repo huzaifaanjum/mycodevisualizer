@@ -9,6 +9,7 @@ import { getSessionUser } from "@/server/auth";
 import { userIdentity } from "@/server/services/identity";
 import { AppError } from "@/server/security/errors";
 import { PublicIdSchema, type SnippetDto } from "@/shared/api";
+import { BackButton } from "@/components/common/back-button";
 
 export const metadata: Metadata = { title: "Shared program", robots: { index: false } };
 
@@ -37,6 +38,7 @@ export default async function SharedSnippetPage({ params }: PageProps<"/s/[publi
       autoRun
       banner={
         <div className="flex items-center gap-1.5 border-b bg-card/60 px-3 py-1 text-xs text-muted-foreground">
+          <BackButton className="mr-1 h-6 px-2 text-xs" />
           <LinkIcon className="size-3.5 text-primary" aria-hidden />
           Shared program
           <Tooltip>

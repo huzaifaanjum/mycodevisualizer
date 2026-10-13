@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ExampleGrid } from "@/features/examples";
 import { exampleService } from "@/server/services/example.service";
+import { BackButton } from "@/components/common/back-button";
 
 export const metadata: Metadata = {
   title: "Examples",
@@ -14,6 +15,7 @@ export default async function ExamplesPage() {
   const examples = await exampleService.list();
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
+      <BackButton className="mb-4" />
       <h1 className="text-2xl font-semibold tracking-tight">Examples</h1>
       <p className="mt-1 mb-8 text-muted-foreground">Pick a program and watch it run. Each one focuses on one Coding 101 idea.</p>
       <ExampleGrid examples={examples} />

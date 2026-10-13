@@ -1,0 +1,11 @@
+{
+  "slug": "leap-year",
+  "title": "Is it a leap year?",
+  "topic": "Conditions",
+  "difficulty": "Easy",
+  "language": "java",
+  "description": "Combine conditions with && and || to test a tricky rule.",
+  "code": "public class Main {\n    public static void main(String[] args) {\n        int[] years = {1900, 2000, 2024, 2025};\n        for (int year : years) {\n            boolean leap = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;\n            if (leap) {\n                System.out.println(year + \" is a leap year\");\n            } else {\n                System.out.println(year + \" is not a leap year\");\n            }\n        }\n    }\n}\n",
+  "stdin": "",
+  "order": 18
+}

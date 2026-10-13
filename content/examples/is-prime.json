@@ -1,0 +1,11 @@
+{
+  "slug": "is-prime",
+  "title": "Prime check with a method",
+  "topic": "Methods",
+  "difficulty": "Easy",
+  "language": "java",
+  "description": "A boolean method that can return early as soon as it knows the answer.",
+  "code": "public class Main {\n    static boolean isPrime(int n) {\n        if (n < 2) {\n            return false;\n        }\n        for (int d = 2; d * d <= n; d++) {\n            if (n % d == 0) {\n                return false;\n            }\n        }\n        return true;\n    }\n\n    public static void main(String[] args) {\n        for (int n = 1; n <= 10; n++) {\n            if (isPrime(n)) {\n                System.out.println(n + \" is prime\");\n            }\n        }\n    }\n}\n",
+  "stdin": "",
+  "order": 25
+}

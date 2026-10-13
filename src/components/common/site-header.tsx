@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getSessionUser } from "@/server/auth";
 import { getConfig } from "@/server/env";
 import { SITE } from "@/shared/constants";
-import { Button } from "@/components/ui/button";
+import { NavLink } from "@/components/common/nav-link";
 import { SignInDialog, UserMenu } from "@/features/auth";
 import { AccentPicker, ThemePicker } from "@/features/theme";
 
@@ -19,18 +19,14 @@ export async function SiteHeader() {
           {SITE.name}
         </Link>
         <nav aria-label="Main" className="hidden items-center gap-1 sm:flex">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/examples">Examples</Link>
-          </Button>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/about">About</Link>
-          </Button>
+          <NavLink href="/examples">Examples</NavLink>
+          <NavLink href="/about">About</NavLink>
         </nav>
       </div>
       <div className="flex items-center gap-1">
-        <Button variant="ghost" size="sm" asChild className="sm:hidden">
-          <Link href="/examples">Examples</Link>
-        </Button>
+        <NavLink href="/examples" className="sm:hidden">
+          Examples
+        </NavLink>
         <ThemePicker />
         <AccentPicker />
         {features.auth &&

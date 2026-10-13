@@ -59,6 +59,7 @@ export const EXAMPLE_TOPICS = [
   "Arrays",
   "Methods",
   "Recursion",
+  "Classes",
   "Input",
   "Collections",
 ] as const;
@@ -70,4 +71,17 @@ export type Difficulty = (typeof DIFFICULTIES)[number];
 export const SITE = {
   name: "mycodevisualizer",
   description: "See your Java code run, one line at a time. A free visualizer for Coding 101.",
+  repository: "https://github.com/huzaifaanjum/mycodevisualizer",
+} as const;
+
+export const CREATOR = {
+  name: "Mohammed Huzaifa",
+  role: "Graduate student and full-stack developer",
+  bio: "I love building web applications and designing products that make hard ideas feel simple. I made mycodevisualizer so Coding 101 students can see what their code is really doing.",
+  links: [
+    { label: "Portfolio", href: "https://mohammedhuzaifa.vercel.app/" },
+    { label: "GitHub", href: "https://github.com/huzaifaanjum" },
+    { label: "LinkedIn", href: "https://www.linkedin.com/in/huzaifa-anjum/" },
+    { label: "Resume", href: "https://mohammedhuzaifa.vercel.app/mohammed_huzaifa_resume.pdf" },
+  ],
 } as const;

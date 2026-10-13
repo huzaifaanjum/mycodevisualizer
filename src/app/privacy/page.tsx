@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { BackButton } from "@/components/common/back-button";
 
 export const metadata: Metadata = { title: "Privacy" };
 
 export default function PrivacyPage() {
   return (
     <article className="mx-auto max-w-2xl space-y-5 px-4 py-10 text-sm leading-relaxed text-foreground/90">
+      <BackButton />
       <h1 className="text-2xl font-semibold tracking-tight text-foreground">Privacy</h1>
       <p>We keep as little as possible.</p>
       <ul className="list-disc space-y-2 pl-5">

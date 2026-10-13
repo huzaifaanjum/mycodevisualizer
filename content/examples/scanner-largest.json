@@ -1,0 +1,11 @@
+{
+  "slug": "scanner-largest",
+  "title": "Largest of the numbers you type",
+  "topic": "Input",
+  "difficulty": "Easy",
+  "language": "java",
+  "description": "Read a count, then that many numbers, keeping the largest so far.",
+  "code": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner in = new Scanner(System.in);\n        int count = in.nextInt();\n        int largest = in.nextInt();\n        for (int i = 1; i < count; i++) {\n            int next = in.nextInt();\n            if (next > largest) {\n                largest = next;\n            }\n        }\n        System.out.println(\"Largest: \" + largest);\n    }\n}\n",
+  "stdin": "4\n7 42 13 9\n",
+  "order": 28
+}

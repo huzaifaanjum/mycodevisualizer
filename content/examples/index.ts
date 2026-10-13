@@ -21,6 +21,21 @@ import hashsetUnique from "./hashset-unique.json";
 import stackBalancedBrackets from "./stack-balanced-brackets.json";
 import queueLine from "./queue-line.json";
 import treemapGrades from "./treemap-grades.json";
+import dayNameSwitch from "./day-name-switch.json";
+import leapYear from "./leap-year.json";
+import starTriangle from "./star-triangle.json";
+import sumOfDigits from "./sum-of-digits.json";
+import reverseArray from "./reverse-array.json";
+import bubbleSort from "./bubble-sort.json";
+import grid2dArray from "./grid-2d-array.json";
+import passByValue from "./pass-by-value.json";
+import isPrime from "./is-prime.json";
+import powerRecursion from "./power-recursion.json";
+import binarySearchRecursive from "./binary-search-recursive.json";
+import scannerLargest from "./scanner-largest.json";
+import bankAccount from "./bank-account.json";
+import linkedNodes from "./linked-nodes.json";
+import arraylistRemoveEvens from "./arraylist-remove-evens.json";
 
 export const BUNDLED_EXAMPLES = [
   helloVariables,
@@ -45,4 +60,19 @@ export const BUNDLED_EXAMPLES = [
   stackBalancedBrackets,
   queueLine,
   treemapGrades,
+  dayNameSwitch,
+  leapYear,
+  starTriangle,
+  sumOfDigits,
+  reverseArray,
+  bubbleSort,
+  grid2dArray,
+  passByValue,
+  isPrime,
+  powerRecursion,
+  binarySearchRecursive,
+  scannerLargest,
+  bankAccount,
+  linkedNodes,
+  arraylistRemoveEvens,
 ];

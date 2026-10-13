@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
+import { NavigationTracker } from "@/components/common/back-button";
 import { SiteHeader } from "@/components/common/site-header";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AccentProvider, ACCENT_INIT_SCRIPT, ThemeProvider, THEME_INIT_SCRIPT } from "@/features/theme";
@@ -51,6 +52,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <ThemeProvider>
           <AccentProvider initialAccent={saved ?? DEFAULT_ACCENT} persistToAccount={saved !== null}>
             <TooltipProvider delayDuration={300}>
+              <NavigationTracker />
               <SiteHeader />
               <main id="main">{children}</main>
             </TooltipProvider>

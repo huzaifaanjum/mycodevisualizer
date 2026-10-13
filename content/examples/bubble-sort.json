@@ -1,0 +1,11 @@
+{
+  "slug": "bubble-sort",
+  "title": "Bubble sort",
+  "topic": "Arrays",
+  "difficulty": "Medium",
+  "language": "java",
+  "description": "Watch the biggest values bubble to the end, one pass at a time.",
+  "code": "public class Main {\n    public static void main(String[] args) {\n        int[] nums = {5, 2, 4, 1};\n        for (int pass = 0; pass < nums.length - 1; pass++) {\n            for (int i = 0; i < nums.length - 1 - pass; i++) {\n                if (nums[i] > nums[i + 1]) {\n                    int temp = nums[i];\n                    nums[i] = nums[i + 1];\n                    nums[i + 1] = temp;\n                }\n            }\n        }\n        System.out.println(java.util.Arrays.toString(nums));\n    }\n}\n",
+  "stdin": "",
+  "order": 22
+}
