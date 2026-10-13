@@ -28,6 +28,11 @@
   --border: #1f1f1f;
   --input: #262626;
   --ring: var(--accent-color);
+  /* Dots on every diagram canvas, derived from the text color so they suit every theme. */
+  --canvas-dot: color-mix(in oklab, var(--foreground) 16%, transparent);
+  /* Tooltips sit a shade darker than the theme's popovers so they stand out in every theme. */
+  --tooltip-bg: color-mix(in oklab, var(--popover) 82%, #000);
+  --tooltip-fg: var(--popover-foreground);
   --radius: 0.625rem;
 
   /* Semantic colors, independent of the accent. */
@@ -480,6 +485,33 @@
   ::selection {
     background: color-mix(in oklab, var(--accent-color) 35%, transparent);
   }
+}
+
+/* Frosted glass for surfaces that float over content or the canvas: a translucent fill that blurs
+   what's behind it, a faint top sheen and a soft edge. Shadows stay with the shadow utilities. */
+@utility glass {
+  background-color: color-mix(in oklab, var(--card) 62%, transparent);
+  background-image: linear-gradient(180deg, color-mix(in oklab, var(--foreground) 6%, transparent), transparent 45%);
+  border-color: color-mix(in oklab, var(--foreground) 12%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  backdrop-filter: blur(16px) saturate(160%);
+}
+
+/* The flowchart's zoom buttons (React Flow) get the same glass as the other canvas controls. */
+.react-flow__controls {
+  --xy-controls-button-background-color: transparent;
+  --xy-controls-button-background-color-hover: color-mix(in oklab, var(--foreground) 8%, transparent);
+  --xy-controls-button-color: var(--foreground);
+  --xy-controls-button-color-hover: var(--foreground);
+  --xy-controls-button-border-color: transparent;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklab, var(--foreground) 12%, transparent);
+  border-radius: 0.75rem;
+  background-color: color-mix(in oklab, var(--card) 62%, transparent);
+  background-image: linear-gradient(180deg, color-mix(in oklab, var(--foreground) 6%, transparent), transparent 45%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  backdrop-filter: blur(16px) saturate(160%);
+  box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.25);
 }
 
 /* Value-change pulse, disabled for reduced motion. */

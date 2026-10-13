@@ -1,8 +1,9 @@
 "use client";
 
 import { BoxesIcon, CornerDownLeftIcon, FlagIcon, LayersIcon, MinusIcon, PlusIcon } from "lucide-react";
-import { useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { InfoTip } from "@/components/common/info-tip";
+import { PanZoomCanvas } from "@/components/common/pan-zoom-canvas";
 import type { Step } from "@/shared/trace";
 import { cn } from "@/lib/utils";
 import { diffCollection } from "../lib/collection-diff";
@@ -11,6 +12,7 @@ import { withExiting } from "../lib/presence";
 import { changedHeapSlots, changedLocals, drawableHeap, heapObjectLabels } from "../lib/trace-helpers";
 import { FrameCard } from "./frame-card";
 import { HeapObjectBox } from "./heap-object";
+import { LegendStrip } from "./legend-strip";
 import { ReferenceArrows } from "./reference-arrows";
 
 const NO_CHANGES = new Set<string>();
@@ -21,19 +23,22 @@ export function MemoryView({
   step,
   previousStep,
   finished = false,
-  zoom = 100,
   returnedCall,
+  insetLeft = 0,
+  clip = true,
 }: {
   step: Step | undefined;
   previousStep: Step | undefined;
   /** The program has ended: `step` is the last moment it was running, shown as its final state. */
   finished?: boolean;
-  /** Content zoom in percent. The arrow layer stays unzoomed and measures the zoomed boxes. */
-  zoom?: number;
   /** The call that just returned, as it was called (e.g. "factorial(3)"). */
   returnedCall?: string;
+  /** Pixels covered by a floating panel on the left (full screen); the canvas starts beside it. */
+  insetLeft?: number;
+  /** Clip the canvas at its edge (off in full screen, so content can slide under the card). */
+  clip?: boolean;
 }) {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [container, setContainer] = useState<HTMLDivElement | null>(null);
   // The step shown before this one (not always `previousStep`: the learner can jump around).
   // Frames and objects that vanished since then are kept briefly so they can animate out.
   const [shown, setShown] = useState<{ step: Step | undefined; before: Step | undefined }>({
@@ -58,81 +63,84 @@ export function MemoryView({
   );
   const liveFrames = step?.frames.length ?? 0;
   const liveObjects = heapObjects.filter((o) => !o.exiting).length;
-  const arrowDeps = useMemo(() => ({ step, zoom }), [step, zoom]);
+  const arrowDeps = useMemo(() => ({ step }), [step]);
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div ref={containerRef} className="relative min-h-0 flex-1 overflow-auto p-4">
-        <div style={{ zoom: zoom / 100 }}>
-          {finished && (
-            <p
-              role="status"
-              className="border-primary/30 bg-primary/10 text-primary mb-4 flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs"
-            >
-              <FlagIcon className="size-3.5" aria-hidden />
-              Program finished. This is the final state of memory, just before main() ended.
-            </p>
-          )}
-          <div className="grid min-w-fit grid-cols-[minmax(14rem,1fr)_minmax(11rem,1fr)] items-start gap-x-16">
-            <Region
-              icon={<LayersIcon className="size-3.5" aria-hidden />}
-              info={EXPLAIN.callStack}
-              meta={
-                liveFrames > 0
-                  ? `${liveFrames} ${liveFrames === 1 ? "frame" : "frames"} · newest on top`
-                  : undefined
-              }
-              gap="0.75rem"
-            >
-              {liveFrames === 0 && <p className="text-muted-foreground text-xs">The stack is empty.</p>}
-              {frames.map(({ key, item: frame, exiting }) => (
-                <Exit key={key} exiting={exiting}>
-                  <FrameCard
-                    frame={frame}
-                    heap={(exiting ? before : step)?.heap ?? {}}
-                    isCurrent={!exiting && frame.id === step?.frames.at(-1)?.id}
-                    explained={!exiting && frame.id === step?.frames.at(-1)?.id}
-                    finished={finished}
-                    changed={exiting ? NO_CHANGES : changed}
-                    received={
-                      !exiting && frame.id === step?.frames.at(-1)?.id && step?.returned
-                        ? { ...step.returned, call: returnedCall }
-                        : undefined
-                    }
-                    returning={exiting && step?.returned?.method === frame.method ? step.returned.value : undefined}
-                  />
-                </Exit>
-              ))}
-            </Region>
-            <Region
-              icon={<BoxesIcon className="size-3.5" aria-hidden />}
-              info={EXPLAIN.heap}
-              meta={
-                liveObjects > 0 ? `${liveObjects} ${liveObjects === 1 ? "object" : "objects"}` : undefined
-              }
-              gap="1.25rem"
-              className="bg-[radial-gradient(var(--border)_1px,transparent_1px)] bg-size-[14px_14px]"
-            >
-              {liveObjects === 0 && (
-                <p className="text-muted-foreground text-xs">No arrays or objects yet.</p>
-              )}
-              {heapObjects.map(({ key, item: [id, obj], exiting }) => (
-                <Exit key={key} exiting={exiting}>
-                  <HeapObjectBox
-                    id={id}
-                    object={obj}
-                    heap={(exiting ? before : step)?.heap ?? {}}
-                    changed={exiting ? NO_CHANGES : changedSlots}
-                    names={(exiting ? beforeLabels : labels).get(id) ?? []}
-                    collectionDiff={exiting ? null : diffCollection(id, previousStep, step)}
-                  />
-                </Exit>
-              ))}
-            </Region>
+      <PanZoomCanvas label="Memory diagram" insetLeft={insetLeft} clip={clip}>
+        <div ref={setContainer} className="relative w-max">
+          <div>
+            {finished && (
+              <p
+                role="status"
+                className="border-primary/30 bg-primary/10 text-primary mb-4 flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs"
+              >
+                <FlagIcon className="size-3.5" aria-hidden />
+                Program finished. This is the final state of memory, just before main() ended.
+              </p>
+            )}
+            <div className="grid min-w-fit grid-cols-[minmax(14rem,1fr)_minmax(11rem,1fr)] items-start gap-x-16">
+              <Region
+                icon={<LayersIcon className="size-3.5" aria-hidden />}
+                info={EXPLAIN.callStack}
+                meta={
+                  liveFrames > 0
+                    ? `${liveFrames} ${liveFrames === 1 ? "frame" : "frames"} · newest on top`
+                    : undefined
+                }
+                gap="0.75rem"
+              >
+                {liveFrames === 0 && <p className="text-muted-foreground text-xs">The stack is empty.</p>}
+                {frames.map(({ key, item: frame, exiting }) => (
+                  <Exit key={key} exiting={exiting}>
+                    <FrameCard
+                      frame={frame}
+                      heap={(exiting ? before : step)?.heap ?? {}}
+                      isCurrent={!exiting && frame.id === step?.frames.at(-1)?.id}
+                      explained={!exiting && frame.id === step?.frames.at(-1)?.id}
+                      finished={finished}
+                      changed={exiting ? NO_CHANGES : changed}
+                      received={
+                        !exiting && frame.id === step?.frames.at(-1)?.id && step?.returned
+                          ? { ...step.returned, call: returnedCall }
+                          : undefined
+                      }
+                      returning={
+                        exiting && step?.returned?.method === frame.method ? step.returned.value : undefined
+                      }
+                    />
+                  </Exit>
+                ))}
+              </Region>
+              <Region
+                icon={<BoxesIcon className="size-3.5" aria-hidden />}
+                info={EXPLAIN.heap}
+                meta={
+                  liveObjects > 0 ? `${liveObjects} ${liveObjects === 1 ? "object" : "objects"}` : undefined
+                }
+                gap="1.25rem"
+              >
+                {liveObjects === 0 && (
+                  <p className="text-muted-foreground text-xs">No arrays or objects yet.</p>
+                )}
+                {heapObjects.map(({ key, item: [id, obj], exiting }) => (
+                  <Exit key={key} exiting={exiting}>
+                    <HeapObjectBox
+                      id={id}
+                      object={obj}
+                      heap={(exiting ? before : step)?.heap ?? {}}
+                      changed={exiting ? NO_CHANGES : changedSlots}
+                      names={(exiting ? beforeLabels : labels).get(id) ?? []}
+                      collectionDiff={exiting ? null : diffCollection(id, previousStep, step)}
+                    />
+                  </Exit>
+                ))}
+              </Region>
+            </div>
           </div>
+          <ReferenceArrows container={container} deps={arrowDeps} />
         </div>
-        <ReferenceArrows containerRef={containerRef} deps={arrowDeps} />
-      </div>
+      </PanZoomCanvas>
     </div>
   );
 }
@@ -140,10 +148,7 @@ export function MemoryView({
 /** Explains the memory view's visual cues once, so every box can stay uncluttered. */
 export function MemoryLegend() {
   return (
-    <ul
-      aria-label="Legend"
-      className="text-muted-foreground flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 border-t px-3 py-1.5 text-[11px]"
-    >
+    <LegendStrip>
       <li className="flex items-center gap-1.5">
         <span className="bg-primary inline-block size-2.5 rounded-full" aria-hidden />
         <span className="bg-primary inline-block h-px w-4" aria-hidden />
@@ -169,7 +174,7 @@ export function MemoryLegend() {
         <CornerDownLeftIcon className="text-changed size-3" aria-hidden />
         value handed back by a method
       </li>
-    </ul>
+    </LegendStrip>
   );
 }
 
@@ -192,7 +197,10 @@ function Region({
   return (
     <section
       aria-label={info.title}
-      className={cn("bg-muted/20 flex min-h-24 flex-col rounded-xl border border-dashed p-3", className)}
+      className={cn(
+        "bg-background flex min-h-24 flex-col rounded-xl border border-dashed p-3 shadow-sm",
+        className,
+      )}
       style={{ gap, "--mcv-gap": gap } as CSSProperties}
     >
       <div className="text-muted-foreground flex items-center gap-1.5 text-[11px]">

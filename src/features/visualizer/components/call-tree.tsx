@@ -1,10 +1,12 @@
 "use client";
 
 import { CircleAlertIcon, CornerDownRightIcon, EyeIcon, EyeOffIcon, ListTreeIcon, NetworkIcon } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import type { Trace } from "@/shared/trace";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Button } from "@/components/ui/button";
+import { PanZoomCanvas } from "@/components/common/pan-zoom-canvas";
+import { LegendStrip } from "./legend-strip";
 import { cn } from "@/lib/utils";
 import { buildCallTimeline, callStatus, type CallRecord, type CallStatus, type CallTimeline } from "../lib/call-timeline";
 
@@ -24,13 +26,16 @@ export function CallTree({
   trace,
   index,
   onSeek,
-  zoom = 100,
+  clip = true,
+  insetLeft = 0,
 }: {
   trace: Trace;
   index: number;
   onSeek: (step: number) => void;
-  /** Content zoom in percent. */
-  zoom?: number;
+  /** Clip the canvas at its edge (off in full screen, so content can slide under the card). */
+  clip?: boolean;
+  /** Pixels on the left covered by a floating panel (full screen); header and content start beside it. */
+  insetLeft?: number;
 }) {
   const timeline = useMemo(() => buildCallTimeline(trace), [trace]);
   const [layout, setLayout] = useState<Layout>("tree");
@@ -46,18 +51,14 @@ export function CallTree({
   const started = [...statuses.values()].filter((s) => s !== "future").length;
   const depthNow = step && step.event !== "end" ? step.frames.length : 0;
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    containerRef.current
-      ?.querySelector<HTMLElement>('[data-status="current"], [data-status="threw"]')
-      ?.scrollIntoView({ block: "nearest", inline: "nearest" });
-  }, [index, layout]);
 
   if (timeline.calls.size === 0) return <p className="p-4 text-xs text-muted-foreground">No calls yet.</p>;
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b px-3 py-2">
+    <div className="relative flex h-full min-h-0 flex-col">
+      {/* The call tree's own controls float across the top of the canvas (beside the full-screen card). */}
+      <div role="toolbar" aria-label="Call tree controls" style={{ left: insetLeft + 12 }}
+        className="glass absolute top-3 right-3 z-20 flex flex-wrap items-center rounded-xl border p-1.5 shadow-lg gap-x-3 gap-y-1.5">
         <ToggleGroup type="single" value={layout} onValueChange={(v) => (v === "tree" || v === "outline") && setLayout(v)} aria-label="Call tree layout">
           <ToggleGroupItem value="tree" aria-label="Tree diagram">
             <NetworkIcon aria-hidden /> Tree
@@ -69,26 +70,33 @@ export function CallTree({
         <Button variant="ghost" size="sm" aria-pressed={showFuture} onClick={() => setShowFuture((v) => !v)} className="text-xs">
           {showFuture ? <EyeIcon /> : <EyeOffIcon />} {showFuture ? "Showing upcoming calls" : "Show upcoming calls"}
         </Button>
-        <dl className="ml-auto flex gap-4 text-[11px] text-muted-foreground">
+        <dl className="ml-auto flex gap-3 px-1.5 text-[11px] text-muted-foreground">
           <Stat label="calls so far" value={`${started} / ${timeline.calls.size}`} />
           <Stat label="stack depth now" value={String(depthNow)} />
           <Stat label="deepest" value={String(timeline.maxDepth + 1)} />
         </dl>
       </div>
-      <div ref={containerRef} className="min-h-0 flex-1 overflow-auto">
-        <div className="w-fit min-w-full" style={{ zoom: zoom / 100 }}>
+      {/* The running call (or the crash) is kept in view as the program moves. */}
+      <PanZoomCanvas
+        label="Call tree diagram"
+        clip={clip}
+        insetLeft={insetLeft}
+        focusSelector='[data-status="current"], [data-status="threw"]'
+        focusKey={`${index}:${layout}`}
+      >
+        {/* Room at the top so the first calls start below the floating controls. */}
+        <div className="w-fit pt-14">
           {layout === "tree" ? (
             <TreeDiagram timeline={timeline} statuses={statuses} visible={visible} onSeek={onSeek} />
           ) : (
-            <ul role="tree" aria-label="Call outline" className="p-3 font-mono text-xs">
+            <ul role="tree" aria-label="Call outline" className="rounded-lg border bg-background p-3 font-mono text-xs shadow-sm">
               {timeline.roots.filter(visible).map((id) => (
                 <OutlineNode key={id} id={id} timeline={timeline} statuses={statuses} visible={visible} onSeek={onSeek} />
               ))}
             </ul>
           )}
         </div>
-      </div>
-      <Legend />
+      </PanZoomCanvas>
     </div>
   );
 }
@@ -102,7 +110,8 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Legend() {
+/** What the call boxes' colors mean, shown along the bottom like the other diagrams' legends. */
+export function CallTreeLegend() {
   const items: [string, string][] = [
     ["border-primary bg-primary/15", "running now"],
     ["border-primary/60", "waiting for a call to return"],
@@ -111,24 +120,25 @@ function Legend() {
     ["border-danger bg-danger/10", "crashed"],
   ];
   return (
-    <div className="flex flex-wrap gap-x-4 gap-y-1 border-t px-3 py-1.5 text-[10px] text-muted-foreground">
+    <LegendStrip>
       {items.map(([cls, label]) => (
-        <span key={label} className="flex items-center gap-1.5">
+        <li key={label} className="flex items-center gap-1.5">
           <span className={cn("inline-block h-2.5 w-4 rounded-sm border", cls)} aria-hidden />
           {label}
-        </span>
+        </li>
       ))}
-      <span>Click a call to jump to it · double-click to jump to its return</span>
-    </div>
+      <li>Click a call to jump to it · double-click to jump to its return</li>
+    </LegendStrip>
   );
 }
 
 const STATUS_CLASS: Record<CallStatus, string> = {
-  current: "border-primary bg-primary/15 ring-2 ring-primary/40",
+  // Tints are mixed into the card color (not see-through) so the canvas dots never show behind text.
+  current: "border-primary bg-[color-mix(in_oklab,var(--primary)_15%,var(--card))] ring-2 ring-primary/40",
   active: "border-primary/60",
   returned: "border-border",
   future: "border-dashed border-border opacity-45",
-  threw: "border-danger bg-danger/10 ring-2 ring-danger/30",
+  threw: "border-danger bg-[color-mix(in_oklab,var(--danger)_10%,var(--card))] ring-2 ring-danger/30",
 };
 
 const STATUS_TEXT: Record<CallStatus, string> = {

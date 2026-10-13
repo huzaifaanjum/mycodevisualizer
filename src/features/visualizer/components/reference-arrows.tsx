@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useState, type RefObject } from "react";
+import { useLayoutEffect, useState } from "react";
 
 interface Arrow {
   /** Source + target, so a reference that now points elsewhere draws in again. */
@@ -64,10 +64,15 @@ export function routeArrow(sx: number, sy: number, t: Box): { line: string; head
  * arrows follow them frame by frame. Hovering a dot, frame or heap box highlights its arrows.
  */
 export function ReferenceArrows({
-  containerRef,
+  container,
   deps,
 }: {
-  containerRef: RefObject<HTMLElement | null>;
+  /**
+   * The scrolling element that holds the stack and heap. Passed as an element (not a ref) so the
+   * arrows measure as soon as it exists: a parent's ref isn't attached yet when a child's layout
+   * effect runs on mount (entering full screen or switching back to the Memory tab remounts it).
+   */
+  container: HTMLElement | null;
   deps: unknown;
 }) {
   const [arrows, setArrows] = useState<Arrow[]>([]);
@@ -75,13 +80,15 @@ export function ReferenceArrows({
   const [focus, setFocus] = useState<Set<string> | null>(null);
 
   useLayoutEffect(() => {
-    const container = containerRef.current;
     if (!container) return;
     let signature = "";
     const measure = () => {
       const base = container.getBoundingClientRect();
-      const dx = container.scrollLeft - base.left;
-      const dy = container.scrollTop - base.top;
+      // Screen pixels per layout pixel: 1 normally, the zoom level on a pan/zoom canvas (an
+      // ancestor's transform scales everything, including this arrow layer).
+      const k = container.offsetWidth > 0 ? base.width / container.offsetWidth : 1;
+      const localX = (x: number) => (x - base.left) / k + container.scrollLeft;
+      const localY = (y: number) => (y - base.top) / k + container.scrollTop;
       const next: Arrow[] = [];
       container.querySelectorAll<HTMLElement>("[data-ref-source]").forEach((source) => {
         const target = source.dataset.refTarget;
@@ -93,11 +100,11 @@ export function ReferenceArrows({
         if (!box) return;
         const s = source.getBoundingClientRect();
         const t = box.getBoundingClientRect();
-        const route = routeArrow(s.left + s.width / 2 + dx, s.top + s.height / 2 + dy, {
-          left: t.left + dx,
-          right: t.right + dx,
-          top: t.top + dy,
-          height: t.height,
+        const route = routeArrow(localX(s.left + s.width / 2), localY(s.top + s.height / 2), {
+          left: localX(t.left),
+          right: localX(t.right),
+          top: localY(t.top),
+          height: t.height / k,
         });
         next.push({ key: `${sourceKey}->${target}`, source: sourceKey, target, ...route });
       });
@@ -136,10 +143,9 @@ export function ReferenceArrows({
       container.removeEventListener("transitionrun", follow);
       cancelAnimationFrame(frame);
     };
-  }, [containerRef, deps]);
+  }, [container, deps]);
 
   useLayoutEffect(() => {
-    const container = containerRef.current;
     if (!container) return;
     const onOver = (event: PointerEvent) => {
       const el = event.target instanceof Element ? event.target : null;
@@ -160,7 +166,7 @@ export function ReferenceArrows({
       container.removeEventListener("pointerover", onOver);
       container.removeEventListener("pointerleave", onLeave);
     };
-  }, [containerRef]);
+  }, [container]);
 
   const isFocused = (a: Arrow) => focus?.has(`source:${a.source}`) || focus?.has(`target:${a.target}`);
 

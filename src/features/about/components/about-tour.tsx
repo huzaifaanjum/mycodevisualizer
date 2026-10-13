@@ -25,6 +25,7 @@ import {
 import Link from "next/link";
 import { type CSSProperties, useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Hint } from "@/components/ui/tooltip";
 import { Kbd } from "@/components/ui/kbd";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
@@ -513,6 +514,7 @@ export function AboutTour({ languages }: { languages: LanguageTab[] }) {
             <ol className="flex items-center gap-1.5" aria-label="Progress">
               {ABOUT_STEPS.map((s, i) => (
                 <li key={s.id}>
+                  <Hint content={`Step ${i + 1}: ${s.title}`}>
                   <button
                     type="button"
                     onClick={() => goTo(i)}
@@ -531,6 +533,7 @@ export function AboutTour({ languages }: { languages: LanguageTab[] }) {
                       )}
                     />
                   </button>
+                  </Hint>
                 </li>
               ))}
             </ol>

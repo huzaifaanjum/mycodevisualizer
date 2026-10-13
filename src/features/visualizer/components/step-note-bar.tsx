@@ -57,6 +57,7 @@ export function StepNoteBar({
   line,
   lineText,
   ai,
+  className,
 }: {
   notes: StepNote[];
   stepNumber: number;
@@ -65,9 +66,10 @@ export function StepNoteBar({
   line?: number;
   lineText?: string;
   ai?: StepAiNote;
+  className?: string;
 }) {
   return (
-    <div className="bg-card/60 max-h-56 shrink-0 overflow-auto border-b px-3 py-2.5">
+    <div className={cn("glass max-h-56 shrink-0 overflow-auto border-b px-3 py-2.5", className)}>
       <div className="mb-2 flex min-w-0 items-center gap-2">
         <span className="text-muted-foreground shrink-0 text-[11px] font-semibold tracking-wider uppercase">
           Step {stepNumber} of {total}

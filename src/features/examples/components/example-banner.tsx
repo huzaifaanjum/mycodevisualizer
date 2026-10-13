@@ -3,6 +3,7 @@
 import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Hint } from "@/components/ui/tooltip";
 import { ListenButton } from "@/features/narration";
 import { cn } from "@/lib/utils";
 import type { Example } from "@/shared/examples";
@@ -22,7 +23,7 @@ export function ExampleBanner({
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="bg-card/60 border-b p-3 text-sm">
+    <div className="glass border-b p-3 text-sm">
       <div className="flex items-center gap-2">
         <h1 className="min-w-0 truncate font-medium">{example.title}</h1>
         <Badge variant="outline" className="shrink-0">
@@ -36,13 +37,13 @@ export function ExampleBanner({
             className="ml-auto"
           />
         )}
+        <Hint content={expanded ? "Hide description" : "Show description"}>
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
           aria-expanded={expanded}
           aria-controls="example-description"
           aria-label={expanded ? "Hide description" : "Show description"}
-          title={expanded ? "Hide description" : "Show description"}
           className={cn(
             "text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring flex size-7 shrink-0 items-center justify-center rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-none",
             !canListen && "ml-auto",
@@ -53,6 +54,7 @@ export function ExampleBanner({
             className={cn("size-4 transition-transform duration-200", expanded && "rotate-180")}
           />
         </button>
+        </Hint>
       </div>
       <div
         id="example-description"

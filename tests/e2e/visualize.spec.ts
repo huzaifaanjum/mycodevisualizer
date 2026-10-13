@@ -7,15 +7,28 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe("visualizer", () => {
-  test("step details open and close from the player", async ({ page }) => {
+  test("step details open and close from the toolbar", async ({ page }) => {
     await page.addInitScript(() => window.localStorage.setItem("mcv-steps-open", "0"));
     await page.goto("/?example=array-sum");
     const toggle = page.getByRole("button", { name: "Step details" });
-    await expect(toggle).toHaveAttribute("aria-expanded", "false", { timeout: 30_000 });
+    await expect(toggle).toHaveAttribute("aria-pressed", "false", { timeout: 30_000 });
     await expect(page.getByText(/^Step 1 of \d+$/)).toHaveCount(0);
     await toggle.click();
-    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    await expect(toggle).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByText(/^Step 1 of \d+$/)).toBeVisible();
+  });
+
+  test("the player collapses to its top row and expands again", async ({ page }) => {
+    await page.goto("/?example=array-sum");
+    const collapse = page.getByRole("button", { name: "Collapse player" });
+    await expect(collapse).toBeVisible({ timeout: 30_000 });
+    await collapse.click();
+    await expect(page.getByRole("button", { name: "Expand player" })).toHaveAttribute("aria-expanded", "false");
+    await expect(page.getByRole("tablist")).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "Program output" }).or(page.getByLabel("Program output"))).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Play", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Expand player" }).click();
+    await expect(page.getByRole("tablist")).toBeVisible();
   });
 
   test("runs the starter program step by step", async ({ page }) => {
@@ -172,8 +185,8 @@ test.describe("flow, layout and full screen", () => {
     await expect(flow).toContainText("for (int i = 0; i < nums.length; i++)");
     await expect(flow.getByRole("button", { name: /^loop: for \(int i = 0; i < nums\.length; i\+\+\), line \d+ · ran 5 of 5 times$/ })).toBeVisible();
     await expect(flow).toContainText("true ×4");
-    await expect(page.getByText("How to read this flowchart")).toBeVisible();
-    await expect(flow.locator("svg[data-arrow-layer] path").first()).toBeAttached();
+    await expect(page.getByRole("list", { name: "Legend" })).toContainText("decision");
+    await expect(flow.locator("svg path[marker-end]").first()).toBeAttached();
   });
 
   test("flow tab follows recursion into each method", async ({ page }) => {

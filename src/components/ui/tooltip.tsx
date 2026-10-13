@@ -14,7 +14,7 @@ function TooltipContent({ className, sideOffset = 6, ...props }: React.Component
       <TooltipPrimitive.Content
         sideOffset={sideOffset}
         className={cn(
-          "z-50 rounded-md border bg-popover px-2.5 py-1.5 text-xs text-popover-foreground shadow-lg data-[state=delayed-open]:animate-in data-[state=delayed-open]:fade-in-0",
+          "z-50 rounded-md border bg-(--tooltip-bg) px-2.5 py-1.5 text-xs text-(--tooltip-fg) shadow-lg data-[state=delayed-open]:animate-in data-[state=delayed-open]:fade-in-0",
           className,
         )}
         {...props}
@@ -23,4 +23,22 @@ function TooltipContent({ className, sideOffset = 6, ...props }: React.Component
   );
 }
 
-export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger };
+/** Gives one control (usually an icon-only button) a tooltip. The child must accept a ref. */
+function Hint({
+  content,
+  side,
+  children,
+}: {
+  content: React.ReactNode;
+  side?: "top" | "right" | "bottom" | "left";
+  children: React.ReactElement;
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipContent side={side}>{content}</TooltipContent>
+    </Tooltip>
+  );
+}
+
+export { Hint, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger };

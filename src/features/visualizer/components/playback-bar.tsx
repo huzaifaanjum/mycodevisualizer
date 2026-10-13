@@ -42,7 +42,7 @@ export function PlaybackBar({
   const atStart = state.index === 0;
   const atEnd = state.index >= total - 1;
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b bg-card/60 px-3 py-2">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 glass border-b px-3 py-2">
       <div className="flex items-center gap-0.5">
         <ControlButton label="First step" shortcut="Home" onClick={playback.first} disabled={atStart}>
           <ChevronFirstIcon />

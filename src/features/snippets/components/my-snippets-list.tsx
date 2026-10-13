@@ -7,6 +7,7 @@ import { ApiRequestError } from "@/shared/api/client";
 import type { SnippetSummaryDto } from "@/shared/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Hint } from "@/components/ui/tooltip";
 import {
   Dialog,
   DialogClose,
@@ -72,25 +73,31 @@ export function MySnippetsList() {
             </div>
             <Badge variant="outline">{s.language}</Badge>
             <div className="flex gap-1">
-              <Button variant="ghost" size="icon-sm" asChild aria-label={`Open ${s.title}`}>
-                <Link href={`/s/${s.publicId}`}>
-                  <ExternalLinkIcon />
-                </Link>
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={`Rename ${s.title}`}
-                onClick={() => {
-                  setTitle(s.title);
-                  setPending({ kind: "rename", snippet: s });
-                }}
-              >
-                <PencilIcon />
-              </Button>
-              <Button variant="ghost" size="icon-sm" aria-label={`Delete ${s.title}`} onClick={() => setPending({ kind: "delete", snippet: s })}>
-                <Trash2Icon />
-              </Button>
+              <Hint content="Open">
+                <Button variant="ghost" size="icon-sm" asChild aria-label={`Open ${s.title}`}>
+                  <Link href={`/s/${s.publicId}`}>
+                    <ExternalLinkIcon />
+                  </Link>
+                </Button>
+              </Hint>
+              <Hint content="Rename">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label={`Rename ${s.title}`}
+                  onClick={() => {
+                    setTitle(s.title);
+                    setPending({ kind: "rename", snippet: s });
+                  }}
+                >
+                  <PencilIcon />
+                </Button>
+              </Hint>
+              <Hint content="Delete">
+                <Button variant="ghost" size="icon-sm" aria-label={`Delete ${s.title}`} onClick={() => setPending({ kind: "delete", snippet: s })}>
+                  <Trash2Icon />
+                </Button>
+              </Hint>
             </div>
           </li>
         ))}

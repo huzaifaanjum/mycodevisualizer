@@ -3,6 +3,7 @@
 import { FolderCodeIcon, LogOutIcon } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Hint } from "@/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +18,7 @@ export function UserMenu({ name, image }: { name: string | null; image: string |
   const initial = (name ?? "?").charAt(0).toUpperCase();
   return (
     <DropdownMenu>
+      <Hint content="Your account">
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon-sm" className="rounded-full" aria-label="Account menu">
           {image ? (
@@ -27,6 +29,7 @@ export function UserMenu({ name, image }: { name: string | null; image: string |
           )}
         </Button>
       </DropdownMenuTrigger>
+      </Hint>
       <DropdownMenuContent align="end">
         {name && <DropdownMenuLabel>{name}</DropdownMenuLabel>}
         <DropdownMenuItem asChild>

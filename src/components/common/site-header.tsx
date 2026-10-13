@@ -11,7 +11,7 @@ export async function SiteHeader() {
   const { features } = getConfig();
   const user = await getSessionUser();
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center justify-between gap-3 border-b bg-background/90 px-4 backdrop-blur">
+    <header className="sticky top-0 z-40 flex h-14 items-center justify-between gap-3 glass border-b px-4">
       <div className="flex items-center gap-6">
         <Link href="/" className="group flex items-center gap-2.5" aria-label={`${SITE.name} home`}>
           <AppLogo className="transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-105" />

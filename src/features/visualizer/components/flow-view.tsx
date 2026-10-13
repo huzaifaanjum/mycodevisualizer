@@ -5,13 +5,13 @@ import {
   Background,
   BackgroundVariant,
   BaseEdge,
-  Controls,
   EdgeLabelRenderer,
   Handle,
   Position,
   ReactFlow,
   ReactFlowProvider,
   useReactFlow,
+  useStore,
   type Edge,
   type EdgeProps,
   type Node,
@@ -21,8 +21,10 @@ import {
   CodeXmlIcon,
   CornerDownLeftIcon,
   LocateFixedIcon,
+  MinusIcon,
   MousePointerClickIcon,
   PlayIcon,
+  PlusIcon,
   RepeatIcon,
   SplitIcon,
   SquareFunctionIcon,
@@ -33,6 +35,15 @@ import {
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { Trace } from "@/shared/trace";
 import { Button } from "@/components/ui/button";
+import { CANVAS_TOOLBAR_CLASS, CanvasButton, DOT_GAP } from "@/components/common/pan-zoom-canvas";
+import { Hint } from "@/components/ui/tooltip";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { LegendStrip } from "./legend-strip";
+
+/** Height kept clear at the top of the canvas for the floating controls. */
+const TOOLBAR_CLEARANCE = 56;
+/** How far above its place the chart starts when it first appears. */
+const ENTRANCE_DROP_PX = 120;
 import { cn } from "@/lib/utils";
 import { isDarkTheme, useTheme } from "@/features/theme";
 import { buildFlow, nextRunOf, traceTransitions, type FlowEdge, type FlowNode, type FlowNodeKind, type MethodFlow } from "../lib/flow-graph";
@@ -53,7 +64,14 @@ const ZOOM = { min: 0.3, max: 1.6 } as const;
  * paths execution actually took with this input: thicker = taken more often, dashed = not taken
  * yet, faded cards never ran. Click a card to jump to the next time it runs.
  */
-export function FlowView(props: { trace: Trace; sourceLines: string[]; index: number; onSeek: (step: number) => void }) {
+export function FlowView(props: {
+  trace: Trace;
+  sourceLines: string[];
+  index: number;
+  onSeek: (step: number) => void;
+  /** Pixels on the left covered by a floating panel (full screen); the chart frames beside it. */
+  insetLeft?: number;
+}) {
   return (
     <ReactFlowProvider>
       <FlowCanvas {...props} />
@@ -66,11 +84,13 @@ function FlowCanvas({
   sourceLines,
   index,
   onSeek,
+  insetLeft = 0,
 }: {
   trace: Trace;
   sourceLines: string[];
   index: number;
   onSeek: (step: number) => void;
+  insetLeft?: number;
 }) {
   const { theme } = useTheme();
   const transitions = useMemo(() => traceTransitions(trace), [trace]);
@@ -80,22 +100,38 @@ function FlowCanvas({
   const shown = useMemo(() => flows.filter((f) => !hidden.has(f.key)), [flows, hidden]);
   const graph = useMemo(() => buildGraph(shown, index, onSeek, markerId), [shown, index, onSeek, markerId]);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { setViewport, getViewport, setCenter } = useReactFlow();
+  const { setViewport, getViewport, zoomIn, zoomOut, zoomTo } = useReactFlow();
+  const zoom = useStore((s) => s.transform[2]);
 
-  /** Centers the whole chart; tall charts are pinned to the top so the start is visible. */
+  const entered = useRef(false);
+  // Hidden until first placed, so the chart never flashes at React Flow's default position.
+  const [placed, setPlaced] = useState(false);
+  /**
+   * Centers the whole chart; tall charts are pinned to the top so the start is visible. The first
+   * time, the chart drops in from above (top to bottom) instead of sliding in from the side.
+   */
   const frame = useCallback(() => {
     const el = containerRef.current;
     if (!el || graph.width === 0) return;
-    const w = el.clientWidth;
-    const h = el.clientHeight;
+    const w = el.clientWidth - insetLeft;
+    // The floating controls cover the top of the canvas; the chart starts below them.
+    const top = TOOLBAR_CLEARANCE;
+    const h = el.clientHeight - top;
     // Fit the width always; fit the height only while the text stays readable.
     const fitW = (w - 48) / graph.width;
     const fitH = (h - 48) / graph.height;
     const z = Math.max(ZOOM.min, Math.min(1, fitW, Math.max(fitH, 0.75)));
-    const x = (w - graph.width * z) / 2;
-    const y = graph.height * z <= h - 48 ? (h - graph.height * z) / 2 : 24;
+    const x = insetLeft + (w - graph.width * z) / 2;
+    const y = top + (graph.height * z <= h - 48 ? (h - graph.height * z) / 2 : 24);
+    if (!entered.current) {
+      entered.current = true;
+      void setViewport({ x, y: y - ENTRANCE_DROP_PX, zoom: z });
+      setPlaced(true);
+      requestAnimationFrame(() => void setViewport({ x, y, zoom: z }, { duration: 450 }));
+      return;
+    }
     void setViewport({ x, y, zoom: z }, { duration: 200 });
-  }, [graph.width, graph.height, setViewport]);
+  }, [graph.width, graph.height, setViewport, insetLeft]);
 
   const shownKey = shown.map((f) => f.key).join("|");
   useEffect(() => {
@@ -103,7 +139,7 @@ function FlowCanvas({
     return () => cancelAnimationFrame(raf);
     // Re-frame only when the set of methods changes, not on every step.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shownKey]);
+  }, [shownKey, insetLeft]);
 
   // Keep the current card on screen while stepping, without fighting the user's pan otherwise.
   useEffect(() => {
@@ -116,48 +152,47 @@ function FlowCanvas({
     const sx = cx * zoom + x;
     const sy = cy * zoom + y;
     const margin = 40;
-    if (sx < margin || sy < margin || sx > el.clientWidth - margin || sy > el.clientHeight - margin) {
-      void setCenter(cx, cy, { zoom, duration: 250 });
+    if (sx < insetLeft + margin || sy < margin || sx > el.clientWidth - margin || sy > el.clientHeight - margin) {
+      // Center it in the visible part of the canvas (beside any floating panel).
+      const visibleCenterX = insetLeft + (el.clientWidth - insetLeft) / 2;
+      void setViewport({ x: visibleCenterX - cx * zoom, y: el.clientHeight / 2 - cy * zoom, zoom }, { duration: 250 });
     }
-  }, [index, graph.nodes, getViewport, setCenter]);
+  }, [index, graph.nodes, getViewport, setViewport, insetLeft]);
 
   if (flows.length === 0) return <p className="p-4 text-xs text-muted-foreground">Nothing ran yet.</p>;
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="flex flex-wrap items-center gap-2 border-b px-3 py-2">
-        <div className="flex flex-wrap gap-1" role="group" aria-label="Methods to show">
-          {flows.map((f) => {
-            const on = !hidden.has(f.key);
-            return (
-              <button
-                key={f.key}
-                type="button"
-                aria-pressed={on}
-                onClick={() =>
-                  setHidden((h) => {
-                    const next = new Set(h);
-                    if (next.has(f.key)) next.delete(f.key);
-                    else next.add(f.key);
-                    return next;
-                  })
-                }
-                className={cn(
-                  "rounded-md border px-2 py-0.5 font-mono text-[11px] transition-colors",
-                  on ? "border-primary/60 bg-primary/10 text-foreground" : "text-muted-foreground line-through",
-                )}
-              >
-                {f.method}()
-              </button>
-            );
-          })}
-        </div>
+    <div className="relative flex h-full min-h-0 flex-col">
+      {/* The flowchart's own controls float across the top of the canvas (beside the full-screen card). */}
+      <div role="toolbar" aria-label="Flowchart controls" style={{ left: insetLeft + 12 }}
+        className="glass absolute top-3 right-3 z-20 flex flex-wrap items-center rounded-xl border p-1.5 shadow-lg gap-2">
+        {/* Method tabs, styled like the call tree's Tree / Outline switch. Several can be on at once;
+            at least one always stays on. */}
+        <ToggleGroup
+          type="multiple"
+          aria-label="Methods to show"
+          value={flows.filter((f) => !hidden.has(f.key)).map((f) => f.key)}
+          onValueChange={(on) => {
+            if (on.length === 0) return;
+            setHidden(new Set(flows.filter((f) => !on.includes(f.key)).map((f) => f.key)));
+          }}
+          className="flex-wrap"
+        >
+          {flows.map((f) => (
+            <ToggleGroupItem key={f.key} value={f.key} aria-label={`${f.method}()`} className="font-mono">
+              {f.method}()
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
         <Button variant="ghost" size="sm" onClick={frame} className="ml-auto text-xs">
           <LocateFixedIcon /> Center
         </Button>
       </div>
-      <Legend />
-      <section ref={containerRef} aria-label="Flowchart" className="relative min-h-0 flex-1">
+      <section
+        ref={containerRef}
+        aria-label="Flowchart"
+        className={cn("relative min-h-0 flex-1 transition-opacity duration-300", placed ? "opacity-100" : "opacity-0")}
+      >
         <svg aria-hidden className="absolute size-0">
           <defs>
             {(["idle", "taken", "now"] as const).map((state) => (
@@ -181,12 +216,36 @@ function FlowCanvas({
           edgesFocusable={false}
           elementsSelectable={false}
           panOnScroll
+          attributionPosition="bottom-left"
           zoomOnDoubleClick={false}
           style={{ background: "var(--background)" }}
         >
-          <Background variant={BackgroundVariant.Dots} gap={20} size={1.4} color="var(--input)" />
-          <Controls showInteractive={false} fitViewOptions={{ padding: 0.15, maxZoom: 1 }} position="bottom-left" />
+          {/* Same dots as the other canvases: React Flow sizes dots by diameter and tints its own background in dark mode. */}
+          <Background variant={BackgroundVariant.Dots} gap={DOT_GAP} size={2} color="var(--canvas-dot)" bgColor="var(--background)" />
+
         </ReactFlow>
+        {/* Same glass controls (with tooltips) as the memory and call tree canvases. */}
+        <div role="toolbar" aria-label="Canvas controls" className={CANVAS_TOOLBAR_CLASS}>
+          <CanvasButton label="Zoom out (Ctrl/⌘ + scroll)" onClick={() => void zoomOut({ duration: 150 })}>
+            <MinusIcon />
+          </CanvasButton>
+          <Hint content="Back to 100%">
+            <button
+              type="button"
+              onClick={() => void zoomTo(1, { duration: 150 })}
+              className="text-muted-foreground hover:text-foreground w-11 rounded-md text-center font-mono text-xs tabular-nums"
+              aria-label={`Zoom ${Math.round(zoom * 100)}%. Reset to 100%`}
+            >
+              {Math.round(zoom * 100)}%
+            </button>
+          </Hint>
+          <CanvasButton label="Zoom in (Ctrl/⌘ + scroll)" onClick={() => void zoomIn({ duration: 150 })}>
+            <PlusIcon />
+          </CanvasButton>
+          <CanvasButton label="Recenter: fit everything in view" onClick={frame}>
+            <LocateFixedIcon />
+          </CanvasButton>
+        </div>
       </section>
     </div>
   );
@@ -410,7 +469,7 @@ function CardNodeView({ data }: NodeProps<CardNode>) {
 function FrameNodeView({ data }: NodeProps<FrameNode>) {
   const { flow } = data;
   return (
-    <section aria-label={`Flow of ${flow.method}`} className="pointer-events-none size-full rounded-2xl border border-dashed bg-card/30">
+    <section aria-label={`Flow of ${flow.method}`} className="glass pointer-events-none size-full rounded-2xl border border-dashed">
       <header className="flex flex-col items-center gap-1 px-3 pt-3 text-center">
         <code className="max-w-full truncate rounded-md border bg-card px-2 py-0.5 text-xs font-semibold">{flow.signature ?? `${flow.method}()`}</code>
         <span className="text-[11px] text-muted-foreground">
@@ -501,28 +560,29 @@ function edgeText(edge: FlowEdge): string | null {
 
 // ---- legend ------------------------------------------------------------------------------------
 
-function Legend() {
+/** How to read the flowchart, shown along the bottom like the other diagrams' legends. */
+export function FlowLegend() {
   const items: FlowNodeKind[] = ["start", "statement", "decision", "loop", "io", "call", "return"];
   return (
-    <details className="group border-b px-3 py-1.5 text-[11px] text-muted-foreground">
-      <summary className="cursor-pointer select-none">How to read this flowchart</summary>
-      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 pb-1">
-        {items.map((k) => {
-          const { icon: Icon, color, label } = KIND[k];
-          return (
-            <span key={k} className="flex items-center gap-1.5">
-              <span className="grid size-5 place-items-center rounded-md" style={{ background: `color-mix(in oklab, ${color} 18%, transparent)`, color }}>
-                <Icon className="size-3" aria-hidden />
-              </span>
-              {k === "start" ? "start / end" : label}
+    <LegendStrip>
+      {items.map((k) => {
+        const { icon: Icon, color, label } = KIND[k];
+        return (
+          <li key={k} className="flex items-center gap-1.5">
+            <span
+              className="grid size-5 place-items-center rounded-md"
+              style={{ background: `color-mix(in oklab, ${color} 18%, transparent)`, color }}
+            >
+              <Icon className="size-3" aria-hidden />
             </span>
-          );
-        })}
-        <span>Arrows: thicker = taken more often · dashed = not taken yet · faded card = never ran with this input</span>
-        <span className="flex items-center gap-1">
-          <MousePointerClickIcon className="size-3" aria-hidden /> Click a card to jump to the next time it runs · drag to pan, ctrl + scroll to zoom
-        </span>
-      </div>
-    </details>
+            {k === "start" ? "start / end" : label}
+          </li>
+        );
+      })}
+      <li>Arrows: thicker = taken more often · dashed = not taken yet · faded card = never ran with this input</li>
+      <li className="flex items-center gap-1">
+        <MousePointerClickIcon className="size-3" aria-hidden /> Click a card to jump to the next time it runs
+      </li>
+    </LegendStrip>
   );
 }
