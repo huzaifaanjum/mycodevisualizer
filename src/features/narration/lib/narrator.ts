@@ -6,8 +6,8 @@ import { speakable } from "./speakable";
 
 export type NarratorStatus =
   | { state: "idle" }
-  | { state: "loading"; owner: string }
-  | { state: "speaking"; owner: string }
+  | { state: "loading"; owner: string; text: string }
+  | { state: "speaking"; owner: string; text: string }
   | { state: "error"; owner: string; message: string };
 
 export type SpeakResult = "ended" | "stopped";
@@ -107,10 +107,10 @@ export async function speak(texts: string[], options: { owner: string; rate?: nu
   queue.slice(1).forEach(preload);
   try {
     for (const text of queue) {
-      setStatus({ state: "loading", owner: options.owner });
+      setStatus({ state: "loading", owner: options.owner, text });
       const url = await clip(text);
       if (id !== session) return "stopped";
-      setStatus({ state: "speaking", owner: options.owner });
+      setStatus({ state: "speaking", owner: options.owner, text });
       const result = await play(url, options.rate ?? 1);
       if (result === "stopped" || id !== session) return "stopped";
     }
@@ -138,4 +138,10 @@ export function subscribe(listener: () => void): () => void {
 
 export function getStatus(): NarratorStatus {
   return status;
+}
+
+/** How far through the current clip the voice is, from 0 to 1 (0 when nothing is playing). */
+export function getProgress(): number {
+  if (!audio || !Number.isFinite(audio.duration) || audio.duration <= 0) return 0;
+  return Math.min(1, audio.currentTime / audio.duration);
 }

@@ -1,7 +1,23 @@
 import { expect, test } from "@playwright/test";
 import { expectNoHorizontalOverflow, setCode, visualize } from "./helpers";
 
+// Step details (the notes these tests read) are closed by default; open them via the saved preference.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => window.localStorage.setItem("mcv-steps-open", "1"));
+});
+
 test.describe("visualizer", () => {
+  test("step details open and close from the player", async ({ page }) => {
+    await page.addInitScript(() => window.localStorage.setItem("mcv-steps-open", "0"));
+    await page.goto("/?example=array-sum");
+    const toggle = page.getByRole("button", { name: "Step details" });
+    await expect(toggle).toHaveAttribute("aria-expanded", "false", { timeout: 30_000 });
+    await expect(page.getByText(/^Step 1 of \d+$/)).toHaveCount(0);
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    await expect(page.getByText(/^Step 1 of \d+$/)).toBeVisible();
+  });
+
   test("runs the starter program step by step", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByTestId("code-editor").locator(".monaco-editor")).toBeVisible({ timeout: 30_000 });

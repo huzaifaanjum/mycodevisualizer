@@ -1,6 +1,6 @@
 "use client";
 
-import { BrainIcon, EraserIcon, Maximize2Icon, Minimize2Icon, NetworkIcon, WorkflowIcon } from "lucide-react";
+import { BrainIcon, ChevronDownIcon, EraserIcon, Maximize2Icon, Minimize2Icon, NetworkIcon, WorkflowIcon } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useCodeExplanation } from "@/features/explanation";
 import { getLanguageAdapter } from "@/languages";
@@ -14,6 +14,7 @@ import { Kbd } from "@/components/ui/kbd";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePersistedNumber } from "@/lib/use-persisted-number";
+import { cn } from "@/lib/utils";
 import type { PlaybackController } from "../hooks/use-playback";
 import { usePlaybackShortcuts } from "../hooks/use-playback-shortcuts";
 import { useStepNarration } from "../hooks/use-step-narration";
@@ -27,13 +28,19 @@ import { CompileErrors } from "./compile-errors";
 import { ConsolePanel } from "./console-panel";
 import { FlowView } from "./flow-view";
 import { MemoryLegend, MemoryView } from "./memory-view";
-import { NarrationToggle } from "./narration-toggle";
+import { NarrationToggle, TranscriptToggle } from "./narration-toggle";
 import { PlaybackBar } from "./playback-bar";
 import { StatusBanner } from "./status-banner";
 import { StepNoteBar } from "./step-note-bar";
+import { TranscriptLine } from "./transcript-line";
 
 /** Tabs (memory, flow, call tree) share of the tabs + step note + input/output area. */
 const TABS_HEIGHT = { key: "mcv-tabs-height", default: 65, min: 25, max: 88 } as const;
+
+/** Step details (the notes for each step) open under the player; closed by default. */
+const STEPS_OPEN = { key: "mcv-steps-open", default: 0, min: 0, max: 1 } as const;
+/** One-line transcript above input and output; shown by default. */
+const TRANSCRIPT_ON = { key: "mcv-transcript", default: 1, min: 0, max: 1 } as const;
 
 /** Memory and call tree zoom in percent. The flow tab has its own pan/zoom. */
 const VIZ_ZOOM = { key: "mcv-viz-zoom", default: 100, min: 50, max: 250 } as const;
@@ -88,6 +95,15 @@ export function Visualizer({
   usePlaybackShortcuts(playback, trace.steps.length > 0, fullscreen?.toggle);
   const [tab, setTab] = useState<Tab>("memory");
   const [zoom, setZoom] = usePersistedNumber(VIZ_ZOOM.key, VIZ_ZOOM.default, VIZ_ZOOM.min, VIZ_ZOOM.max);
+  const [stepsOpenValue, setStepsOpen] = usePersistedNumber(STEPS_OPEN.key, STEPS_OPEN.default, STEPS_OPEN.min, STEPS_OPEN.max);
+  const stepsOpen = stepsOpenValue === 1;
+  const [transcriptValue, setTranscript] = usePersistedNumber(
+    TRANSCRIPT_ON.key,
+    TRANSCRIPT_ON.default,
+    TRANSCRIPT_ON.min,
+    TRANSCRIPT_ON.max,
+  );
+  const transcriptOn = transcriptValue === 1 && (canNarrate || canExplain);
   const splitRef = useRef<HTMLDivElement>(null);
   const [tabsHeight, setTabsHeight] = usePersistedNumber(
     TABS_HEIGHT.key,
@@ -166,6 +182,13 @@ export function Visualizer({
 
   // When the program has ended the stack is empty, so keep showing memory as it was at the last line that ran.
   const finished = step?.event === "end";
+  // What the transcript shows when the voice is quiet: the AI's words for this moment. Without them
+  // it falls back to the step notes, but only while step details are closed (no duplicate text).
+  const transcriptText =
+    (state.index === 0 ? explanation?.summary : undefined) ??
+    (finished ? explanation?.closing : undefined) ??
+    currentLineExplanation ??
+    (stepsOpen ? "" : notes.map((n) => n.text).join(" "));
   const memoryStep = useMemo(
     () => (finished ? trace.steps.findLast((s) => s.event !== "end" && s.frames.length > 0) : undefined),
     [finished, trace],
@@ -183,7 +206,54 @@ export function Visualizer({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <PlaybackBar playback={playback} />
+      <PlaybackBar
+        playback={playback}
+        trailing={
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Step details"
+                aria-expanded={stepsOpen}
+                aria-controls="step-details"
+                onClick={() => setStepsOpen(stepsOpen ? 0 : 1)}
+              >
+                <ChevronDownIcon className={cn("transition-transform duration-200", stepsOpen && "rotate-180")} aria-hidden />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{stepsOpen ? "Hide step details" : "Show step details"}</TooltipContent>
+          </Tooltip>
+        }
+      />
+      {stepsOpen ? (
+        <div id="step-details" className="mcv-fade-in">
+          <StepNoteBar
+            notes={notes}
+            stepNumber={state.index + 1}
+            total={total}
+            line={step && step.event !== "end" ? step.line : undefined}
+            lineText={step && step.event !== "end" ? sourceLines[step.line - 1]?.trim() : undefined}
+            ai={
+              explanationState.status === "off"
+                ? undefined
+                : {
+                    loading: explanationState.status === "loading",
+                    error: explanationState.status === "error" ? explanationState.message : undefined,
+                    lineText: transcriptOn ? undefined : currentLineExplanation,
+                    summary: state.index === 0 ? explanation?.summary : undefined,
+                    insights: finished ? explanation?.keyInsights : undefined,
+                    closing: finished ? explanation?.closing : undefined,
+                  }
+            }
+          />
+        </div>
+      ) : (
+        // Closed, the step notes are still announced to screen readers.
+        <p id="step-details" aria-live="polite" aria-atomic="true" className="sr-only">
+          {notes.map((n) => n.text).join(" ")}
+        </p>
+      )}
       <StatusBanner
         trace={trace}
         step={step}
@@ -216,6 +286,9 @@ export function Visualizer({
               <InfoTip title={TAB_INFO[tab].title} text={TAB_INFO[tab].text} />
             </div>
             <div className="flex items-center gap-1">
+              {(canNarrate || canExplain) && (
+                <TranscriptToggle shown={transcriptOn} onToggle={() => setTranscript(transcriptOn ? 0 : 1)} />
+              )}
               {canNarrate && (
                 <NarrationToggle
                   enabled={narrating}
@@ -291,25 +364,7 @@ export function Visualizer({
           defaultValue={TABS_HEIGHT.default}
         />
         <div className="flex min-h-0 flex-col overflow-hidden">
-          <StepNoteBar
-            notes={notes}
-            stepNumber={state.index + 1}
-            total={total}
-            line={step && step.event !== "end" ? step.line : undefined}
-            lineText={step && step.event !== "end" ? sourceLines[step.line - 1]?.trim() : undefined}
-            ai={
-              explanationState.status === "off"
-                ? undefined
-                : {
-                    loading: explanationState.status === "loading",
-                    error: explanationState.status === "error" ? explanationState.message : undefined,
-                    lineText: currentLineExplanation,
-                    summary: state.index === 0 ? explanation?.summary : undefined,
-                    insights: finished ? explanation?.keyInsights : undefined,
-                    closing: finished ? explanation?.closing : undefined,
-                  }
-            }
-          />
+          {transcriptOn && <TranscriptLine text={transcriptText} narrating={canNarrate && narrating} />}
           <div className="min-h-0 flex-1 overflow-hidden">
             <ConsolePanel
               output={stdoutAt(trace, step)}

@@ -1,6 +1,13 @@
 "use client";
 
-import { AudioLinesIcon, LoaderCircleIcon, Volume2Icon } from "lucide-react";
+import {
+  AudioLinesIcon,
+  CaptionsIcon,
+  CaptionsOffIcon,
+  LoaderCircleIcon,
+  Volume2Icon,
+  VolumeXIcon,
+} from "lucide-react";
 import { useNarratorStatus } from "@/features/narration";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -25,6 +32,7 @@ export function NarrationToggle({
   const mine = status.state !== "idle" && status.owner === STEP_NARRATION_OWNER;
   const loading = preparing || (enabled && mine && status.state === "loading");
   const speaking = enabled && mine && status.state === "speaking";
+  const VolumeIcon = enabled ? Volume2Icon : VolumeXIcon;
 
   return (
     <div className="flex items-center gap-1.5">
@@ -32,7 +40,8 @@ export function NarrationToggle({
         <TooltipTrigger asChild>
           <Button
             variant={enabled ? "secondary" : "ghost"}
-            size="sm"
+            size="icon-sm"
+            aria-label="Narrate"
             aria-pressed={enabled}
             onClick={onToggle}
             className={cn(enabled && "text-primary")}
@@ -42,9 +51,8 @@ export function NarrationToggle({
             ) : speaking ? (
               <AudioLinesIcon className="animate-pulse" aria-hidden />
             ) : (
-              <Volume2Icon aria-hidden />
+              <VolumeIcon aria-hidden />
             )}
-            Narrate
           </Button>
         </TooltipTrigger>
         <TooltipContent className="max-w-64">
@@ -61,5 +69,26 @@ export function NarrationToggle({
         </span>
       )}
     </div>
+  );
+}
+
+/** Shows or hides the one-line transcript above the input and output. */
+export function TranscriptToggle({ shown, onToggle }: { shown: boolean; onToggle: () => void }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant={shown ? "secondary" : "ghost"}
+          size="icon-sm"
+          aria-label="Transcript"
+          aria-pressed={shown}
+          onClick={onToggle}
+          className={cn(shown && "text-primary")}
+        >
+          {shown ? <CaptionsIcon aria-hidden /> : <CaptionsOffIcon aria-hidden />}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>{shown ? "Hide the transcript" : "Show the transcript: the explanation, one line at a time"}</TooltipContent>
+    </Tooltip>
   );
 }

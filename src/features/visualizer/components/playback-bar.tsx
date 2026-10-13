@@ -30,7 +30,14 @@ function ControlButton({ label, shortcut, onClick, disabled, children }: {
   );
 }
 
-export function PlaybackBar({ playback }: { playback: PlaybackController }) {
+export function PlaybackBar({
+  playback,
+  trailing,
+}: {
+  playback: PlaybackController;
+  /** Controls shown at the far right, after speed (e.g. the step-details toggle). */
+  trailing?: React.ReactNode;
+}) {
   const { state, total } = playback;
   const atStart = state.index === 0;
   const atEnd = state.index >= total - 1;
@@ -100,6 +107,7 @@ export function PlaybackBar({ playback }: { playback: PlaybackController }) {
             Clear {state.breakpoints.size} breakpoint{state.breakpoints.size === 1 ? "" : "s"}
           </Button>
         )}
+        {trailing}
       </div>
     </div>
   );
