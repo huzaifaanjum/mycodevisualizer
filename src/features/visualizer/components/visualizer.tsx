@@ -151,6 +151,7 @@ export function Visualizer({
   }, []);
   useStepNarration({
     enabled: canNarrate && narrating && trace.status !== "compile_error",
+    trace,
     playback,
     scriptFor,
     // With an AI explanation, examples are introduced by their title and the AI's summary; without

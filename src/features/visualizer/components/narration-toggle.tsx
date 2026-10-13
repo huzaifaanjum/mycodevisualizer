@@ -52,7 +52,7 @@ export function NarrationToggle({
             ? "Preparing a line-by-line explanation of your code…"
             : enabled
             ? "Stop reading the steps aloud"
-            : "Read each step aloud as it runs. While playing, the player waits for the voice before moving on."}
+            : "Turn on the voice. Press play to hear the overview and each step, or move between steps to hear about that step."}
         </TooltipContent>
       </Tooltip>
       {error && !enabled && (
