@@ -1,0 +1,11 @@
+{
+  "slug": "priority-queue-tasks",
+  "title": "Priority queue: most urgent first",
+  "topic": "Data Structures",
+  "difficulty": "Easy",
+  "language": "java",
+  "description": "A priority queue always hands you the smallest (most urgent) item first, no matter the order you added things. Think of a hospital waiting room where the most serious case is seen next. Java's PriorityQueue keeps items in a special 'heap' order inside, so the array won't look fully sorted, but poll() always returns the smallest.",
+  "code": "import java.util.PriorityQueue;\n\npublic class Main {\n    public static void main(String[] args) {\n        PriorityQueue<Integer> urgency = new PriorityQueue<>();\n        urgency.add(5);\n        urgency.add(1);\n        urgency.add(4);\n        urgency.add(2);\n        while (!urgency.isEmpty()) {\n            System.out.println(\"Handle task with urgency \" + urgency.poll());\n        }\n    }\n}\n",
+  "stdin": "",
+  "order": 204
+}

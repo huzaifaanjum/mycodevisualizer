@@ -1,0 +1,11 @@
+{
+  "slug": "graph-dfs",
+  "title": "Graph DFS: explore as deep as you can",
+  "topic": "Data Structures",
+  "difficulty": "Medium",
+  "language": "java",
+  "description": "Depth-first search follows one path as far as it goes, then backs up and tries the next one, like exploring a maze by keeping one hand on the wall. Recursion does the backing up for us. A visited array stops us from going round in circles. The Call tree view shows exactly how deep the search went.",
+  "code": "public class Main {\n    static int[][] neighbours = {\n        {1, 2},    // 0\n        {0, 3},    // 1\n        {0, 3},    // 2\n        {1, 2}     // 3\n    };\n    static boolean[] visited = new boolean[4];\n\n    public static void main(String[] args) {\n        dfs(0);\n        System.out.println();\n    }\n\n    static void dfs(int node) {\n        visited[node] = true;\n        System.out.print(node + \" \");\n        for (int next : neighbours[node]) {\n            if (!visited[next]) {\n                dfs(next);\n            }\n        }\n    }\n}\n",
+  "stdin": "",
+  "order": 218
+}

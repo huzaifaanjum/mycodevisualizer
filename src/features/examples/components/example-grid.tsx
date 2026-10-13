@@ -68,7 +68,7 @@ export function ExampleGrid({ examples }: { examples: Example[] }) {
                   </span>
                 </div>
                 <h3 className="font-semibold group-hover:text-primary">{e.title}</h3>
-                <p className="mt-1 mb-3 text-sm text-muted-foreground">{e.description}</p>
+                <p className="mt-1 mb-3 line-clamp-3 text-sm text-muted-foreground">{e.description}</p>
                 <pre className="mt-auto overflow-hidden rounded-md border bg-background p-2 font-mono text-[11px] leading-relaxed text-muted-foreground">
                   {previewLines(e.code)}
                 </pre>

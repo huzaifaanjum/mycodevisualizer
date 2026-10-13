@@ -1,0 +1,11 @@
+{
+  "slug": "quick-sort",
+  "title": "Quick sort",
+  "topic": "Sorting",
+  "difficulty": "Medium",
+  "language": "java",
+  "description": "Quick sort picks one value as the 'pivot', moves smaller values to its left and bigger ones to its right, then sorts each side the same way. After each partition the pivot is in its final place for good. On average it's one of the fastest sorts, and it sorts inside the same array without making copies.",
+  "code": "import java.util.Arrays;\n\npublic class Main {\n    public static void main(String[] args) {\n        int[] nums = {7, 2, 9, 4, 3};\n        quickSort(nums, 0, nums.length - 1);\n        System.out.println(Arrays.toString(nums));\n    }\n\n    static void quickSort(int[] arr, int low, int high) {\n        if (low >= high) return;\n        int p = partition(arr, low, high);\n        quickSort(arr, low, p - 1);\n        quickSort(arr, p + 1, high);\n    }\n\n    // Uses the last value as the pivot and returns where the pivot ends up.\n    static int partition(int[] arr, int low, int high) {\n        int pivot = arr[high];\n        int smaller = low;\n        for (int i = low; i < high; i++) {\n            if (arr[i] < pivot) {\n                swap(arr, i, smaller);\n                smaller++;\n            }\n        }\n        swap(arr, smaller, high);\n        return smaller;\n    }\n\n    static void swap(int[] arr, int a, int b) {\n        int temp = arr[a];\n        arr[a] = arr[b];\n        arr[b] = temp;\n    }\n}\n",
+  "stdin": "",
+  "order": 305
+}

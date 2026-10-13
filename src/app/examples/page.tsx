@@ -5,7 +5,7 @@ import { BackButton } from "@/components/common/back-button";
 
 export const metadata: Metadata = {
   title: "Examples",
-  description: "Coding 101 Java examples you can visualize step by step: variables, loops, arrays, methods and recursion.",
+  description: "Coding 101 Java examples you can visualize step by step: variables, loops, arrays, methods, recursion, data structures and sorting.",
 };
 
 /** Examples can be curated in MongoDB; refresh the page at most every 5 minutes. */

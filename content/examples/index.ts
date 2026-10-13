@@ -36,6 +36,30 @@ import scannerLargest from "./scanner-largest.json";
 import bankAccount from "./bank-account.json";
 import linkedNodes from "./linked-nodes.json";
 import arraylistRemoveEvens from "./arraylist-remove-evens.json";
+import stackFromArray from "./stack-from-array.json";
+import queueCircularArray from "./queue-circular-array.json";
+import dequeBothEnds from "./deque-both-ends.json";
+import priorityQueueTasks from "./priority-queue-tasks.json";
+import singlyLinkedList from "./singly-linked-list.json";
+import doublyLinkedList from "./doubly-linked-list.json";
+import circularLinkedList from "./circular-linked-list.json";
+import reverseLinkedList from "./reverse-linked-list.json";
+import hashMapFromScratch from "./hash-map-from-scratch.json";
+import hashmapTwoSum from "./hashmap-two-sum.json";
+import hashsetFirstRepeat from "./hashset-first-repeat.json";
+import binarySearchTree from "./binary-search-tree.json";
+import treeTraversals from "./tree-traversals.json";
+import treeLevelOrder from "./tree-level-order.json";
+import treeHeight from "./tree-height.json";
+import graphAdjacencyList from "./graph-adjacency-list.json";
+import graphBfsShortestPath from "./graph-bfs-shortest-path.json";
+import graphDfs from "./graph-dfs.json";
+import selectionSort from "./selection-sort.json";
+import insertionSort from "./insertion-sort.json";
+import mergeSort from "./merge-sort.json";
+import quickSort from "./quick-sort.json";
+import countingSort from "./counting-sort.json";
+import sortWithComparator from "./sort-with-comparator.json";
 
 export const BUNDLED_EXAMPLES = [
   helloVariables,
@@ -75,4 +99,28 @@ export const BUNDLED_EXAMPLES = [
   bankAccount,
   linkedNodes,
   arraylistRemoveEvens,
+  stackFromArray,
+  queueCircularArray,
+  dequeBothEnds,
+  priorityQueueTasks,
+  singlyLinkedList,
+  doublyLinkedList,
+  circularLinkedList,
+  reverseLinkedList,
+  hashMapFromScratch,
+  hashmapTwoSum,
+  hashsetFirstRepeat,
+  binarySearchTree,
+  treeTraversals,
+  treeLevelOrder,
+  treeHeight,
+  graphAdjacencyList,
+  graphBfsShortestPath,
+  graphDfs,
+  selectionSort,
+  insertionSort,
+  mergeSort,
+  quickSort,
+  countingSort,
+  sortWithComparator,
 ];

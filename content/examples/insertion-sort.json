@@ -1,0 +1,11 @@
+{
+  "slug": "insertion-sort",
+  "title": "Insertion sort",
+  "topic": "Sorting",
+  "difficulty": "Easy",
+  "language": "java",
+  "description": "Insertion sort builds a sorted part on the left, one item at a time. Each new item slides left past every bigger item until it reaches its spot, just like sorting cards as you pick them up. It's very fast when the list is already almost sorted.",
+  "code": "import java.util.Arrays;\n\npublic class Main {\n    public static void main(String[] args) {\n        int[] nums = {5, 2, 4, 6, 1};\n        for (int i = 1; i < nums.length; i++) {\n            int current = nums[i];\n            int j = i - 1;\n            while (j >= 0 && nums[j] > current) {\n                nums[j + 1] = nums[j]; // shift the bigger item right\n                j--;\n            }\n            nums[j + 1] = current;\n        }\n        System.out.println(Arrays.toString(nums));\n    }\n}\n",
+  "stdin": "",
+  "order": 303
+}

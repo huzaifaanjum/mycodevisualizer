@@ -1,0 +1,11 @@
+{
+  "slug": "hashmap-two-sum",
+  "title": "HashMap: find two numbers that add up",
+  "topic": "Data Structures",
+  "difficulty": "Medium",
+  "language": "java",
+  "description": "Given some numbers and a target, find two that add up to the target. Checking every pair is slow, so instead we remember each number we've seen in a HashMap (number -> position). For each new number we ask: have I already seen the partner I need? One pass is enough.",
+  "code": "import java.util.HashMap;\nimport java.util.Map;\n\npublic class Main {\n    public static void main(String[] args) {\n        int[] nums = {2, 7, 11, 15};\n        int target = 18;\n        Map<Integer, Integer> seen = new HashMap<>();\n        for (int i = 0; i < nums.length; i++) {\n            int partner = target - nums[i];\n            if (seen.containsKey(partner)) {\n                System.out.println(partner + \" + \" + nums[i] + \" = \" + target);\n                return;\n            }\n            seen.put(nums[i], i);\n        }\n        System.out.println(\"No pair found\");\n    }\n}\n",
+  "stdin": "",
+  "order": 210
+}

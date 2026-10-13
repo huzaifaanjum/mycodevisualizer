@@ -1,0 +1,11 @@
+{
+  "slug": "queue-circular-array",
+  "title": "Queue: a circular array",
+  "topic": "Data Structures",
+  "difficulty": "Medium",
+  "language": "java",
+  "description": "A queue works like a line at a shop: people join at the back and leave from the front (FIFO, first in first out). This queue lives in a small array. Instead of shifting everyone forward when someone leaves, the front and back indexes simply move, and wrap around to 0 when they reach the end. Watch how slots get reused once the array 'goes around the circle'.",
+  "code": "public class Main {\n    public static void main(String[] args) {\n        NameQueue line = new NameQueue(3);\n        line.enqueue(\"Ana\");\n        line.enqueue(\"Ben\");\n        System.out.println(\"Served: \" + line.dequeue());\n        line.enqueue(\"Cy\");\n        line.enqueue(\"Dee\"); // wraps around into slot 0\n        while (line.size > 0) {\n            System.out.println(\"Served: \" + line.dequeue());\n        }\n    }\n}\n\nclass NameQueue {\n    String[] slots;\n    int front = 0; // where the next person leaves from\n    int size = 0;\n\n    NameQueue(int capacity) {\n        slots = new String[capacity];\n    }\n\n    void enqueue(String name) {\n        int back = (front + size) % slots.length; // % makes the index wrap around\n        slots[back] = name;\n        size++;\n    }\n\n    String dequeue() {\n        String name = slots[front];\n        slots[front] = null;\n        front = (front + 1) % slots.length;\n        size--;\n        return name;\n    }\n}\n",
+  "stdin": "",
+  "order": 202
+}

@@ -62,6 +62,8 @@ export const EXAMPLE_TOPICS = [
   "Classes",
   "Input",
   "Collections",
+  "Data Structures",
+  "Sorting",
 ] as const;
 export type ExampleTopic = (typeof EXAMPLE_TOPICS)[number];
 
@@ -76,12 +78,12 @@ export const SITE = {
 
 export const CREATOR = {
   name: "Mohammed Huzaifa",
-  role: "Graduate student and full-stack developer",
+  role: "Full Stack AI Developer at Air Canada",
   bio: "I love building web applications and designing products that make hard ideas feel simple. I made mycodevisualizer so Coding 101 students can see what their code is really doing.",
   links: [
-    { label: "Portfolio", href: "https://mohammedhuzaifa.vercel.app/" },
-    { label: "GitHub", href: "https://github.com/huzaifaanjum" },
-    { label: "LinkedIn", href: "https://www.linkedin.com/in/huzaifa-anjum/" },
-    { label: "Resume", href: "https://mohammedhuzaifa.vercel.app/mohammed_huzaifa_resume.pdf" },
+    { kind: "portfolio", label: "Portfolio", href: "https://mohammedhuzaifa.vercel.app/" },
+    { kind: "github", label: "GitHub", href: "https://github.com/huzaifaanjum" },
+    { kind: "linkedin", label: "LinkedIn", href: "https://www.linkedin.com/in/huzaifa-anjum/" },
+    { kind: "resume", label: "Resume", href: "https://mohammedhuzaifa.vercel.app/mohammed_huzaifa_resume.pdf" },
   ],
 } as const;

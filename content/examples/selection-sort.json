@@ -1,0 +1,11 @@
+{
+  "slug": "selection-sort",
+  "title": "Selection sort",
+  "topic": "Sorting",
+  "difficulty": "Easy",
+  "language": "java",
+  "description": "Selection sort finds the smallest value and swaps it to the front, then finds the next smallest and puts it second, and so on. It's how many people sort a hand of cards on a table. Simple to understand, but it always does about n x n comparisons, so it's slow for big lists.",
+  "code": "import java.util.Arrays;\n\npublic class Main {\n    public static void main(String[] args) {\n        int[] nums = {29, 10, 14, 37, 13};\n        for (int i = 0; i < nums.length - 1; i++) {\n            int smallest = i;\n            for (int j = i + 1; j < nums.length; j++) {\n                if (nums[j] < nums[smallest]) {\n                    smallest = j;\n                }\n            }\n            int temp = nums[i];\n            nums[i] = nums[smallest];\n            nums[smallest] = temp;\n        }\n        System.out.println(Arrays.toString(nums));\n    }\n}\n",
+  "stdin": "",
+  "order": 302
+}

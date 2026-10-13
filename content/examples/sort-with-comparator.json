@@ -1,0 +1,11 @@
+{
+  "slug": "sort-with-comparator",
+  "title": "Sorting objects your own way",
+  "topic": "Sorting",
+  "difficulty": "Medium",
+  "language": "java",
+  "description": "Real programs usually sort objects, not just numbers. Java's built-in sort takes a comparator, a small rule that says which of two items comes first. Here we sort students by score from highest to lowest, and by name when scores tie.",
+  "code": "import java.util.ArrayList;\nimport java.util.List;\n\npublic class Main {\n    public static void main(String[] args) {\n        List<Student> students = new ArrayList<>();\n        students.add(new Student(\"Cy\", 82));\n        students.add(new Student(\"Ana\", 95));\n        students.add(new Student(\"Ben\", 82));\n\n        students.sort((a, b) -> {\n            if (a.score != b.score) return b.score - a.score; // higher score first\n            return a.name.compareTo(b.name);                 // then A to Z\n        });\n\n        for (Student s : students) {\n            System.out.println(s.name + \" \" + s.score);\n        }\n    }\n}\n\nclass Student {\n    String name;\n    int score;\n\n    Student(String name, int score) {\n        this.name = name;\n        this.score = score;\n    }\n}\n",
+  "stdin": "",
+  "order": 307
+}

@@ -1,0 +1,11 @@
+{
+  "slug": "singly-linked-list",
+  "title": "Singly linked list: add, find, remove",
+  "topic": "Data Structures",
+  "difficulty": "Medium",
+  "language": "java",
+  "description": "A linked list is a chain of nodes. Each node holds a value and a link to the next node, and the list only remembers the first one (the head). Unlike an array, you never shift items; you just re-point links. Watch the arrows in the Memory view: adding at the end walks the chain, and removing a node simply makes its neighbour skip over it.",
+  "code": "public class Main {\n    public static void main(String[] args) {\n        MyLinkedList list = new MyLinkedList();\n        list.addLast(1);\n        list.addLast(2);\n        list.addLast(3);\n        list.addFirst(0);\n        list.print();\n        list.remove(2);\n        list.print();\n        System.out.println(\"Contains 3? \" + list.contains(3));\n    }\n}\n\nclass Node {\n    int value;\n    Node next;\n\n    Node(int value) {\n        this.value = value;\n    }\n}\n\nclass MyLinkedList {\n    Node head;\n\n    void addFirst(int value) {\n        Node node = new Node(value);\n        node.next = head;\n        head = node;\n    }\n\n    void addLast(int value) {\n        Node node = new Node(value);\n        if (head == null) {\n            head = node;\n            return;\n        }\n        Node current = head;\n        while (current.next != null) {\n            current = current.next;\n        }\n        current.next = node;\n    }\n\n    void remove(int value) {\n        if (head == null) return;\n        if (head.value == value) {\n            head = head.next;\n            return;\n        }\n        Node current = head;\n        while (current.next != null && current.next.value != value) {\n            current = current.next;\n        }\n        if (current.next != null) {\n            current.next = current.next.next; // skip over the removed node\n        }\n    }\n\n    boolean contains(int value) {\n        for (Node n = head; n != null; n = n.next) {\n            if (n.value == value) return true;\n        }\n        return false;\n    }\n\n    void print() {\n        String text = \"\";\n        for (Node n = head; n != null; n = n.next) {\n            text += n.value + \" -> \";\n        }\n        System.out.println(text + \"null\");\n    }\n}\n",
+  "stdin": "",
+  "order": 205
+}
