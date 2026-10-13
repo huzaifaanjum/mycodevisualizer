@@ -4,7 +4,7 @@
   "topic": "Sorting",
   "difficulty": "Easy",
   "language": "java",
-  "description": "Counting sort doesn't compare values at all. It counts how many times each value appears, then writes them back out in order. It's extremely fast when the values are small whole numbers, like exam grades from 0 to 5. Watch the counts array fill up, then empty back into the result.",
+  "description": "Sort grades from 0 to 5 by counting them instead of comparing them. First count how many times each grade appears. Then write each grade back out that many times, smallest first. Watch the counts array fill up, then empty back into the list.",
   "code": "import java.util.Arrays;\n\npublic class Main {\n    public static void main(String[] args) {\n        int[] grades = {3, 1, 4, 1, 5, 3};\n        int[] counts = new int[6]; // grades go from 0 to 5\n        for (int g : grades) {\n            counts[g]++;\n        }\n        int index = 0;\n        for (int value = 0; value < counts.length; value++) {\n            for (int c = 0; c < counts[value]; c++) {\n                grades[index] = value;\n                index++;\n            }\n        }\n        System.out.println(Arrays.toString(grades));\n    }\n}\n",
   "stdin": "",
   "order": 306

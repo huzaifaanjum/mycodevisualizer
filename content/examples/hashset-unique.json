@@ -4,7 +4,7 @@
   "topic": "Collections",
   "difficulty": "Easy",
   "language": "java",
-  "description": "Adding something a set already contains changes nothing.",
+  "description": "Keep only the different values from a list of dice rolls. A set never holds the same value twice, so adding 4 a second time changes nothing. At the end the set holds each roll once.",
   "code": "import java.util.HashSet;\nimport java.util.Set;\n\npublic class Main {\n    public static void main(String[] args) {\n        int[] rolls = {4, 2, 4, 6, 2, 1};\n        Set<Integer> unique = new HashSet<>();\n        for (int i = 0; i < rolls.length; i++) {\n            unique.add(rolls[i]);\n        }\n        unique.remove(1);\n        System.out.println(\"Distinct rolls: \" + unique);\n    }\n}\n",
   "stdin": "",
   "order": 103

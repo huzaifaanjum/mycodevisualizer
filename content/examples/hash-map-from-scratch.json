@@ -1,10 +1,10 @@
 {
   "slug": "hash-map-from-scratch",
-  "title": "Hash map: how it works inside",
+  "title": "How a hash map works inside",
   "topic": "Data Structures",
   "difficulty": "Medium",
   "language": "java",
-  "description": "A hash map stores key-value pairs and finds them almost instantly. It turns each key into a bucket number (the 'hash'), then looks only in that bucket. When two keys land in the same bucket (a collision), they share it as a small linked list. Here 3 and 7 both land in bucket 3, so you can watch a collision happen.",
+  "description": "Build a tiny hash map to see how it finds things so fast. Each key is turned into a bucket number, and only that bucket is searched. When two keys get the same bucket number they share the bucket as a short chain. Here 3 and 7 both go to bucket 3, so you can watch that happen.",
   "code": "public class Main {\n    public static void main(String[] args) {\n        SimpleHashMap ages = new SimpleHashMap();\n        ages.put(3, \"Ana is 21\");\n        ages.put(7, \"Ben is 19\"); // 7 % 4 == 3, same bucket as 3\n        ages.put(2, \"Cy is 30\");\n        System.out.println(ages.get(7));\n        System.out.println(ages.get(2));\n        System.out.println(ages.get(5));\n    }\n}\n\nclass Entry {\n    int key;\n    String value;\n    Entry next;\n\n    Entry(int key, String value) {\n        this.key = key;\n        this.value = value;\n    }\n}\n\nclass SimpleHashMap {\n    Entry[] buckets = new Entry[4];\n\n    int bucketFor(int key) {\n        return key % buckets.length;\n    }\n\n    void put(int key, String value) {\n        int b = bucketFor(key);\n        for (Entry e = buckets[b]; e != null; e = e.next) {\n            if (e.key == key) {\n                e.value = value; // key already there: replace the value\n                return;\n            }\n        }\n        Entry entry = new Entry(key, value);\n        entry.next = buckets[b]; // put it at the front of this bucket's chain\n        buckets[b] = entry;\n    }\n\n    String get(int key) {\n        for (Entry e = buckets[bucketFor(key)]; e != null; e = e.next) {\n            if (e.key == key) return e.value;\n        }\n        return \"not found\";\n    }\n}\n",
   "stdin": "",
   "order": 209

@@ -1,10 +1,10 @@
 {
   "slug": "stack-from-array",
-  "title": "Stack: build your own",
+  "title": "Build your own stack",
   "topic": "Data Structures",
   "difficulty": "Easy",
   "language": "java",
-  "description": "A stack is like a pile of plates: you add to the top and take from the top. The last thing you put in is the first thing you get back (LIFO, last in first out). Here the stack is just an array plus a counter called top. Watch top move up on push and down on pop, and notice that pop doesn't erase the old value; it just stops looking at it.",
+  "description": "Build a stack, like a pile of plates: you add to the top and take from the top, so the last plate you put down is the first one you pick up. Here the stack is just an array plus a counter called top. Watch top go up when you push and down when you pop. Popping doesn't erase the old value; the stack just stops looking at it.",
   "code": "public class Main {\n    public static void main(String[] args) {\n        IntStack plates = new IntStack(5);\n        plates.push(10);\n        plates.push(20);\n        plates.push(30);\n        System.out.println(\"Top plate: \" + plates.peek());\n        System.out.println(\"Took: \" + plates.pop());\n        System.out.println(\"Took: \" + plates.pop());\n        plates.push(40);\n        System.out.println(\"Top plate now: \" + plates.peek());\n    }\n}\n\nclass IntStack {\n    int[] items;\n    int top = -1; // index of the top item; -1 means empty\n\n    IntStack(int capacity) {\n        items = new int[capacity];\n    }\n\n    void push(int value) {\n        top++;\n        items[top] = value;\n    }\n\n    int pop() {\n        int value = items[top];\n        top--;\n        return value;\n    }\n\n    int peek() {\n        return items[top];\n    }\n}\n",
   "stdin": "",
   "order": 201

@@ -1,10 +1,10 @@
 {
   "slug": "sum-of-digits",
-  "title": "Sum of digits",
+  "title": "Add up the digits of a number",
   "topic": "Loops",
   "difficulty": "Easy",
   "language": "java",
-  "description": "Peel digits off a number with % and / until nothing is left.",
+  "description": "Add up the digits of 4096: 4 + 0 + 9 + 6 = 19. Each round, % 10 gives the last digit and / 10 chops it off. The loop stops when no digits are left and n reaches 0.",
   "code": "public class Main {\n    public static void main(String[] args) {\n        int n = 4096;\n        int sum = 0;\n        while (n > 0) {\n            int digit = n % 10;\n            sum += digit;\n            n = n / 10;\n        }\n        System.out.println(\"Digit sum: \" + sum);\n    }\n}\n",
   "stdin": "",
   "order": 20

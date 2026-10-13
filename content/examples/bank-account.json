@@ -4,7 +4,7 @@
   "topic": "Classes",
   "difficulty": "Easy",
   "language": "java",
-  "description": "Create objects with new and watch their fields change on the heap.",
+  "description": "Make two bank accounts, put money in one, and try to take money out of the other. A class is a blueprint, and new builds an object from it. Each object keeps its own owner and balance on the heap. Ben's withdrawal fails because he doesn't have enough money.",
   "code": "public class Main {\n    public static void main(String[] args) {\n        Account a = new Account(\"Ana\", 50);\n        Account b = new Account(\"Ben\", 10);\n        a.deposit(25);\n        boolean ok = b.withdraw(30);\n        System.out.println(a.owner + \": \" + a.balance);\n        System.out.println(b.owner + \": \" + b.balance + \" (withdraw ok? \" + ok + \")\");\n    }\n}\n\nclass Account {\n    String owner;\n    int balance;\n\n    Account(String owner, int balance) {\n        this.owner = owner;\n        this.balance = balance;\n    }\n\n    void deposit(int amount) {\n        balance += amount;\n    }\n\n    boolean withdraw(int amount) {\n        if (amount > balance) {\n            return false;\n        }\n        balance -= amount;\n        return true;\n    }\n}\n",
   "stdin": "",
   "order": 29

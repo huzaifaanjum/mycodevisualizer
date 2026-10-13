@@ -4,7 +4,7 @@
   "topic": "Data Structures",
   "difficulty": "Easy",
   "language": "java",
-  "description": "A deque (say 'deck') is a double-ended queue: you can add or remove at the front and at the back. That makes it work as a stack, a queue, or both. Java's ArrayDeque is the go-to choice for either. Follow the collection in the Memory view as items join and leave from each side.",
+  "description": "Add and remove items at both the front and the back of a deque (said 'deck'). Because both ends are open, the same deque can work as a stack or as a queue. Follow it in the Memory view as A, B and C join and leave from each side.",
   "code": "import java.util.ArrayDeque;\nimport java.util.Deque;\n\npublic class Main {\n    public static void main(String[] args) {\n        Deque<String> deque = new ArrayDeque<>();\n        deque.addLast(\"B\");\n        deque.addLast(\"C\");\n        deque.addFirst(\"A\");\n        System.out.println(deque);\n\n        String first = deque.removeFirst();\n        String last = deque.removeLast();\n        System.out.println(\"Removed \" + first + \" and \" + last);\n        System.out.println(\"Left: \" + deque);\n    }\n}\n",
   "stdin": "",
   "order": 203

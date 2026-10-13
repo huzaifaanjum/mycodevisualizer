@@ -1,10 +1,10 @@
 {
   "slug": "stack-balanced-brackets",
-  "title": "Stack: balanced brackets",
+  "title": "Check brackets with a stack",
   "topic": "Collections",
   "difficulty": "Medium",
   "language": "java",
-  "description": "Push every opening bracket; pop when its partner closes it.",
+  "description": "Check that every bracket in a piece of text is closed in the right order. Each opening bracket goes on a stack. Each closing bracket takes the top one off, and the two must match. If everything matches and the stack ends up empty, the brackets are balanced.",
   "code": "import java.util.ArrayDeque;\nimport java.util.Deque;\n\npublic class Main {\n    public static void main(String[] args) {\n        String text = \"(a[b]c)\";\n        Deque<Character> stack = new ArrayDeque<>();\n        boolean ok = true;\n        for (int i = 0; i < text.length(); i++) {\n            char c = text.charAt(i);\n            if (c == '(' || c == '[') {\n                stack.push(c);\n            } else if (c == ')' || c == ']') {\n                char open = stack.pop();\n                if ((c == ')' && open != '(') || (c == ']' && open != '[')) {\n                    ok = false;\n                }\n            }\n        }\n        System.out.println(ok && stack.isEmpty() ? \"Balanced\" : \"Not balanced\");\n    }\n}\n",
   "stdin": "",
   "order": 104

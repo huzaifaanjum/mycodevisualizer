@@ -1,10 +1,10 @@
 {
   "slug": "array-sum",
-  "title": "Sum of an array",
+  "title": "Add up an array",
   "topic": "Arrays",
   "difficulty": "Beginner",
   "language": "java",
-  "description": "Walk through an array with an index and add up its values.",
+  "description": "Add up all the numbers in an array: 4, 8, 15 and 16. An array is a row of boxes numbered from 0. A loop visits each box in turn and adds its value to sum.",
   "code": "public class Main {\n    public static void main(String[] args) {\n        int[] nums = {4, 8, 15, 16};\n        int sum = 0;\n        for (int i = 0; i < nums.length; i++) {\n            sum += nums[i];\n        }\n        System.out.println(\"Sum: \" + sum);\n    }\n}\n",
   "stdin": "",
   "order": 9

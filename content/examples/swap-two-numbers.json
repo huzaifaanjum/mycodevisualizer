@@ -4,7 +4,7 @@
   "topic": "Variables",
   "difficulty": "Beginner",
   "language": "java",
-  "description": "Use a temporary variable to swap two values.",
+  "description": "Swap the values of a and b, so a ends up with 20 and b with 10. You can't just write a = b, because the old value of a would be lost. A third variable, temp, holds it safely while the swap happens.",
   "code": "public class Main {\n    public static void main(String[] args) {\n        int a = 10;\n        int b = 20;\n        int temp = a;\n        a = b;\n        b = temp;\n        System.out.println(\"a = \" + a + \", b = \" + b);\n    }\n}\n",
   "stdin": "",
   "order": 2

@@ -1,10 +1,10 @@
 {
   "slug": "tree-traversals",
-  "title": "Tree traversals: pre, in and post order",
+  "title": "Three ways to visit a tree",
   "topic": "Data Structures",
   "difficulty": "Medium",
   "language": "java",
-  "description": "A tree can be visited in different orders, and each order is useful for something. Pre-order visits a node before its children (good for copying a tree). In-order goes left, node, right (sorted output for a search tree). Post-order visits children first (good for deleting a tree). Use the Call tree view to see the recursion.",
+  "description": "Visit every node of a small tree in three different orders. Pre-order visits a node before its children. In-order visits the left child, then the node, then the right child, which gives sorted output for a search tree. Post-order visits the children first. Open the Call tree tab to see the calls.",
   "code": "public class Main {\n    public static void main(String[] args) {\n        //     2\n        //    / \\\n        //   1   3\n        Node root = new Node(2);\n        root.left = new Node(1);\n        root.right = new Node(3);\n\n        System.out.println(\"Pre-order:  \" + preOrder(root));\n        System.out.println(\"In-order:   \" + inOrder(root));\n        System.out.println(\"Post-order: \" + postOrder(root));\n    }\n\n    static String preOrder(Node n) {\n        if (n == null) return \"\";\n        return n.value + \" \" + preOrder(n.left) + preOrder(n.right);\n    }\n\n    static String inOrder(Node n) {\n        if (n == null) return \"\";\n        return inOrder(n.left) + n.value + \" \" + inOrder(n.right);\n    }\n\n    static String postOrder(Node n) {\n        if (n == null) return \"\";\n        return postOrder(n.left) + postOrder(n.right) + n.value + \" \";\n    }\n}\n\nclass Node {\n    int value;\n    Node left;\n    Node right;\n\n    Node(int value) {\n        this.value = value;\n    }\n}\n",
   "stdin": "",
   "order": 213

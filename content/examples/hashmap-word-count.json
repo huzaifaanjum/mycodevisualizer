@@ -4,7 +4,7 @@
   "topic": "Collections",
   "difficulty": "Easy",
   "language": "java",
-  "description": "Each word becomes a key; its count is updated every time it appears again.",
+  "description": "Count how many times each word appears in a sentence. A HashMap stores pairs: here each word is matched with its count. The first time a word shows up it gets 1, and every time after that its count goes up by one.",
   "code": "import java.util.HashMap;\nimport java.util.Map;\nimport java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        Map<String, Integer> counts = new HashMap<>();\n        while (sc.hasNext()) {\n            String word = sc.next();\n            if (counts.containsKey(word)) {\n                counts.put(word, counts.get(word) + 1);\n            } else {\n                counts.put(word, 1);\n            }\n        }\n        System.out.println(counts);\n    }\n}\n",
   "stdin": "the cat saw the dog and the cat ran\n",
   "order": 102

@@ -1,10 +1,10 @@
 {
   "slug": "methods-area",
-  "title": "Methods with parameters",
+  "title": "Write your own method",
   "topic": "Methods",
   "difficulty": "Easy",
   "language": "java",
-  "description": "Call a method, pass values in, and get a result back.",
+  "description": "Write a method that works out the area of a rectangle, then use it twice. A method is a named piece of code you can reuse. You pass values in, and return sends the answer back. Each call gets its own frame on the call stack.",
   "code": "public class Main {\n    static int area(int width, int height) {\n        int result = width * height;\n        return result;\n    }\n\n    public static void main(String[] args) {\n        int small = area(2, 3);\n        int big = area(10, 4);\n        System.out.println(small + \" and \" + big);\n    }\n}\n",
   "stdin": "",
   "order": 12

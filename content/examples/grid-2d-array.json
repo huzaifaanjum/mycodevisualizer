@@ -1,10 +1,10 @@
 {
   "slug": "grid-2d-array",
-  "title": "2D array: row totals",
+  "title": "Rows in a 2D array",
   "topic": "Arrays",
   "difficulty": "Medium",
   "language": "java",
-  "description": "A 2D array is an array of arrays. Add up each row.",
+  "description": "Add up each row of a small table of numbers. A 2D array is an array whose boxes each hold another array, one per row. The outer loop picks a row, and the inner loop adds up the numbers in it.",
   "code": "public class Main {\n    public static void main(String[] args) {\n        int[][] grid = {\n            {1, 2, 3},\n            {4, 5, 6}\n        };\n        for (int r = 0; r < grid.length; r++) {\n            int total = 0;\n            for (int c = 0; c < grid[r].length; c++) {\n                total += grid[r][c];\n            }\n            System.out.println(\"Row \" + r + \" total: \" + total);\n        }\n    }\n}\n",
   "stdin": "",
   "order": 23

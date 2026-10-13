@@ -1,10 +1,10 @@
 {
   "slug": "find-maximum",
-  "title": "Find the largest value",
+  "title": "Find the highest score",
   "topic": "Arrays",
   "difficulty": "Easy",
   "language": "java",
-  "description": "Keep track of the biggest value seen so far.",
+  "description": "Find the highest score in a list. Start by guessing that the first score is the biggest, then check every other score. Whenever you find a bigger one, it becomes the new max.",
   "code": "public class Main {\n    public static void main(String[] args) {\n        int[] scores = {72, 95, 61, 88};\n        int max = scores[0];\n        for (int i = 1; i < scores.length; i++) {\n            if (scores[i] > max) {\n                max = scores[i];\n            }\n        }\n        System.out.println(\"Highest score: \" + max);\n    }\n}\n",
   "stdin": "",
   "order": 10

@@ -1,10 +1,10 @@
 {
   "slug": "reverse-array",
-  "title": "Reverse an array in place",
+  "title": "Reverse an array",
   "topic": "Arrays",
   "difficulty": "Easy",
   "language": "java",
-  "description": "Two indexes walk toward each other, swapping as they go.",
+  "description": "Flip the order of an array, so 1 2 3 4 5 becomes 5 4 3 2 1, without making a new array. One index starts at the left end and one at the right. They swap their values and step toward each other until they meet in the middle.",
   "code": "public class Main {\n    public static void main(String[] args) {\n        int[] nums = {1, 2, 3, 4, 5};\n        int left = 0;\n        int right = nums.length - 1;\n        while (left < right) {\n            int temp = nums[left];\n            nums[left] = nums[right];\n            nums[right] = temp;\n            left++;\n            right--;\n        }\n        for (int n : nums) {\n            System.out.print(n + \" \");\n        }\n        System.out.println();\n    }\n}\n",
   "stdin": "",
   "order": 21

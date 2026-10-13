@@ -4,7 +4,7 @@
   "topic": "Data Structures",
   "difficulty": "Medium",
   "language": "java",
-  "description": "In a circular linked list the last node points back to the first, so there is no end. That is handy for things that repeat in turns, like players in a board game. Here three players take turns for two full rounds just by following next again and again.",
+  "description": "Let three players take turns for two full rounds. The last node links back to the first, so the chain forms a circle with no end. Moving to next again and again goes Ana, Ben, Cy, then back to Ana.",
   "code": "public class Main {\n    public static void main(String[] args) {\n        Node ana = new Node(\"Ana\");\n        Node ben = new Node(\"Ben\");\n        Node cy = new Node(\"Cy\");\n        ana.next = ben;\n        ben.next = cy;\n        cy.next = ana; // the last player points back to the first\n\n        Node turn = ana;\n        for (int i = 1; i <= 6; i++) {\n            System.out.println(\"Turn \" + i + \": \" + turn.name);\n            turn = turn.next;\n        }\n    }\n}\n\nclass Node {\n    String name;\n    Node next;\n\n    Node(String name) {\n        this.name = name;\n    }\n}\n",
   "stdin": "",
   "order": 207

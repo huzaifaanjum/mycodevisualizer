@@ -1,10 +1,10 @@
 {
   "slug": "day-name-switch",
-  "title": "Day name with switch",
+  "title": "Day of the week with switch",
   "topic": "Conditions",
   "difficulty": "Beginner",
   "language": "java",
-  "description": "Pick one branch out of many with a switch statement.",
+  "description": "Turn a day number into its name, so 3 becomes Wednesday. A switch jumps straight to the case that matches, instead of checking a long list of if statements. break stops it from running on into the next case.",
   "code": "public class Main {\n    public static void main(String[] args) {\n        int day = 3;\n        String name;\n        switch (day) {\n            case 1: name = \"Monday\"; break;\n            case 2: name = \"Tuesday\"; break;\n            case 3: name = \"Wednesday\"; break;\n            case 4: name = \"Thursday\"; break;\n            case 5: name = \"Friday\"; break;\n            default: name = \"Weekend\";\n        }\n        System.out.println(\"Day \" + day + \" is \" + name);\n    }\n}\n",
   "stdin": "",
   "order": 17

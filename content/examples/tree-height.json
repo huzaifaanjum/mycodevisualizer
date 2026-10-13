@@ -1,10 +1,10 @@
 {
   "slug": "tree-height",
-  "title": "Tree: how tall is it?",
+  "title": "How tall is a tree?",
   "topic": "Data Structures",
   "difficulty": "Easy",
   "language": "java",
-  "description": "The height of a tree is the number of levels from the root down to the deepest leaf. Recursion makes this short: a tree's height is 1 plus the taller of its two subtrees, and an empty tree has height 0. Watch each call wait for its children to answer before it can return.",
+  "description": "Count how many levels a tree has, from the top down to the deepest node. A method that calls itself makes this short: a tree is 1 level taller than its tallest branch, and an empty tree has height 0. Watch each call wait for its branches to answer.",
   "code": "public class Main {\n    public static void main(String[] args) {\n        Node root = new Node(1);\n        root.left = new Node(2);\n        root.left.left = new Node(3);\n        root.right = new Node(4);\n        System.out.println(\"Height: \" + height(root));\n    }\n\n    static int height(Node node) {\n        if (node == null) return 0;\n        int left = height(node.left);\n        int right = height(node.right);\n        return 1 + Math.max(left, right);\n    }\n}\n\nclass Node {\n    int value;\n    Node left;\n    Node right;\n\n    Node(int value) {\n        this.value = value;\n    }\n}\n",
   "stdin": "",
   "order": 215

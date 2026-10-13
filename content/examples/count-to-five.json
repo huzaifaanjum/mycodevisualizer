@@ -1,10 +1,10 @@
 {
   "slug": "count-to-five",
-  "title": "Count with a for loop",
+  "title": "Count to five with a for loop",
   "topic": "Loops",
   "difficulty": "Beginner",
   "language": "java",
-  "description": "Watch the loop variable change on every pass.",
+  "description": "Print the numbers 1 to 5, then Done!. A for loop repeats the same lines while its condition is true. Watch i go up by one on every round, and see the loop stop as soon as i reaches 6.",
   "code": "public class Main {\n    public static void main(String[] args) {\n        for (int i = 1; i <= 5; i++) {\n            System.out.println(\"Count: \" + i);\n        }\n        System.out.println(\"Done!\");\n    }\n}\n",
   "stdin": "",
   "order": 6

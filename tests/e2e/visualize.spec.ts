@@ -217,7 +217,7 @@ test.describe("site", () => {
     await page.goto("/examples");
     await page.getByRole("radio", { name: "Recursion" }).click();
     await expect(page.getByRole("link", { name: /Factorial with recursion/ })).toBeVisible();
-    await expect(page.getByRole("link", { name: /Count with a for loop/ })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: /Count to five with a for loop/ })).toHaveCount(0);
     await page.getByRole("link", { name: /Fibonacci call tree/ }).click();
     await expect(page).toHaveURL(/example=fibonacci-recursion/);
     await expect(page.getByText(/^Step 1 of \d+$/)).toBeVisible({ timeout: 30_000 });

@@ -1,10 +1,10 @@
 {
   "slug": "multiplication-table",
-  "title": "Nested loops: times table",
+  "title": "Times table with nested loops",
   "topic": "Loops",
   "difficulty": "Medium",
   "language": "java",
-  "description": "An inner loop runs completely for every pass of the outer loop.",
+  "description": "Print a small 3 by 3 times table. One loop sits inside another: the outer loop picks the row, and the inner loop fills in every column of that row. The inner loop finishes all its rounds before the outer loop moves on.",
   "code": "public class Main {\n    public static void main(String[] args) {\n        for (int row = 1; row <= 3; row++) {\n            String line = \"\";\n            for (int col = 1; col <= 3; col++) {\n                line = line + (row * col) + \" \";\n            }\n            System.out.println(line);\n        }\n    }\n}\n",
   "stdin": "",
   "order": 8

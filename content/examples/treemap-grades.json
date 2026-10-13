@@ -1,10 +1,10 @@
 {
   "slug": "treemap-grades",
-  "title": "TreeMap keeps keys sorted",
+  "title": "TreeMap keeps names in order",
   "topic": "Collections",
   "difficulty": "Medium",
   "language": "java",
-  "description": "Entries are always shown in key order, whatever order you add them.",
+  "description": "Store each student's grade and keep the names in alphabetical order. A TreeMap sorts its keys automatically, whatever order you add them in. Putting Ali in again replaces the old grade instead of adding a second entry.",
   "code": "import java.util.Map;\nimport java.util.TreeMap;\n\npublic class Main {\n    public static void main(String[] args) {\n        Map<String, Integer> grades = new TreeMap<>();\n        grades.put(\"Zoe\", 88);\n        grades.put(\"Ali\", 92);\n        grades.put(\"Max\", 75);\n        grades.put(\"Ali\", 95);\n        grades.remove(\"Max\");\n        System.out.println(grades);\n    }\n}\n",
   "stdin": "",
   "order": 106

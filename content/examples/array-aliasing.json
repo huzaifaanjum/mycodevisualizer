@@ -1,10 +1,10 @@
 {
   "slug": "array-aliasing",
-  "title": "Two variables, one array",
+  "title": "Two names for one array",
   "topic": "Arrays",
   "difficulty": "Medium",
   "language": "java",
-  "description": "Changing an array through one variable changes it for the other too.",
+  "description": "See the difference between sharing an array and copying it. alias = original does not make a new array; both names now point to the same one, so changing alias[0] changes original too. The copy is a separate array and stays the same. Follow the arrows in the Memory view.",
   "code": "public class Main {\n    public static void main(String[] args) {\n        int[] original = {1, 2, 3};\n        int[] alias = original;\n        int[] copy = new int[3];\n        for (int i = 0; i < original.length; i++) {\n            copy[i] = original[i];\n        }\n        alias[0] = 99;\n        System.out.println(original[0] + \" \" + copy[0]);\n    }\n}\n",
   "stdin": "",
   "order": 11

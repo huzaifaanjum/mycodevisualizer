@@ -4,7 +4,7 @@
   "topic": "Data Structures",
   "difficulty": "Medium",
   "language": "java",
-  "description": "A classic interview question. We walk the list once and flip each node's next link to point backwards. Three variables do all the work: prev (already reversed), current (being flipped) and next (so we don't lose the rest). Watch the arrows turn around one at a time.",
+  "description": "Turn the list 1 → 2 → 3 into 3 → 2 → 1 by flipping each link to point backwards. Three variables do the work: prev is the part already flipped, current is the node being flipped, and next remembers the rest so it isn't lost. Watch the arrows turn round one at a time.",
   "code": "public class Main {\n    public static void main(String[] args) {\n        Node head = new Node(1);\n        head.next = new Node(2);\n        head.next.next = new Node(3);\n\n        Node prev = null;\n        Node current = head;\n        while (current != null) {\n            Node next = current.next; // remember the rest of the list\n            current.next = prev;      // flip the link\n            prev = current;\n            current = next;\n        }\n        head = prev;\n\n        for (Node n = head; n != null; n = n.next) {\n            System.out.print(n.value + \" \");\n        }\n        System.out.println();\n    }\n}\n\nclass Node {\n    int value;\n    Node next;\n\n    Node(int value) {\n        this.value = value;\n    }\n}\n",
   "stdin": "",
   "order": 208

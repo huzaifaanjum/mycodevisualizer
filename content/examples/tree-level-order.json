@@ -1,10 +1,10 @@
 {
   "slug": "tree-level-order",
-  "title": "Tree: level by level with a queue",
+  "title": "Visit a tree level by level",
   "topic": "Data Structures",
   "difficulty": "Medium",
   "language": "java",
-  "description": "To read a tree one level at a time (top row, then the next row, and so on) we use a queue. Take a node from the front, print it, then put its children at the back. This idea is called breadth-first search (BFS), and it shows up again in graphs.",
+  "description": "Print a tree one level at a time: the top first, then the row below, and so on. A queue makes this work. Take a node from the front, print it, then add its children at the back. This is called breadth-first search, and graphs use it too.",
   "code": "import java.util.ArrayDeque;\nimport java.util.Queue;\n\npublic class Main {\n    public static void main(String[] args) {\n        //       1\n        //      / \\\n        //     2   3\n        //    /     \\\n        //   4       5\n        Node root = new Node(1);\n        root.left = new Node(2);\n        root.right = new Node(3);\n        root.left.left = new Node(4);\n        root.right.right = new Node(5);\n\n        Queue<Node> queue = new ArrayDeque<>();\n        queue.add(root);\n        while (!queue.isEmpty()) {\n            Node n = queue.remove();\n            System.out.print(n.value + \" \");\n            if (n.left != null) queue.add(n.left);\n            if (n.right != null) queue.add(n.right);\n        }\n        System.out.println();\n    }\n}\n\nclass Node {\n    int value;\n    Node left;\n    Node right;\n\n    Node(int value) {\n        this.value = value;\n    }\n}\n",
   "stdin": "",
   "order": 214

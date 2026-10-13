@@ -4,7 +4,7 @@
   "topic": "Recursion",
   "difficulty": "Medium",
   "language": "java",
-  "description": "Halve the search range each call until the target is found.",
+  "description": "Find 25 in a sorted list without checking every number. Look at the middle value: if the target is bigger, keep only the right half, and if it's smaller, keep only the left half. Each call cuts the search in half, so it takes only a few steps.",
   "code": "public class Main {\n    static int search(int[] sorted, int target, int low, int high) {\n        if (low > high) {\n            return -1;\n        }\n        int mid = (low + high) / 2;\n        if (sorted[mid] == target) {\n            return mid;\n        } else if (sorted[mid] < target) {\n            return search(sorted, target, mid + 1, high);\n        } else {\n            return search(sorted, target, low, mid - 1);\n        }\n    }\n\n    public static void main(String[] args) {\n        int[] nums = {3, 8, 12, 19, 25, 31, 40};\n        int index = search(nums, 25, 0, nums.length - 1);\n        System.out.println(\"Found 25 at index \" + index);\n    }\n}\n",
   "stdin": "",
   "order": 27

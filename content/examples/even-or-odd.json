@@ -1,10 +1,10 @@
 {
   "slug": "even-or-odd",
-  "title": "Even or odd",
+  "title": "Even or odd?",
   "topic": "Conditions",
   "difficulty": "Beginner",
   "language": "java",
-  "description": "Read a number and decide whether it is even or odd.",
+  "description": "Read a number and print whether it is even or odd. A number is even when dividing it by 2 leaves nothing over, which is what n % 2 == 0 checks. Watch the program take only one of the two paths.",
   "code": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        if (n % 2 == 0) {\n            System.out.println(n + \" is even\");\n        } else {\n            System.out.println(n + \" is odd\");\n        }\n    }\n}\n",
   "stdin": "7\n",
   "order": 4

@@ -1,10 +1,10 @@
 {
   "slug": "types-and-division",
-  "title": "Integer vs decimal division",
+  "title": "Whole-number vs decimal division",
   "topic": "Variables",
   "difficulty": "Easy",
   "language": "java",
-  "description": "See why 7 / 2 is 3 for ints but 3.5 for doubles.",
+  "description": "Divide 7 by 2 in two ways and compare the answers. With whole numbers (int) Java drops the part after the point, so 7 / 2 is 3 and the % operator gives the remainder, 1. Turn one side into a double first and you get 3.5.",
   "code": "public class Main {\n    public static void main(String[] args) {\n        int x = 7;\n        int y = 2;\n        int intResult = x / y;\n        int remainder = x % y;\n        double decimalResult = (double) x / y;\n        System.out.println(intResult + \" remainder \" + remainder);\n        System.out.println(decimalResult);\n    }\n}\n",
   "stdin": "",
   "order": 3

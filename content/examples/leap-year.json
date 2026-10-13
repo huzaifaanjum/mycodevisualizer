@@ -4,7 +4,7 @@
   "topic": "Conditions",
   "difficulty": "Easy",
   "language": "java",
-  "description": "Combine conditions with && and || to test a tricky rule.",
+  "description": "Check four years to see which ones are leap years. The rule is: divisible by 4, but not by 100, unless also divisible by 400. && means both parts must be true, and || means at least one must be true. That's why 1900 is not a leap year but 2000 is.",
   "code": "public class Main {\n    public static void main(String[] args) {\n        int[] years = {1900, 2000, 2024, 2025};\n        for (int year : years) {\n            boolean leap = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;\n            if (leap) {\n                System.out.println(year + \" is a leap year\");\n            } else {\n                System.out.println(year + \" is not a leap year\");\n            }\n        }\n    }\n}\n",
   "stdin": "",
   "order": 18

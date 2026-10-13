@@ -1,10 +1,10 @@
 {
   "slug": "power-recursion",
-  "title": "Power with recursion",
+  "title": "Powers with recursion",
   "topic": "Recursion",
   "difficulty": "Easy",
   "language": "java",
-  "description": "base^exp is base times base^(exp - 1), until exp reaches 0.",
+  "description": "Work out 2 to the power 4 (2 × 2 × 2 × 2 = 16) with a method that calls itself. Each call multiplies by 2 once and asks for the power one smaller. When the power reaches 0 the answer is 1, and the calls finish one by one.",
   "code": "public class Main {\n    static int power(int base, int exp) {\n        if (exp == 0) {\n            return 1;\n        }\n        return base * power(base, exp - 1);\n    }\n\n    public static void main(String[] args) {\n        int result = power(2, 4);\n        System.out.println(\"2^4 = \" + result);\n    }\n}\n",
   "stdin": "",
   "order": 26

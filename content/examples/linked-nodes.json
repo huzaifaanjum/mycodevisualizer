@@ -4,7 +4,7 @@
   "topic": "Classes",
   "difficulty": "Medium",
   "language": "java",
-  "description": "Build a tiny linked list and follow the references from node to node.",
+  "description": "Link three objects into a chain and add up their values. Each Node holds a number and a link (next) to the next node. A loop follows the links one by one until it reaches null, which means the end of the chain. Follow the arrows in the Memory view.",
   "code": "public class Main {\n    public static void main(String[] args) {\n        Node head = new Node(1);\n        head.next = new Node(2);\n        head.next.next = new Node(3);\n\n        int total = 0;\n        Node current = head;\n        while (current != null) {\n            total += current.value;\n            current = current.next;\n        }\n        System.out.println(\"Total: \" + total);\n    }\n}\n\nclass Node {\n    int value;\n    Node next;\n\n    Node(int value) {\n        this.value = value;\n    }\n}\n",
   "stdin": "",
   "order": 30

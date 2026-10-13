@@ -4,7 +4,7 @@
   "topic": "Methods",
   "difficulty": "Medium",
   "language": "java",
-  "description": "A method gets a copy of an int, but a copy of an array's reference.",
+  "description": "Find out why a method can change an array but not an int. Java gives the method a copy of each value. A copy of the int 1 is just another 1, so x outside never changes. A copy of an array variable still points to the same array, so arr[0] really does change.",
   "code": "public class Main {\n    static void tryToChange(int number, int[] values) {\n        number = 99;\n        values[0] = 99;\n    }\n\n    public static void main(String[] args) {\n        int x = 1;\n        int[] arr = {1, 2, 3};\n        tryToChange(x, arr);\n        System.out.println(\"x = \" + x);\n        System.out.println(\"arr[0] = \" + arr[0]);\n    }\n}\n",
   "stdin": "",
   "order": 24

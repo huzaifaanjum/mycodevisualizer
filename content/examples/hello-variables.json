@@ -1,10 +1,10 @@
 {
   "slug": "hello-variables",
-  "title": "Variables and assignment",
+  "title": "Your first variables",
   "topic": "Variables",
   "difficulty": "Beginner",
   "language": "java",
-  "description": "Create variables, change them, and print the result.",
+  "description": "Store numbers in variables, add them up, and print the answer. A variable is a named box that holds one value. When you give it a new value, the old one is replaced. Watch apples change from 3 to 5.",
   "code": "public class Main {\n    public static void main(String[] args) {\n        int apples = 3;\n        int oranges = 5;\n        int total = apples + oranges;\n        apples = apples + 2;\n        String message = \"Total fruit: \" + total;\n        System.out.println(message);\n        System.out.println(\"Apples now: \" + apples);\n    }\n}\n",
   "stdin": "",
   "order": 1

@@ -1,10 +1,10 @@
 {
   "slug": "hashset-first-repeat",
-  "title": "HashSet: spot the first repeat",
+  "title": "Find the first repeated word",
   "topic": "Data Structures",
   "difficulty": "Easy",
   "language": "java",
-  "description": "A HashSet is a bag of unique items that can tell you very quickly whether it already holds something. add() even returns false when the item was already there. We use that to find the first word that shows up twice.",
+  "description": "Find the first word that shows up twice in a list. A HashSet can tell you very quickly whether it already holds something. add() returns false when the word was already there, and that's the repeat.",
   "code": "import java.util.HashSet;\nimport java.util.Set;\n\npublic class Main {\n    public static void main(String[] args) {\n        String[] words = {\"red\", \"blue\", \"green\", \"blue\", \"red\"};\n        Set<String> seen = new HashSet<>();\n        for (String word : words) {\n            boolean isNew = seen.add(word);\n            if (!isNew) {\n                System.out.println(\"First repeat: \" + word);\n                break;\n            }\n        }\n        System.out.println(\"Seen: \" + seen);\n    }\n}\n",
   "stdin": "",
   "order": 211

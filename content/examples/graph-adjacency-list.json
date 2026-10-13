@@ -1,10 +1,10 @@
 {
   "slug": "graph-adjacency-list",
-  "title": "Graph: friends list (adjacency list)",
+  "title": "Store a graph: friends list",
   "topic": "Data Structures",
   "difficulty": "Easy",
   "language": "java",
-  "description": "A graph is a set of things (nodes) joined by connections (edges), like people and friendships, or cities and roads. The most common way to store one is an adjacency list: for each node, keep a list of its neighbours. Here friendships go both ways, so each edge is added to both people's lists.",
+  "description": "Store who is friends with whom. A graph is a set of things joined by connections, like people and friendships or towns and roads. Each person keeps a list of their friends. Friendships go both ways, so each one is added to both people's lists.",
   "code": "import java.util.ArrayList;\nimport java.util.List;\n\npublic class Main {\n    public static void main(String[] args) {\n        String[] people = {\"Ana\", \"Ben\", \"Cy\", \"Dee\"};\n        List<List<Integer>> friends = new ArrayList<>();\n        for (int i = 0; i < people.length; i++) {\n            friends.add(new ArrayList<>());\n        }\n        addFriendship(friends, 0, 1); // Ana - Ben\n        addFriendship(friends, 0, 2); // Ana - Cy\n        addFriendship(friends, 2, 3); // Cy - Dee\n\n        for (int i = 0; i < people.length; i++) {\n            String names = \"\";\n            for (int f : friends.get(i)) {\n                names += people[f] + \" \";\n            }\n            System.out.println(people[i] + \": \" + names);\n        }\n    }\n\n    static void addFriendship(List<List<Integer>> friends, int a, int b) {\n        friends.get(a).add(b);\n        friends.get(b).add(a);\n    }\n}\n",
   "stdin": "",
   "order": 216
