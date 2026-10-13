@@ -14,11 +14,14 @@ export function MemoryView({
   step,
   previousStep,
   finished = false,
+  zoom = 100,
 }: {
   step: Step | undefined;
   previousStep: Step | undefined;
   /** The program has ended: `step` is the last moment it was running, shown as its final state. */
   finished?: boolean;
+  /** Content zoom in percent. The arrow layer stays unzoomed and measures the zoomed boxes. */
+  zoom?: number;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const changed = useMemo(() => changedLocals(previousStep, step), [previousStep, step]);
@@ -26,50 +29,53 @@ export function MemoryView({
   const heapObjects = useMemo(() => drawableHeap(step), [step]);
   const labels = useMemo(() => (step ? heapObjectLabels(step) : new Map<string, string[]>()), [step]);
   const frames = step?.frames ?? [];
+  const arrowDeps = useMemo(() => ({ step, zoom }), [step, zoom]);
 
   return (
     <div ref={containerRef} className="relative h-full overflow-auto p-3">
-      {finished && (
-        <p role="status" className="mb-3 flex items-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs text-primary">
-          <FlagIcon className="size-3.5" aria-hidden />
-          Program finished. This is the final state of memory, just before main() ended.
-        </p>
-      )}
-      <div className="grid min-w-fit grid-cols-[minmax(13rem,1fr)_minmax(10rem,1fr)] gap-x-12 gap-y-3">
-        <div className="flex flex-col gap-2">
-          <h3 className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
-            Call stack {frames.length > 0 && <span className="font-normal normal-case">(newest on top)</span>}
-          </h3>
-          {frames.length === 0 ? (
-            <p className="text-xs text-muted-foreground">The stack is empty.</p>
-          ) : (
-            [...frames]
-              .reverse()
-              .map((frame, i) => (
-                <FrameCard key={frame.id} frame={frame} heap={step?.heap ?? {}} isCurrent={i === 0} changed={changed} />
+      <div style={{ zoom: zoom / 100 }}>
+        {finished && (
+          <p role="status" className="mb-3 flex items-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs text-primary">
+            <FlagIcon className="size-3.5" aria-hidden />
+            Program finished. This is the final state of memory, just before main() ended.
+          </p>
+        )}
+        <div className="grid min-w-fit grid-cols-[minmax(13rem,1fr)_minmax(10rem,1fr)] gap-x-12 gap-y-3">
+          <div className="flex flex-col gap-2">
+            <h3 className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+              Call stack {frames.length > 0 && <span className="font-normal normal-case">(newest on top)</span>}
+            </h3>
+            {frames.length === 0 ? (
+              <p className="text-xs text-muted-foreground">The stack is empty.</p>
+            ) : (
+              [...frames]
+                .reverse()
+                .map((frame, i) => (
+                  <FrameCard key={frame.id} frame={frame} heap={step?.heap ?? {}} isCurrent={i === 0} changed={changed} />
+                ))
+            )}
+          </div>
+          <div className="flex flex-col gap-4">
+            <h3 className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">Heap</h3>
+            {heapObjects.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No arrays or objects yet.</p>
+            ) : (
+              heapObjects.map(([id, obj]) => (
+                <HeapObjectBox
+                  key={id}
+                  id={id}
+                  object={obj}
+                  heap={step?.heap ?? {}}
+                  changed={changedSlots}
+                  names={labels.get(id) ?? []}
+                  collectionDiff={diffCollection(id, previousStep, step)}
+                />
               ))
-          )}
-        </div>
-        <div className="flex flex-col gap-4">
-          <h3 className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">Heap</h3>
-          {heapObjects.length === 0 ? (
-            <p className="text-xs text-muted-foreground">No arrays or objects yet.</p>
-          ) : (
-            heapObjects.map(([id, obj]) => (
-              <HeapObjectBox
-                key={id}
-                id={id}
-                object={obj}
-                heap={step?.heap ?? {}}
-                changed={changedSlots}
-                names={labels.get(id) ?? []}
-                collectionDiff={diffCollection(id, previousStep, step)}
-              />
-            ))
-          )}
+            )}
+          </div>
         </div>
       </div>
-      <ReferenceArrows containerRef={containerRef} deps={step} />
+      <ReferenceArrows containerRef={containerRef} deps={arrowDeps} />
     </div>
   );
 }

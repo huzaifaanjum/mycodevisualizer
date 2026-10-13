@@ -20,7 +20,18 @@ type Layout = "tree" | "outline";
  * Every method call in this run as a tree: who called whom, with which arguments, what came back,
  * and which steps each call covers. Click a call to jump to the step where it starts.
  */
-export function CallTree({ trace, index, onSeek }: { trace: Trace; index: number; onSeek: (step: number) => void }) {
+export function CallTree({
+  trace,
+  index,
+  onSeek,
+  zoom = 100,
+}: {
+  trace: Trace;
+  index: number;
+  onSeek: (step: number) => void;
+  /** Content zoom in percent. */
+  zoom?: number;
+}) {
   const timeline = useMemo(() => buildCallTimeline(trace), [trace]);
   const [layout, setLayout] = useState<Layout>("tree");
   const [showFuture, setShowFuture] = useState(false);
@@ -65,15 +76,17 @@ export function CallTree({ trace, index, onSeek }: { trace: Trace; index: number
         </dl>
       </div>
       <div ref={containerRef} className="min-h-0 flex-1 overflow-auto">
-        {layout === "tree" ? (
-          <TreeDiagram timeline={timeline} statuses={statuses} visible={visible} onSeek={onSeek} />
-        ) : (
-          <ul role="tree" aria-label="Call outline" className="p-3 font-mono text-xs">
-            {timeline.roots.filter(visible).map((id) => (
-              <OutlineNode key={id} id={id} timeline={timeline} statuses={statuses} visible={visible} onSeek={onSeek} />
-            ))}
-          </ul>
-        )}
+        <div className="w-fit min-w-full" style={{ zoom: zoom / 100 }}>
+          {layout === "tree" ? (
+            <TreeDiagram timeline={timeline} statuses={statuses} visible={visible} onSeek={onSeek} />
+          ) : (
+            <ul role="tree" aria-label="Call outline" className="p-3 font-mono text-xs">
+              {timeline.roots.filter(visible).map((id) => (
+                <OutlineNode key={id} id={id} timeline={timeline} statuses={statuses} visible={visible} onSeek={onSeek} />
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
       <Legend />
     </div>

@@ -1,6 +1,7 @@
-import { LinkIcon } from "lucide-react";
+import { InfoIcon, LinkIcon } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Workspace } from "@/features/workspace";
 import { getConfig } from "@/server/env";
 import { getSnippetService } from "@/server/context";
@@ -35,9 +36,19 @@ export default async function SharedSnippetPage({ params }: PageProps<"/s/[publi
       canShare
       autoRun
       banner={
-        <div className="flex items-center gap-2 border-b bg-card/60 px-3 py-2 text-sm text-muted-foreground">
-          <LinkIcon className="size-4 text-primary" aria-hidden />
-          Shared program. Press <strong className="text-foreground">Edit code</strong> to change it; your changes stay with you until you share again.
+        <div className="flex items-center gap-1.5 border-b bg-card/60 px-3 py-1 text-xs text-muted-foreground">
+          <LinkIcon className="size-3.5 text-primary" aria-hidden />
+          Shared program
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button type="button" aria-label="About shared programs" className="rounded-full p-0.5 hover:text-foreground">
+                <InfoIcon className="size-3.5" aria-hidden />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-64">
+              Press <strong>Edit code</strong> to change it. Your changes stay with you until you share again.
+            </TooltipContent>
+          </Tooltip>
         </div>
       }
     />

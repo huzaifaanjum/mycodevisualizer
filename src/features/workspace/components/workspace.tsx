@@ -11,17 +11,22 @@ import { CodeEditor, StdinInput } from "@/features/editor";
 import { ShareButton } from "@/features/snippets";
 import { usePlayback, Visualizer } from "@/features/visualizer";
 import { useFullscreen } from "../hooks/use-fullscreen";
-import { usePersistedNumber } from "../hooks/use-persisted-number";
 import { useRun } from "../hooks/use-run";
 import { IdleState } from "./idle-state";
 import { RunError } from "./run-error";
 import { RunningState } from "./running-state";
-import { SplitHandle } from "./split-handle";
+import { SplitHandle } from "@/components/common/split-handle";
+import { ZoomControls } from "@/components/common/zoom-controls";
+import { usePersistedNumber } from "@/lib/use-persisted-number";
 import { cn } from "@/lib/utils";
 
 type Mode = "auto" | "step";
 
 const CODE_WIDTH = { key: "mcv-code-width", default: 45, min: 20, max: 75 } as const;
+/** Code zoom in percent; 100% is a 14px font. */
+const CODE_ZOOM = { key: "mcv-code-zoom", default: 100, min: 50, max: 250, baseFontSize: 14 } as const;
+/** Editor share of the editor + input column. */
+const EDITOR_HEIGHT = { key: "mcv-editor-height", default: 78, min: 25, max: 92 } as const;
 
 export interface WorkspaceProps {
   language: LanguageId;
@@ -51,6 +56,9 @@ export function Workspace({ language, initialCode, initialStdin, title, canShare
   const viewing = hasRun && !editing;
   const splitRef = useRef<HTMLDivElement>(null);
   const [codeWidth, setCodeWidth] = usePersistedNumber(CODE_WIDTH.key, CODE_WIDTH.default, CODE_WIDTH.min, CODE_WIDTH.max);
+  const [codeZoom, setCodeZoom] = usePersistedNumber(CODE_ZOOM.key, CODE_ZOOM.default, CODE_ZOOM.min, CODE_ZOOM.max);
+  const editorSplitRef = useRef<HTMLDivElement>(null);
+  const [editorHeight, setEditorHeight] = usePersistedNumber(EDITOR_HEIGHT.key, EDITOR_HEIGHT.default, EDITOR_HEIGHT.min, EDITOR_HEIGHT.max);
   const fullscreen = useFullscreen();
   const fullscreenControl = useMemo(() => ({ active: fullscreen.active, toggle: fullscreen.toggle }), [fullscreen.active, fullscreen.toggle]);
 
@@ -105,7 +113,10 @@ export function Workspace({ language, initialCode, initialStdin, title, canShare
       <section aria-label="Code" className="flex h-[75dvh] min-h-0 flex-col border-b lg:h-auto lg:border-b-0">
         {banner}
         <div className="flex flex-wrap items-center justify-between gap-2 border-b px-3 py-2">
-          <span className="truncate font-mono text-xs text-muted-foreground">{fileName}</span>
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="truncate font-mono text-xs text-muted-foreground">{fileName}</span>
+            <ZoomControls label="Code" value={codeZoom} onChange={setCodeZoom} min={CODE_ZOOM.min} max={CODE_ZOOM.max} />
+          </div>
           <div className="flex items-center gap-2">
             <ToggleGroup
               type="single"
@@ -133,27 +144,46 @@ export function Workspace({ language, initialCode, initialStdin, title, canShare
             {canShare && <ShareButton language={language} code={code} stdin={stdin} />}
           </div>
         </div>
-        <div className="min-h-0 flex-1">
-          <CodeEditor
-            value={code}
-            onChange={updateCode}
-            language={adapter.monacoLanguage}
-            readOnly={viewing}
-            currentLine={viewing ? playback.step?.line : undefined}
-            previousLine={viewing ? playback.previousStep?.line : undefined}
-            breakpoints={playback.state.breakpoints}
-            onToggleBreakpoint={playback.toggleBreakpoint}
-            diagnostics={diagnostics}
-            revealRequest={reveal}
+        <div
+          ref={editorSplitRef}
+          className="grid min-h-0 flex-1 grid-rows-[minmax(0,var(--editor-height))_auto_minmax(0,1fr)]"
+          style={{ "--editor-height": `${editorHeight}%` } as React.CSSProperties}
+        >
+          <div className="min-h-0">
+            <CodeEditor
+              value={code}
+              onChange={updateCode}
+              language={adapter.monacoLanguage}
+              readOnly={viewing}
+              currentLine={viewing ? playback.step?.line : undefined}
+              previousLine={viewing ? playback.previousStep?.line : undefined}
+              breakpoints={playback.state.breakpoints}
+              onToggleBreakpoint={playback.toggleBreakpoint}
+              diagnostics={diagnostics}
+              revealRequest={reveal}
+              fontSize={Math.round((CODE_ZOOM.baseFontSize * codeZoom) / 100)}
+            />
+          </div>
+          <SplitHandle
+            containerRef={editorSplitRef}
+            direction="column"
+            label="Resize input panel"
+            value={editorHeight}
+            onChange={setEditorHeight}
+            min={EDITOR_HEIGHT.min}
+            max={EDITOR_HEIGHT.max}
+            defaultValue={EDITOR_HEIGHT.default}
           />
-        </div>
-        <div className="h-36 shrink-0 border-t">
-          <StdinInput value={stdin} onChange={updateStdin} disabled={viewing} />
+          <div className="min-h-0">
+            <StdinInput value={stdin} onChange={updateStdin} disabled={viewing} />
+          </div>
         </div>
       </section>
 
       <SplitHandle
         containerRef={splitRef}
+        label="Resize code panel"
+        className="hidden lg:flex"
         value={codeWidth}
         onChange={setCodeWidth}
         min={CODE_WIDTH.min}

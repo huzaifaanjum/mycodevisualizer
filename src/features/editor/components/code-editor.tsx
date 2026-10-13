@@ -22,6 +22,8 @@ export interface CodeEditorProps {
   diagnostics?: Diagnostic[];
   /** Changing this number scrolls the editor to `revealLine`. */
   revealRequest?: { line: number; nonce: number };
+  /** Font size in pixels; the code zoom controls change it. */
+  fontSize?: number;
 }
 
 /** Monaco themes mirroring the app themes in globals.css. */
@@ -94,6 +96,7 @@ export function CodeEditor({
   onToggleBreakpoint,
   diagnostics,
   revealRequest,
+  fontSize = 14,
 }: CodeEditorProps) {
   const { theme } = useTheme();
   const editorRef = useRef<MonacoEditor | null>(null);
@@ -190,7 +193,7 @@ export function CodeEditor({
         loading={<Skeleton className="m-3 h-[calc(100%-1.5rem)]" />}
         options={{
           readOnly,
-          fontSize: 14,
+          fontSize,
           fontFamily: "var(--font-geist-mono), ui-monospace, monospace",
           minimap: { enabled: false },
           glyphMargin: true,
