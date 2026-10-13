@@ -112,7 +112,7 @@ export function Workspace({ language, initialCode, initialStdin, title, canShare
     >
       <section aria-label="Code" className="@container flex h-[75dvh] min-h-0 min-w-0 flex-col overflow-hidden border-b lg:h-auto lg:border-b-0">
         {banner}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b p-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b px-3 py-2.5">
           <div className="flex min-w-0 items-center gap-2">
             <span className="truncate font-mono text-xs text-muted-foreground">{fileName}</span>
             <ZoomControls label="Code" value={codeZoom} onChange={setCodeZoom} min={CODE_ZOOM.min} max={CODE_ZOOM.max} />
