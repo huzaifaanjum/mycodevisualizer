@@ -1,6 +1,6 @@
 "use client";
 
-import { BrainIcon, ChevronDownIcon, EraserIcon, Maximize2Icon, Minimize2Icon, NetworkIcon, WorkflowIcon } from "lucide-react";
+import { BrainIcon, ChevronDownIcon, EraserIcon, Maximize2Icon, Minimize2Icon, NetworkIcon, SwatchBookIcon, WorkflowIcon } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useCodeExplanation } from "@/features/explanation";
 import { getLanguageAdapter } from "@/languages";
@@ -28,6 +28,7 @@ import { CompileErrors } from "./compile-errors";
 import { ConsolePanel } from "./console-panel";
 import { FlowView } from "./flow-view";
 import { MemoryLegend, MemoryView } from "./memory-view";
+import { IconToggle } from "./icon-toggle";
 import { NarrationToggle, TranscriptToggle } from "./narration-toggle";
 import { PlaybackBar } from "./playback-bar";
 import { StatusBanner } from "./status-banner";
@@ -41,6 +42,8 @@ const TABS_HEIGHT = { key: "mcv-tabs-height", default: 65, min: 25, max: 88 } as
 const STEPS_OPEN = { key: "mcv-steps-open", default: 0, min: 0, max: 1 } as const;
 /** One-line transcript above input and output; shown by default. */
 const TRANSCRIPT_ON = { key: "mcv-transcript", default: 1, min: 0, max: 1 } as const;
+/** The memory legend along the bottom; shown by default. */
+const LEGEND_ON = { key: "mcv-legend", default: 1, min: 0, max: 1 } as const;
 
 /** Memory and call tree zoom in percent. The flow tab has its own pan/zoom. */
 const VIZ_ZOOM = { key: "mcv-viz-zoom", default: 100, min: 50, max: 250 } as const;
@@ -104,6 +107,8 @@ export function Visualizer({
     TRANSCRIPT_ON.max,
   );
   const transcriptOn = transcriptValue === 1 && (canNarrate || canExplain);
+  const [legendValue, setLegend] = usePersistedNumber(LEGEND_ON.key, LEGEND_ON.default, LEGEND_ON.min, LEGEND_ON.max);
+  const legendOn = legendValue === 1;
   const splitRef = useRef<HTMLDivElement>(null);
   const [tabsHeight, setTabsHeight] = usePersistedNumber(
     TABS_HEIGHT.key,
@@ -286,9 +291,6 @@ export function Visualizer({
               <InfoTip title={TAB_INFO[tab].title} text={TAB_INFO[tab].text} />
             </div>
             <div className="flex items-center gap-1">
-              {(canNarrate || canExplain) && (
-                <TranscriptToggle shown={transcriptOn} onToggle={() => setTranscript(transcriptOn ? 0 : 1)} />
-              )}
               {canNarrate && (
                 <NarrationToggle
                   enabled={narrating}
@@ -298,6 +300,18 @@ export function Visualizer({
                     setNarrationError(undefined);
                     setNarrating((v) => !v);
                   }}
+                />
+              )}
+              {(canNarrate || canExplain) && (
+                <TranscriptToggle shown={transcriptOn} onToggle={() => setTranscript(transcriptOn ? 0 : 1)} />
+              )}
+              {tab === "memory" && (
+                <IconToggle
+                  label="Legend"
+                  pressed={legendOn}
+                  onToggle={() => setLegend(legendOn ? 0 : 1)}
+                  icon={<SwatchBookIcon aria-hidden />}
+                  hint={legendOn ? "Hide the legend" : "Show the legend: what the dots, arrows and colours mean"}
                 />
               )}
               {tab !== "flow" && (
@@ -375,7 +389,7 @@ export function Visualizer({
           </div>
         </div>
       </div>
-      {tab === "memory" && <MemoryLegend />}
+      {tab === "memory" && legendOn && <MemoryLegend />}
     </div>
   );
 }

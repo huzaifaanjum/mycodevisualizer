@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { STEP_NARRATION_OWNER } from "../hooks/use-step-narration";
+import { IconToggle } from "./icon-toggle";
 
 /** Turns spoken, line-by-line narration of the run on or off. */
 export function NarrationToggle({
@@ -75,20 +76,12 @@ export function NarrationToggle({
 /** Shows or hides the one-line transcript above the input and output. */
 export function TranscriptToggle({ shown, onToggle }: { shown: boolean; onToggle: () => void }) {
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          variant={shown ? "secondary" : "ghost"}
-          size="icon-sm"
-          aria-label="Transcript"
-          aria-pressed={shown}
-          onClick={onToggle}
-          className={cn(shown && "text-primary")}
-        >
-          {shown ? <CaptionsIcon aria-hidden /> : <CaptionsOffIcon aria-hidden />}
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>{shown ? "Hide the transcript" : "Show the transcript: the explanation, one line at a time"}</TooltipContent>
-    </Tooltip>
+    <IconToggle
+      label="Transcript"
+      pressed={shown}
+      onToggle={onToggle}
+      icon={shown ? <CaptionsIcon aria-hidden /> : <CaptionsOffIcon aria-hidden />}
+      hint={shown ? "Hide the transcript" : "Show the transcript: the explanation, one line at a time"}
+    />
   );
 }
