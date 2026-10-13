@@ -227,7 +227,7 @@ test.describe("site", () => {
   test("accent color can be changed and is remembered", async ({ page }) => {
     await page.goto("/");
     await expect(page.locator("html")).toHaveAttribute("data-accent", "green");
-    await page.getByRole("button", { name: /Accent color/ }).click();
+    await page.getByRole("button", { name: /Appearance/ }).click();
     await page.getByRole("menuitemradio", { name: "Violet" }).click();
     await expect(page.locator("html")).toHaveAttribute("data-accent", "violet");
     await page.reload();

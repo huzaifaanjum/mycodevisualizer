@@ -153,6 +153,25 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
+  /* Tailwind v4 leaves buttons with the default cursor; show a pointer on everything clickable. */
+  :is(
+      button,
+      summary,
+      select,
+      label[for],
+      input:is([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="submit"], [type="button"]),
+      [role="button"],
+      [role="tab"],
+      [role="switch"],
+      [role="checkbox"],
+      [role="radio"],
+      [role="option"],
+      [role="menuitem"],
+      [role="menuitemradio"],
+      [role="menuitemcheckbox"]
+    ):not(:disabled, [aria-disabled="true"], [data-disabled]) {
+    cursor: pointer;
+  }
   ::selection {
     background: color-mix(in oklab, var(--accent-color) 35%, transparent);
   }

@@ -24,7 +24,7 @@ function DropdownMenuContent({ className, sideOffset = 6, ...props }: React.Comp
 }
 
 const itemClass =
-  "relative flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none select-none focus:bg-accent data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:size-4";
+  "relative flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none select-none focus:bg-accent data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:size-4";
 
 function DropdownMenuItem({ className, ...props }: React.ComponentProps<typeof DropdownMenuPrimitive.Item>) {
   return <DropdownMenuPrimitive.Item className={cn(itemClass, className)} {...props} />;

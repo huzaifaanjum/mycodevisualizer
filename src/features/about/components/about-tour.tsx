@@ -179,14 +179,19 @@ function StepDetail({ step, languages }: { step: AboutStep; languages: LanguageT
     case "limits":
       return (
         <div className="@container">
-          <dl className="grid grid-cols-2 gap-4 @3xl:grid-cols-4">
+          <dl className="grid grid-cols-2 gap-4 @sm:grid-cols-4 @sm:gap-2 @3xl:gap-4">
             {LIMIT_ROWS.map((r) => (
-              <div key={r.id} className="bg-muted/40 rounded-2xl px-5 py-4">
-                <dt className="text-muted-foreground flex items-center gap-2 text-sm">
-                  <MappedIcon icon={LIMIT_ICONS[r.id]} className="text-primary size-4" />
-                  {r.label}
+              <div
+                key={r.id}
+                className="bg-muted/40 min-w-0 rounded-2xl px-5 py-4 @sm:px-3 @sm:py-3 @3xl:px-5 @3xl:py-4"
+              >
+                <dt className="text-muted-foreground flex items-center gap-2 text-sm @sm:gap-1.5 @sm:text-xs @3xl:gap-2 @3xl:text-sm">
+                  <MappedIcon icon={LIMIT_ICONS[r.id]} className="text-primary size-4 shrink-0" />
+                  <span className="truncate">{r.label}</span>
                 </dt>
-                <dd className="mt-1 text-2xl font-semibold tracking-tight">{r.value}</dd>
+                <dd className="mt-1 text-2xl font-semibold tracking-tight whitespace-nowrap @sm:text-base @lg:text-xl @3xl:text-2xl">
+                  {r.value}
+                </dd>
               </div>
             ))}
           </dl>
@@ -444,7 +449,7 @@ export function AboutTour({ languages }: { languages: LanguageTab[] }) {
               <section
                 key={s.id}
                 aria-labelledby={`about-${s.id}`}
-                className={cn("min-w-0 space-y-5", FULL_WIDTH_SECTIONS.has(s.id) && "lg:col-span-2")}
+                className={cn("min-w-0", FULL_WIDTH_SECTIONS.has(s.id) && "lg:col-span-2")}
               >
                 <div className="space-y-1">
                   <p className="text-primary font-mono text-sm">{String(i + 1).padStart(2, "0")}</p>

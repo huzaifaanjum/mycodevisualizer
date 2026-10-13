@@ -44,7 +44,7 @@ function SelectItem({ className, children, ...props }: React.ComponentProps<type
   return (
     <SelectPrimitive.Item
       className={cn(
-        "relative flex cursor-default items-center rounded-md py-1.5 pr-8 pl-2 text-xs outline-none select-none focus:bg-accent",
+        "relative flex cursor-pointer items-center rounded-md py-1.5 pr-8 pl-2 text-xs outline-none select-none focus:bg-accent",
         className,
       )}
       {...props}

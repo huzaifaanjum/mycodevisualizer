@@ -4,7 +4,7 @@ import { getConfig } from "@/server/env";
 import { SITE } from "@/shared/constants";
 import { NavLink } from "@/components/common/nav-link";
 import { SignInDialog, UserMenu } from "@/features/auth";
-import { AccentPicker, ThemePicker } from "@/features/theme";
+import { AppearancePicker } from "@/features/theme";
 
 export async function SiteHeader() {
   const { features } = getConfig();
@@ -27,8 +27,7 @@ export async function SiteHeader() {
         <NavLink href="/examples" className="sm:hidden">
           Examples
         </NavLink>
-        <ThemePicker />
-        <AccentPicker />
+        <AppearancePicker />
         {features.auth &&
           (user ? <UserMenu name={user.name} image={user.image} /> : <SignInDialog github={features.github} google={features.google} />)}
       </div>
