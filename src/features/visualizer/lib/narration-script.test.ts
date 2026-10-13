@@ -14,21 +14,17 @@ const notes: StepNote[] = [
 ];
 
 describe("spokenStep", () => {
-  it("names the line that ran, reads its effects, then the line that runs next", () => {
-    expect(spokenStep(notes, 7)).toBe("Line 7 ran. sum changed from 12 to 27. Next, line 6 runs.");
-  });
-
-  it("has no line that ran on the first step", () => {
-    expect(spokenStep([{ kind: "start", text: "The program starts." }], undefined)).toBe("The program starts.");
+  it("reads the step's notes as they are, ending with the line that runs next", () => {
+    expect(spokenStep(notes)).toBe("sum changed from 12 to 27. Next, line 6 runs.");
   });
 });
 
 describe("narrationClips", () => {
-  const base = { notes, lineThatRan: 7, nextLine: 6, explanation };
+  const base = { notes, nextLine: 6, explanation };
 
   it("falls back to the step notes without an AI explanation", () => {
     expect(narrationClips({ ...base, firstVisit: true, explanation: undefined })).toEqual([
-      "Line 7 ran. sum changed from 12 to 27. Next, line 6 runs.",
+      "sum changed from 12 to 27. Next, line 6 runs.",
     ]);
   });
 
@@ -50,7 +46,6 @@ describe("narrationClips", () => {
   it("closes with the AI's wrap-up and key takeaways at the end", () => {
     const end = narrationClips({
       notes: [{ kind: "end", text: "The program finished." }],
-      lineThatRan: 8,
       nextLine: undefined,
       firstVisit: false,
       explanation,

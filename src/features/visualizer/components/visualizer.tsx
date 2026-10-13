@@ -138,7 +138,6 @@ export function Visualizer({
       const nextLine = s.event !== "end" && s.event !== "exception" ? s.line : undefined;
       return narrationClips({
         notes: describeStep({ trace, index, sourceLines, stdin, explainException: adapter.explainException }),
-        lineThatRan: trace.steps[index - 1]?.line,
         nextLine,
         firstVisit: nextLine !== undefined && firstVisitOf.get(nextLine) === index,
         explanation,
@@ -154,7 +153,9 @@ export function Visualizer({
     enabled: canNarrate && narrating && trace.status !== "compile_error",
     playback,
     scriptFor,
-    intro: narrationIntro ?? explanation?.summary,
+    // With an AI explanation, examples are introduced by their title and the AI's summary; without
+    // one (Groq missing, slow or failing) by their written description.
+    intro: explanation ? (explainContext ? `${explainContext.title}. ${explanation.summary}` : explanation.summary) : narrationIntro,
     ready: explanationState.status !== "loading",
     onError: onNarrationError,
   });

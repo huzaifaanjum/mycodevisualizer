@@ -3,20 +3,16 @@ import { noteTemplates as t } from "./note-templates";
 import type { StepNote } from "./step-notes";
 
 /**
- * What narration says for one step without an AI explanation, matching the editor: a step's notes
- * describe what the line that just ran did (the faint highlight), and end with the line that runs
- * next (the bright one). So it says "Line 7 ran. sum changed from 0 to 3. Next, line 6 runs."
+ * The fallback when there is no AI explanation: the step's own notes, which already match the
+ * editor. They describe what the last line did (faint highlight) and end with the line that runs
+ * next (bright highlight): "sum changed from 0 to 3. Next, line 6 runs."
  */
-export function spokenStep(notes: StepNote[], lineThatRan: number | undefined): string {
-  return [lineThatRan === undefined ? "" : t.spokenLineRan(lineThatRan), ...notes.map((n) => n.text)]
-    .filter(Boolean)
-    .join(" ");
+export function spokenStep(notes: StepNote[]): string {
+  return notes.map((n) => n.text).join(" ");
 }
 
 export interface NarrationInput {
   notes: StepNote[];
-  /** The line that just ran (faint highlight), whose effects the notes describe. */
-  lineThatRan: number | undefined;
   /** The line about to run (bright highlight); undefined at the end or after a crash. */
   nextLine: number | undefined;
   /** True when this is the first time the program reaches `nextLine`. */
@@ -30,8 +26,8 @@ export interface NarrationInput {
  * short form on later visits. At the end, the AI's closing line and key takeaways.
  * Clips are kept separate so repeated ones (a loop's short form) are synthesized only once.
  */
-export function narrationClips({ notes, lineThatRan, nextLine, firstVisit, explanation }: NarrationInput): string[] {
-  if (!explanation) return [spokenStep(notes, lineThatRan)];
+export function narrationClips({ notes, nextLine, firstVisit, explanation }: NarrationInput): string[] {
+  if (!explanation) return [spokenStep(notes)];
   const happened = notes.filter((n) => n.kind !== "next").map((n) => n.text).join(" ");
   const clips = [happened];
   if (nextLine !== undefined) {
