@@ -107,17 +107,17 @@ export function Workspace({ language, initialCode, initialStdin, title, canShare
   return (
     <div
       ref={splitRef}
-      className="grid lg:h-[calc(100dvh-3.5rem)] lg:grid-cols-[minmax(0,var(--code-width))_auto_minmax(0,1fr)]"
+      className="grid lg:h-[calc(100dvh-3.5rem)] lg:grid-cols-[minmax(20rem,var(--code-width))_auto_minmax(24rem,1fr)]"
       style={{ "--code-width": `${codeWidth}%` } as React.CSSProperties}
     >
-      <section aria-label="Code" className="flex h-[75dvh] min-h-0 flex-col border-b lg:h-auto lg:border-b-0">
+      <section aria-label="Code" className="@container flex h-[75dvh] min-h-0 min-w-0 flex-col overflow-hidden border-b lg:h-auto lg:border-b-0">
         {banner}
         <div className="flex flex-wrap items-center justify-between gap-2 border-b px-3 py-2">
           <div className="flex min-w-0 items-center gap-2">
             <span className="truncate font-mono text-xs text-muted-foreground">{fileName}</span>
             <ZoomControls label="Code" value={codeZoom} onChange={setCodeZoom} min={CODE_ZOOM.min} max={CODE_ZOOM.max} />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <ToggleGroup
               type="single"
               value={mode}
@@ -125,10 +125,10 @@ export function Workspace({ language, initialCode, initialStdin, title, canShare
               aria-label="Visualization mode"
             >
               <ToggleGroupItem value="step" aria-label="Step by step">
-                <SkipForwardIcon aria-hidden /> Step-by-step
+                <SkipForwardIcon aria-hidden /> <span className="hidden @lg:inline">Step-by-step</span>
               </ToggleGroupItem>
               <ToggleGroupItem value="auto" aria-label="Automated">
-                <WandSparklesIcon aria-hidden /> Automated
+                <WandSparklesIcon aria-hidden /> <span className="hidden @lg:inline">Automated</span>
               </ToggleGroupItem>
             </ToggleGroup>
             {viewing ? (
@@ -138,7 +138,7 @@ export function Workspace({ language, initialCode, initialStdin, title, canShare
             ) : (
               <Button size="sm" onClick={visualize} disabled={state.status === "running" || code.trim() === ""}>
                 <PlayIcon /> Visualize
-                <Kbd className="hidden border-primary-foreground/30 bg-transparent text-primary-foreground/80 sm:inline-flex">Ctrl ↵</Kbd>
+                <Kbd className="hidden border-primary-foreground/30 bg-transparent text-primary-foreground/80 @md:inline-flex">Ctrl ↵</Kbd>
               </Button>
             )}
             {canShare && <ShareButton language={language} code={code} stdin={stdin} />}
@@ -149,7 +149,7 @@ export function Workspace({ language, initialCode, initialStdin, title, canShare
           className="grid min-h-0 flex-1 grid-rows-[minmax(0,var(--editor-height))_auto_minmax(0,1fr)]"
           style={{ "--editor-height": `${editorHeight}%` } as React.CSSProperties}
         >
-          <div className="min-h-0">
+          <div className="min-h-0 overflow-hidden">
             <CodeEditor
               value={code}
               onChange={updateCode}
@@ -174,7 +174,7 @@ export function Workspace({ language, initialCode, initialStdin, title, canShare
             max={EDITOR_HEIGHT.max}
             defaultValue={EDITOR_HEIGHT.default}
           />
-          <div className="min-h-0">
+          <div className="min-h-0 overflow-hidden">
             <StdinInput value={stdin} onChange={updateStdin} disabled={viewing} />
           </div>
         </div>
@@ -194,7 +194,7 @@ export function Workspace({ language, initialCode, initialStdin, title, canShare
       <section
         aria-label="Visualization"
         className={cn(
-          "flex h-[90dvh] min-h-0 flex-col lg:h-auto",
+          "flex h-[90dvh] min-h-0 min-w-0 flex-col overflow-hidden bg-background lg:h-auto",
           fullscreen.active && "fixed inset-0 z-50 h-dvh bg-background lg:h-dvh",
         )}
       >

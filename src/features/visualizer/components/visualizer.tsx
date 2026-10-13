@@ -89,8 +89,8 @@ export function Visualizer({ language, trace, source, stdin, playback, onSelectL
         className="grid min-h-0 flex-1 grid-rows-[minmax(0,var(--tabs-height))_auto_minmax(0,1fr)]"
         style={{ "--tabs-height": `${tabsHeight}%` } as React.CSSProperties}
       >
-        <Tabs value={tab} onValueChange={(v) => isTab(v) && setTab(v)} className="flex min-h-0 flex-col">
-          <div className="flex items-center justify-between px-3 pt-2">
+        <Tabs value={tab} onValueChange={(v) => isTab(v) && setTab(v)} className="flex min-h-0 flex-col overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-3 pt-2">
             <TabsList>
               <TabsTrigger value="memory">
                 <BrainIcon aria-hidden /> Memory
@@ -158,7 +158,7 @@ export function Visualizer({ language, trace, source, stdin, playback, onSelectL
           max={TABS_HEIGHT.max}
           defaultValue={TABS_HEIGHT.default}
         />
-        <div className="min-h-0">
+        <div className="min-h-0 overflow-hidden">
           <ConsolePanel output={stdoutAt(trace, step)} stdin={stdin} stdinConsumed={step?.stdinConsumed ?? 0} />
         </div>
       </div>
