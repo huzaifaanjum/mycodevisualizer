@@ -421,6 +421,7 @@ export function AboutTour({ languages }: { languages: LanguageTab[] }) {
             </ol>
           </nav>
           <div className="mt-auto hidden space-y-3 lg:block">
+            {toggle}
             <p className="text-muted-foreground flex items-center gap-1 px-2 text-xs">
               <Kbd>←</Kbd>
               <Kbd>→</Kbd>
@@ -428,7 +429,6 @@ export function AboutTour({ languages }: { languages: LanguageTab[] }) {
               <Kbd>↓</Kbd>
               <span className="ml-1">to move between steps</span>
             </p>
-            {toggle}
           </div>
         </aside>
       )}
