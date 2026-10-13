@@ -2,6 +2,9 @@ import "server-only";
 import { randomBytes } from "node:crypto";
 import { z } from "zod";
 
+/** Treats `NAME=` (empty, as copied from .env.example) the same as not setting it. */
+const blankAsUnset = <T extends z.ZodType>(schema: T) => z.preprocess((v) => (v === "" ? undefined : v), schema);
+
 const EnvSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   MONGODB_URI: z.string().regex(/^mongodb(\+srv)?:\/\//, "must be a mongodb:// or mongodb+srv:// URI").optional(),
@@ -15,6 +18,12 @@ const EnvSchema = z.object({
   EXECUTION_PROVIDER: z.enum(["vercel-sandbox", "local", "fixture"]).optional(),
   VERCEL_SANDBOX_SNAPSHOT_ID: z.string().min(1).optional(),
   TRACER_JAR_PATH: z.string().min(1).default("tracer/build/tracer.jar"),
+  /** ElevenLabs text-to-speech. Without a key, narration is hidden. */
+  ELEVENLABS_API_KEY: blankAsUnset(z.string().min(1).optional()),
+  /** Default: "George", a calm premade voice. Any voice id from your ElevenLabs voice library works. */
+  ELEVENLABS_VOICE_ID: blankAsUnset(z.string().regex(/^[A-Za-z0-9]{10,40}$/).default("JBFqnCBsd6RMkjVDRZzb")),
+  /** Flash is the fastest and cheapest model; eleven_multilingual_v2 sounds richer but is slower. */
+  ELEVENLABS_MODEL_ID: blankAsUnset(z.string().regex(/^[a-z0-9_]{3,64}$/).default("eleven_flash_v2_5")),
   /** Test environments only: multiplies every rate limit (e.g. 100 for end-to-end tests). */
   RATE_LIMIT_MULTIPLIER: z.coerce.number().int().min(1).max(1000).default(1),
 });
@@ -30,6 +39,7 @@ export interface ServerConfig {
     auth: boolean;
     github: boolean;
     google: boolean;
+    narration: boolean;
   };
 }
 
@@ -59,6 +69,7 @@ export function getConfig(): ServerConfig {
       auth: database && Boolean(env.AUTH_SECRET) && (github || google),
       github,
       google,
+      narration: Boolean(env.ELEVENLABS_API_KEY),
     },
   };
   return cached;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useReducer } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { BASE_STEP_INTERVAL_MS, type PlaybackSpeed } from "@/shared/constants";
 import type { Step, Trace } from "@/shared/trace";
 import { initialPlaybackState, playbackReducer, type PlaybackState } from "../lib/playback";
@@ -21,21 +21,24 @@ export interface PlaybackController {
   setSpeed: (speed: PlaybackSpeed) => void;
   toggleBreakpoint: (line: number) => void;
   clearBreakpoints: () => void;
+  /** While held, autoplay waits on the current step (for example until narration finishes). */
+  setHold: (held: boolean) => void;
 }
 
 /** Owns playback for one trace: index, autoplay timer, speed and breakpoints. */
 export function usePlayback(trace: Trace | null, autoplay: boolean): PlaybackController {
   const [state, dispatch] = useReducer(playbackReducer, initialPlaybackState);
+  const [held, setHold] = useState(false);
 
   useEffect(() => {
     dispatch({ type: "load", lines: trace?.steps.map((s) => s.line) ?? [], autoplay });
   }, [trace, autoplay]);
 
   useEffect(() => {
-    if (!state.isPlaying) return;
+    if (!state.isPlaying || held) return;
     const id = window.setTimeout(() => dispatch({ type: "tick" }), BASE_STEP_INTERVAL_MS / state.speed);
     return () => window.clearTimeout(id);
-  }, [state.isPlaying, state.index, state.speed]);
+  }, [state.isPlaying, state.index, state.speed, held]);
 
   const play = useCallback(() => dispatch({ type: "play" }), []);
   const pause = useCallback(() => dispatch({ type: "pause" }), []);
@@ -66,6 +69,7 @@ export function usePlayback(trace: Trace | null, autoplay: boolean): PlaybackCon
       setSpeed,
       toggleBreakpoint,
       clearBreakpoints,
+      setHold,
     }),
     [state, trace, play, pause, toggle, next, prev, first, last, seek, setSpeed, toggleBreakpoint, clearBreakpoints],
   );

@@ -9,6 +9,8 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
   const slug = typeof exampleParam === "string" && /^[a-z0-9-]{1,64}$/.test(exampleParam) ? exampleParam : null;
   const example = slug ? await exampleService.get(slug) : null;
   const adapter = getLanguageAdapter(example?.language ?? DEFAULT_LANGUAGE);
+  const { features } = getConfig();
+  const problemStatement = example ? `${example.title}. ${example.description}` : undefined;
 
   return (
     <Workspace
@@ -16,10 +18,12 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       language={adapter.id}
       initialCode={example?.code ?? adapter.starterCode}
       initialStdin={example?.stdin ?? adapter.starterStdin}
-      canShare={getConfig().features.database}
+      canShare={features.database}
+      canNarrate={features.narration}
+      narrationIntro={problemStatement}
       autoRun={Boolean(example)}
       banner={
-        example ? <ExampleBanner example={example} /> : undefined
+        example ? <ExampleBanner example={example} canListen={features.narration} /> : undefined
       }
     />
   );

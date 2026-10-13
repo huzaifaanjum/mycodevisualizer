@@ -1,7 +1,7 @@
 "use client";
 
 import { BrainIcon, EraserIcon, Maximize2Icon, Minimize2Icon, NetworkIcon, WorkflowIcon } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { getLanguageAdapter } from "@/languages";
 import type { LanguageId } from "@/shared/constants";
 import type { Trace } from "@/shared/trace";
@@ -15,7 +15,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { usePersistedNumber } from "@/lib/use-persisted-number";
 import type { PlaybackController } from "../hooks/use-playback";
 import { usePlaybackShortcuts } from "../hooks/use-playback-shortcuts";
+import { useStepNarration } from "../hooks/use-step-narration";
 import { EXPLAIN } from "../lib/explanations";
+import { spokenStep } from "../lib/narration-script";
 import { describeStep } from "../lib/step-notes";
 import { stdoutAt } from "../lib/trace-helpers";
 import { CallTree } from "./call-tree";
@@ -23,6 +25,7 @@ import { CompileErrors } from "./compile-errors";
 import { ConsolePanel } from "./console-panel";
 import { FlowView } from "./flow-view";
 import { MemoryLegend, MemoryView } from "./memory-view";
+import { NarrationToggle } from "./narration-toggle";
 import { PlaybackBar } from "./playback-bar";
 import { StatusBanner } from "./status-banner";
 import { StepNoteBar } from "./step-note-bar";
@@ -49,6 +52,10 @@ export interface VisualizerProps {
   fullscreen?: { active: boolean; toggle: () => void };
   /** Clears this run (memory, call tree, flow and output) so the panel is empty again. */
   onClear?: () => void;
+  /** Voice narration is set up on the server. */
+  canNarrate?: boolean;
+  /** Read aloud before the first step, e.g. the example's title and description. */
+  narrationIntro?: string;
 }
 
 /**
@@ -64,6 +71,8 @@ export function Visualizer({
   onSelectLine,
   fullscreen,
   onClear,
+  canNarrate = false,
+  narrationIntro,
 }: VisualizerProps) {
   const adapter = getLanguageAdapter(language);
   const sourceLines = useMemo(() => source.split("\n"), [source]);
@@ -90,6 +99,28 @@ export function Visualizer({
       }),
     [trace, state.index, sourceLines, stdin, adapter],
   );
+
+  const [narrating, setNarrating] = useState(false);
+  const [narrationError, setNarrationError] = useState<string>();
+  const scriptFor = useCallback(
+    (index: number) => {
+      if (!trace.steps[index]) return "";
+      const stepNotes = describeStep({ trace, index, sourceLines, stdin, explainException: adapter.explainException });
+      return spokenStep(stepNotes, trace.steps[index - 1]?.line);
+    },
+    [trace, sourceLines, stdin, adapter],
+  );
+  const onNarrationError = useCallback((message: string) => {
+    setNarrating(false);
+    setNarrationError(message);
+  }, []);
+  useStepNarration({
+    enabled: canNarrate && narrating && trace.status !== "compile_error",
+    playback,
+    scriptFor,
+    intro: narrationIntro,
+    onError: onNarrationError,
+  });
 
   // When the program has ended the stack is empty, so keep showing memory as it was at the last line that ran.
   const finished = step?.event === "end";
@@ -143,6 +174,16 @@ export function Visualizer({
               <InfoTip title={TAB_INFO[tab].title} text={TAB_INFO[tab].text} />
             </div>
             <div className="flex items-center gap-1">
+              {canNarrate && (
+                <NarrationToggle
+                  enabled={narrating}
+                  error={narrationError}
+                  onToggle={() => {
+                    setNarrationError(undefined);
+                    setNarrating((v) => !v);
+                  }}
+                />
+              )}
               {tab !== "flow" && (
                 <ZoomControls
                   label="Visualization"

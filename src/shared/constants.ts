@@ -12,12 +12,17 @@ export const LIMITS = {
   requestTimeoutMs: 30_000,
   maxTraceBytes: 6 * 1024 * 1024,
   maxSnippetTitleLength: 80,
+  /** Longest text sent for one spoken narration (one step note or one problem statement). */
+  maxNarrationChars: 700,
 } as const;
 
 export const RATE_LIMITS = {
   runsPerMinuteAnonymous: 10,
   runsPerMinuteSignedIn: 30,
   snippetsPerHour: 10,
+  /** Narration clips that reach the voice service; repeated text is served from cache and free. */
+  narrationsPerMinuteAnonymous: 40,
+  narrationsPerMinuteSignedIn: 80,
 } as const;
 
 export const PLAYBACK_SPEEDS = [0.25, 0.5, 1, 2, 4] as const;

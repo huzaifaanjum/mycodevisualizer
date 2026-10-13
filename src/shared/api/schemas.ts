@@ -60,3 +60,9 @@ export const SnippetSummaryDtoSchema = SnippetDtoSchema.pick({
   updatedAt: true,
 });
 export type SnippetSummaryDto = z.infer<typeof SnippetSummaryDtoSchema>;
+
+/** Text to speak aloud. Kept short: one step note or one problem statement per request. */
+export const NarrationRequestSchema = z.strictObject({
+  text: z.string().trim().min(1, "Nothing to read aloud.").max(LIMITS.maxNarrationChars, "That text is too long to read aloud."),
+});
+export type NarrationRequest = z.infer<typeof NarrationRequestSchema>;

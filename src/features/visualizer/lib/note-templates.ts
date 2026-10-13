@@ -49,6 +49,8 @@ export const noteTemplates = {
   elseTaken: () => "The earlier condition was false, so the else block runs.",
   exception: (type: string, line: number, explanation: string) => `Line ${line} threw ${type}. ${explanation}`,
   nextLine: (line: number) => `Next, line ${line} runs.`,
+  /** Spoken before a step's notes, naming the line whose effects the notes describe. */
+  spokenLineRan: (line: number) => `Line ${line} ran.`,
   valuesSuffix: (pairs: string) => ` (${pairs})`,
 } as const;
 

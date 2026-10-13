@@ -37,10 +37,24 @@ export interface WorkspaceProps {
   /** Run immediately on load (used by shared links and examples). */
   autoRun?: boolean;
   banner?: React.ReactNode;
+  /** Voice narration is set up on the server. */
+  canNarrate?: boolean;
+  /** Read aloud before the first step when narration is on (an example's problem statement). */
+  narrationIntro?: string;
 }
 
 /** Editor + input on the left, visualization on the right. Owns run and playback state. */
-export function Workspace({ language, initialCode, initialStdin, title, canShare, autoRun = false, banner }: WorkspaceProps) {
+export function Workspace({
+  language,
+  initialCode,
+  initialStdin,
+  title,
+  canShare,
+  autoRun = false,
+  banner,
+  canNarrate = false,
+  narrationIntro,
+}: WorkspaceProps) {
   const adapter = getLanguageAdapter(language);
   const [code, setCode] = useState(initialCode);
   const [stdin, setStdin] = useState(initialStdin);
@@ -217,6 +231,8 @@ export function Workspace({ language, initialCode, initialStdin, title, canShare
             onSelectLine={(line) => setReveal({ line, nonce: Date.now() })}
             fullscreen={fullscreenControl}
             onClear={clear}
+            canNarrate={canNarrate}
+            narrationIntro={narrationIntro}
           />
         )}
       </section>

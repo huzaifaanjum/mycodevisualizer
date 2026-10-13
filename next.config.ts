@@ -12,6 +12,8 @@ const contentSecurityPolicy = [
   `font-src 'self' data: ${MONACO_CDN}`,
   "img-src 'self' data: https://avatars.githubusercontent.com https://lh3.googleusercontent.com",
   `worker-src 'self' blob:`,
+  // Narration audio is fetched from /api/narration and played from an in-memory blob: URL.
+  "media-src 'self' blob:",
   `connect-src 'self' ${MONACO_CDN}`,
   "frame-ancestors 'none'",
   "base-uri 'self'",

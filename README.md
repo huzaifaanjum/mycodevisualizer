@@ -11,6 +11,7 @@ Paste code, add input, press **Visualize**, then step through it or let it play.
 - **Collections**: `ArrayList`, `LinkedList`, `HashSet`, `TreeSet`, `HashMap`, `TreeMap`, `LinkedHashMap`, `ArrayDeque`, `Stack`, `PriorityQueue`, `List.of`/`Map.of` and more, shown as lists, sets and key → value tables. Added elements glow, replaced values show what they were, removed elements linger for a step.
 - **Call tree** for recursion, with return values, as a tree diagram or an outline.
 - **Flowchart** of each method, highlighting the path the program actually took.
+- **Voice narration** (optional, ElevenLabs): listen to an example's problem statement, and turn on *Narrate* to hear each line explained as it runs. Autoplay waits for the voice before moving on.
 - **Plain-English notes** for every step ("The loop condition i < nums.length is true (i is 0), so its body runs.").
 - **Console and input tape** showing output so far and which input tokens Scanner has consumed.
 - Beginner-friendly explanations of **compile errors** and **exceptions**.
@@ -70,13 +71,14 @@ cp .env.example .env.local # everything is optional for local dev
 yarn dev
 ```
 
-Without `MONGODB_URI` the app still works: examples come from `/content/examples`, sharing and sign-in are hidden, rate limits are kept in memory. In development, code runs through the `local` provider (the tracer jar on your machine). It is refused in production.
+Without `MONGODB_URI` the app still works: examples come from `/content/examples`, sharing and sign-in are hidden, rate limits are kept in memory. Without `ELEVENLABS_API_KEY` the narration buttons are hidden. In development, code runs through the `local` provider (the tracer jar on your machine). It is refused in production.
 
 ## Deploying to Vercel
 1. Import the repo into Vercel (framework: Next.js).
 2. Create a MongoDB Atlas cluster and set `MONGODB_URI`.
 3. Set `AUTH_SECRET`, `IP_HASH_SALT` (and optionally GitHub/Google OAuth credentials, with callback URL `https://<your-domain>/api/auth/callback/<provider>`).
 4. Run `yarn db:setup` and `yarn db:seed` once against the database.
+   Optionally set `ELEVENLABS_API_KEY` (and `ELEVENLABS_VOICE_ID` / `ELEVENLABS_MODEL_ID`) to turn on voice narration.
 5. The Java runtime snapshot is built automatically on first use (about a minute) and recorded in MongoDB. You can build it ahead of time with `yarn sandbox:snapshot`.
 
 ## Scripts
