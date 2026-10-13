@@ -127,7 +127,7 @@ export function Visualizer({
           onValueChange={(v) => isTab(v) && setTab(v)}
           className="flex min-h-0 flex-col overflow-hidden"
         >
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b px-3 py-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b p-3">
             <div className="flex items-center gap-2">
               <TabsList>
                 <TabsTrigger value="memory">
