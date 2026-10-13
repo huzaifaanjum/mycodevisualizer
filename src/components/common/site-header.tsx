@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getSessionUser } from "@/server/auth";
 import { getConfig } from "@/server/env";
 import { SITE } from "@/shared/constants";
+import { AppLogo } from "@/components/common/app-logo";
 import { NavLink } from "@/components/common/nav-link";
 import { SignInDialog, UserMenu } from "@/features/auth";
 import { AppearancePicker } from "@/features/theme";
@@ -12,11 +13,13 @@ export async function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 flex h-14 items-center justify-between gap-3 border-b bg-background/90 px-4 backdrop-blur">
       <div className="flex items-center gap-6">
-        <Link href="/" className="flex items-center gap-2 font-mono text-sm font-semibold tracking-tight" aria-label={`${SITE.name} home`}>
-          <span aria-hidden className="flex size-6 items-center justify-center rounded-md bg-primary text-[11px] font-bold text-primary-foreground">
-            {"{}"}
+        <Link href="/" className="group flex items-center gap-2.5" aria-label={`${SITE.name} home`}>
+          <AppLogo className="transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-105" />
+          <span aria-hidden className="font-mono text-[15px] font-bold tracking-tight">
+            <span className="text-muted-foreground">My</span>
+            <span className="text-foreground">Code</span>
+            <span className="text-primary">Visualizer</span>
           </span>
-          {SITE.name}
         </Link>
         <nav aria-label="Main" className="hidden items-center gap-1 sm:flex">
           <NavLink href="/examples">Examples</NavLink>

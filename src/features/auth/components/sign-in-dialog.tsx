@@ -3,6 +3,7 @@
 import { LogInIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { SITE } from "@/shared/constants";
 import { signInWith } from "../actions";
 
 function GitHubMark() {
@@ -34,7 +35,7 @@ export function SignInDialog({ github, google }: { github: boolean; google: bool
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Sign in to mycodevisualizer</DialogTitle>
+          <DialogTitle>Sign in to {SITE.name}</DialogTitle>
           <DialogDescription>
             Signing in is optional. It keeps a list of the programs you share so you can find them later.
           </DialogDescription>

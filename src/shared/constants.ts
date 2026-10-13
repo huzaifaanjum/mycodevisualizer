@@ -91,7 +91,7 @@ export const DIFFICULTIES = ["Beginner", "Easy", "Medium"] as const;
 export type Difficulty = (typeof DIFFICULTIES)[number];
 
 export const SITE = {
-  name: "mycodevisualizer",
+  name: "MyCodeVisualizer",
   description: "See your Java code run, one line at a time. A free visualizer for Coding 101.",
   repository: "https://github.com/huzaifaanjum/mycodevisualizer",
 } as const;
@@ -102,7 +102,7 @@ export const CREATOR = {
   /** First-person paragraphs for the About page. */
   bio: [
     "I build web apps and AI tools for a living, and I care a lot about making hard ideas feel simple.",
-    "I made mycodevisualizer because code usually clicks the moment you can see it run. I wanted every student in a first programming course to have that moment, for free.",
+    "I made MyCodeVisualizer because code usually clicks the moment you can see it run. I wanted every student in a first programming course to have that moment, for free.",
     "If it helped you, or something looks wrong, I'd love to hear about it.",
   ],
   links: [
