@@ -20,7 +20,21 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["src/features/visualizer/**", "src/server/**", "src/shared/**", "src/languages/**"],
-      exclude: ["**/*.test.*", "**/index.ts"],
+      // Gate pure logic only. React views/hooks are covered by Playwright (`yarn test:e2e`);
+      // I/O adapters (Mongo, sandbox, child process, auth, env) need real infrastructure.
+      exclude: [
+        "**/*.test.*",
+        "**/index.ts",
+        "src/features/visualizer/components/**",
+        "src/features/visualizer/hooks/**",
+        "src/server/auth.ts",
+        "src/server/context.ts",
+        "src/server/env.ts",
+        "src/server/db/**",
+        "src/server/repositories/**",
+        "src/server/execution/**",
+        "src/shared/api/client.ts",
+      ],
       thresholds: { lines: 80, functions: 80, statements: 80, branches: 70 },
     },
   },
