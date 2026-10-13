@@ -4,7 +4,7 @@ import { HandIcon, LocateFixedIcon, MinusIcon, PlusIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { fitView, panToReveal, zoomAt, type View } from "@/lib/pan-zoom";
+import { panToReveal, zoomAt, type View } from "@/lib/pan-zoom";
 import { cn } from "@/lib/utils";
 
 /** Pointer travel before a press becomes a drag, so clicks on boxes and buttons still work. */
@@ -21,7 +21,7 @@ export const DOT_GAP = 16;
  * A canvas you can pan and zoom, for any diagram made of plain HTML:
  * - drag to pan (on by default; the hand button turns it off so text can be selected),
  * - scroll to move around, Ctrl/⌘ + scroll or pinch to zoom toward the cursor,
- * - buttons to zoom out, back to 100%, zoom in, and recenter (fit and center the content).
+ * - buttons to zoom out, back to 100%, zoom in, and recenter (back to the starting view).
  *
  * Clicks inside still work: a press only becomes a drag after a few pixels, and the click that
  * ends a drag is swallowed.
@@ -117,16 +117,10 @@ export function PanZoomCanvas({
     const c = center();
     update((v) => zoomAt(v, scale(v.scale), c.x, c.y));
   };
+  /** Back to where the diagram started: its starting position at 100%. */
   const recenter = () => {
-    const canvas = canvasRef.current;
-    const content = contentRef.current;
-    if (!canvas || !content) return;
-    const fit = fitView(
-      { width: content.offsetWidth, height: content.offsetHeight },
-      { width: canvas.clientWidth - insetLeft, height: canvas.clientHeight },
-      PADDING,
-    );
-    update(() => ({ ...fit, x: fit.x + insetLeft }));
+    touched.current = false;
+    setView(start());
   };
 
   return (
@@ -226,7 +220,7 @@ export function PanZoomCanvas({
         <CanvasButton label="Zoom in (Ctrl/⌘ + scroll)" onClick={() => zoomTo((s) => s * 1.2)}>
           <PlusIcon />
         </CanvasButton>
-        <CanvasButton label="Recenter: fit everything in view" onClick={recenter}>
+        <CanvasButton label="Recenter: back to the start" onClick={recenter}>
           <LocateFixedIcon />
         </CanvasButton>
       </div>

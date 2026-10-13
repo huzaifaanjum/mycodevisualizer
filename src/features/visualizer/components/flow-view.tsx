@@ -242,7 +242,7 @@ function FlowCanvas({
           <CanvasButton label="Zoom in (Ctrl/⌘ + scroll)" onClick={() => void zoomIn({ duration: 150 })}>
             <PlusIcon />
           </CanvasButton>
-          <CanvasButton label="Recenter: fit everything in view" onClick={frame}>
+          <CanvasButton label="Recenter: back to the start" onClick={frame}>
             <LocateFixedIcon />
           </CanvasButton>
         </div>

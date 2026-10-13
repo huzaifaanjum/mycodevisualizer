@@ -23,22 +23,6 @@ export function zoomAt(view: View, scale: number, px: number, py: number): View 
 }
 
 /**
- * Centers the content in the viewport, shrinking it to fit if needed (never enlarging past 100%).
- * `padding` keeps a margin around the content.
- */
-export function fitView(content: Size, viewport: Size, padding = 16): View {
-  if (content.width <= 0 || content.height <= 0) return { x: padding, y: padding, scale: 1 };
-  const scale = clampScale(
-    Math.min(1, (viewport.width - padding * 2) / content.width, (viewport.height - padding * 2) / content.height),
-  );
-  return {
-    scale,
-    x: Math.max(padding, (viewport.width - content.width * scale) / 2),
-    y: Math.max(padding, (viewport.height - content.height * scale) / 2),
-  };
-}
-
-/**
  * The smallest pan that brings a box (in screen coordinates relative to the viewport) fully into
  * view with a margin; zero when it is already visible.
  */

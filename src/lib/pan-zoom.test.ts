@@ -1,4 +1,4 @@
-import { fitView, MAX_SCALE, MIN_SCALE, panToReveal, zoomAt } from "./pan-zoom";
+import { MAX_SCALE, MIN_SCALE, panToReveal, zoomAt } from "./pan-zoom";
 
 describe("zoomAt", () => {
   it("keeps the point under the cursor still", () => {
@@ -12,18 +12,6 @@ describe("zoomAt", () => {
   it("stays within the zoom limits", () => {
     expect(zoomAt({ x: 0, y: 0, scale: 1 }, 100, 0, 0).scale).toBe(MAX_SCALE);
     expect(zoomAt({ x: 0, y: 0, scale: 1 }, 0.01, 0, 0).scale).toBe(MIN_SCALE);
-  });
-});
-
-describe("fitView", () => {
-  it("centers small content at 100%", () => {
-    expect(fitView({ width: 200, height: 100 }, { width: 1000, height: 500 })).toEqual({ scale: 1, x: 400, y: 200 });
-  });
-
-  it("shrinks large content to fit", () => {
-    const view = fitView({ width: 2000, height: 400 }, { width: 1032, height: 600 });
-    expect(view.scale).toBe(0.5);
-    expect(view.x).toBe(16);
   });
 });
 
