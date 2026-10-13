@@ -33,6 +33,10 @@ export const EXPLAIN = {
     title: "Waiting",
     text: "This method called another method and is paused until that call returns. Then it carries on from the same line.",
   },
+  returned: {
+    title: "Returned value",
+    text: "When a method finishes, it hands a value back to the method that called it. This is the value that just came back, and the caller now carries on using it.",
+  },
   variable: {
     title: "Variable",
     text: "Each row is one variable: its type, its name, and the value it holds right now. A highlighted row changed in this step.",

@@ -1,8 +1,9 @@
-import { HourglassIcon, PlayIcon, SquareFunctionIcon } from "lucide-react";
+import { CornerDownLeftIcon, HourglassIcon, PlayIcon, SquareFunctionIcon } from "lucide-react";
 import { InfoTip } from "@/components/common/info-tip";
-import type { Frame, Heap } from "@/shared/trace";
+import type { Frame, Heap, Value } from "@/shared/trace";
 import { cn } from "@/lib/utils";
 import { EXPLAIN } from "../lib/explanations";
+import { formatValue } from "../lib/trace-helpers";
 import { ValueText } from "./value-text";
 
 export function FrameCard({
@@ -12,6 +13,8 @@ export function FrameCard({
   explained = false,
   finished = false,
   changed,
+  received,
+  returning,
 }: {
   frame: Frame;
   heap: Heap;
@@ -21,6 +24,10 @@ export function FrameCard({
   /** The program has ended, so no frame is running or waiting. */
   finished?: boolean;
   changed: Set<string>;
+  /** This frame just got a value back from a method it called (shown until the next step). */
+  received?: { method: string; value: Value; call?: string };
+  /** This frame is leaving the stack and handing back this value. */
+  returning?: Value;
 }) {
   const locals = frame.locals.filter((l) => !(frame.method === "main" && l.name === "args"));
   return (
@@ -51,7 +58,12 @@ export function FrameCard({
             <span className="text-muted-foreground">()</span>
           </span>
           {explained && <InfoTip title={EXPLAIN.frame.title} text={EXPLAIN.frame.text} />}
-          {finished ? null : isCurrent ? (
+          {returning ? (
+            <span className="bg-changed/15 text-changed flex items-center gap-1 rounded-full px-1.5 py-px font-sans text-[10px] font-medium">
+              <CornerDownLeftIcon className="size-2.5" aria-hidden />
+              returns {formatValue(returning, heap)}
+            </span>
+          ) : finished ? null : isCurrent ? (
             <InfoTip
               title={EXPLAIN.running.title}
               text={EXPLAIN.running.text}
@@ -77,6 +89,22 @@ export function FrameCard({
           line {frame.line}
         </span>
       </header>
+      {received && (
+        <div
+          key={`${received.method}:${formatValue(received.value, heap)}`}
+          className="mcv-pop-in bg-changed/10 flex items-center gap-2 border-b px-3 py-1.5 text-xs shadow-[inset_3px_0_0_var(--changed)]"
+        >
+          <CornerDownLeftIcon className="text-changed size-3.5 shrink-0" aria-hidden />
+          <span className="min-w-0">
+            <span className="font-mono font-medium">{received.call ?? `${received.method}()`}</span>
+            <span className="text-muted-foreground"> returned </span>
+          </span>
+          <span className="ml-auto flex items-center gap-1.5">
+            <ValueText value={received.value} heap={heap} sourceId={`${frame.id}:returned`} changed />
+            <InfoTip title={EXPLAIN.returned.title} text={EXPLAIN.returned.text} />
+          </span>
+        </div>
+      )}
       {locals.length === 0 ? (
         <p className="text-muted-foreground px-3 py-2.5 text-xs">No variables yet</p>
       ) : (

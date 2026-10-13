@@ -19,6 +19,7 @@ import { usePlaybackShortcuts } from "../hooks/use-playback-shortcuts";
 import { useStepNarration } from "../hooks/use-step-narration";
 import { EXPLAIN } from "../lib/explanations";
 import { firstVisits, narrationClips } from "../lib/narration-script";
+import { buildCallTimeline, returnedCallLabel } from "../lib/call-timeline";
 import { describeStep } from "../lib/step-notes";
 import { stdoutAt } from "../lib/trace-helpers";
 import { CallTree } from "./call-tree";
@@ -117,6 +118,8 @@ export function Visualizer({
     ),
   );
   const explanation = explanationState.status === "ready" ? explanationState.explanation : undefined;
+  const timeline = useMemo(() => buildCallTimeline(trace), [trace]);
+  const returnedCall = returnedCallLabel(timeline, previousStep, step);
   const firstVisitOf = useMemo(() => firstVisits(trace.steps.map((s) => s.line)), [trace]);
   const upcomingLine = (index: number) => {
     const s = trace.steps[index];
@@ -267,7 +270,7 @@ export function Visualizer({
             {finished && memoryStep ? (
               <MemoryView step={memoryStep} previousStep={memoryStep} finished zoom={zoom} />
             ) : (
-              <MemoryView step={step} previousStep={previousStep} zoom={zoom} />
+              <MemoryView step={step} previousStep={previousStep} zoom={zoom} returnedCall={returnedCall} />
             )}
           </TabsContent>
           <TabsContent value="flow" className="min-h-0 flex-1">

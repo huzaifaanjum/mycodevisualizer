@@ -1,7 +1,7 @@
 import factorial from "@tests/fixtures/traces/factorial.json";
 import outOfBounds from "@tests/fixtures/traces/out-of-bounds.json";
 import { expandTrace, TraceSchema } from "@/shared/trace";
-import { activeChain, buildCallTimeline, callStatus } from "./call-timeline";
+import { activeChain, buildCallTimeline, callStatus, returnedCallLabel } from "./call-timeline";
 
 const fact = expandTrace(TraceSchema.parse(factorial));
 const oob = expandTrace(TraceSchema.parse(outOfBounds));
@@ -57,5 +57,23 @@ describe("buildCallTimeline", () => {
     const deepest = fact.steps.findIndex((s) => s.frames.length === 5);
     expect(activeChain(fact, deepest)).toHaveLength(5);
     expect(activeChain(fact, fact.steps.length - 1)).toEqual([]);
+  });
+});
+
+describe("returnedCallLabel", () => {
+  const timeline = buildCallTimeline(fact);
+  const labels = fact.steps
+    .map((step, i) => returnedCallLabel(timeline, fact.steps[i - 1], step))
+    .filter((label): label is string => label !== undefined);
+
+  it("names each finished call with the arguments it was called with, innermost first", () => {
+    expect(labels.length).toBeGreaterThan(0);
+    expect(labels.every((l) => /^factorial\(\d+\)$/.test(l))).toBe(true);
+    const ns = labels.map((l) => Number(/\d+/.exec(l)?.[0]));
+    expect(ns).toEqual([...ns].sort((a, b) => a - b));
+  });
+
+  it("is undefined when nothing returned", () => {
+    expect(returnedCallLabel(timeline, undefined, fact.steps[0])).toBeUndefined();
   });
 });

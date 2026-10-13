@@ -1,6 +1,6 @@
 "use client";
 
-import { BoxesIcon, FlagIcon, LayersIcon, MinusIcon, PlusIcon } from "lucide-react";
+import { BoxesIcon, CornerDownLeftIcon, FlagIcon, LayersIcon, MinusIcon, PlusIcon } from "lucide-react";
 import { useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { InfoTip } from "@/components/common/info-tip";
 import type { Step } from "@/shared/trace";
@@ -22,6 +22,7 @@ export function MemoryView({
   previousStep,
   finished = false,
   zoom = 100,
+  returnedCall,
 }: {
   step: Step | undefined;
   previousStep: Step | undefined;
@@ -29,6 +30,8 @@ export function MemoryView({
   finished?: boolean;
   /** Content zoom in percent. The arrow layer stays unzoomed and measures the zoomed boxes. */
   zoom?: number;
+  /** The call that just returned, as it was called (e.g. "factorial(3)"). */
+  returnedCall?: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   // The step shown before this one (not always `previousStep`: the learner can jump around).
@@ -91,6 +94,12 @@ export function MemoryView({
                     explained={!exiting && frame.id === step?.frames.at(-1)?.id}
                     finished={finished}
                     changed={exiting ? NO_CHANGES : changed}
+                    received={
+                      !exiting && frame.id === step?.frames.at(-1)?.id && step?.returned
+                        ? { ...step.returned, call: returnedCall }
+                        : undefined
+                    }
+                    returning={exiting && step?.returned?.method === frame.method ? step.returned.value : undefined}
                   />
                 </Exit>
               ))}
@@ -155,6 +164,10 @@ export function MemoryLegend() {
       <li className="flex items-center gap-1.5">
         <span className="bg-primary inline-block h-3 w-1 rounded-full" aria-hidden />
         method running now
+      </li>
+      <li className="flex items-center gap-1.5">
+        <CornerDownLeftIcon className="text-changed size-3" aria-hidden />
+        value handed back by a method
       </li>
     </ul>
   );

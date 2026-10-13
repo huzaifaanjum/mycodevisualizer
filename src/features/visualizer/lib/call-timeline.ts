@@ -1,4 +1,4 @@
-import type { Trace } from "@/shared/trace";
+import type { Step, Trace } from "@/shared/trace";
 import { formatValue } from "./trace-helpers";
 
 /** One method call (activation) over the whole run. */
@@ -101,4 +101,17 @@ export function activeChain(trace: Trace, index: number): string[] {
   const step = trace.steps[index];
   if (!step || step.event === "end") return [];
   return step.frames.map((f) => f.id);
+}
+
+/**
+ * The call that just finished between `previous` and `step`, written the way it was called, e.g.
+ * "factorial(3)", so a returned value can be tied to the exact call in a recursion.
+ */
+export function returnedCallLabel(timeline: CallTimeline, previous: Step | undefined, step: Step | undefined): string | undefined {
+  if (!previous || !step?.returned) return undefined;
+  const live = new Set(step.frames.map((f) => f.id));
+  const popped = [...previous.frames].reverse().find((f) => !live.has(f.id));
+  const record = popped && timeline.calls.get(popped.id);
+  if (!record || record.method !== step.returned.method) return undefined;
+  return `${record.method}(${record.args.map((a) => a.value).join(", ")})`;
 }
