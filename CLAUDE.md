@@ -8,7 +8,7 @@ Free, open Java visualizer for Coding 101. Full spec: `docs/SPEC.md`.
 - `src/languages/*` — one `LanguageAdapter` per language. Adding a language = new folder + register in `registry.ts`. The UI only sees `Trace`.
 - `src/server` — server-only. `context.ts` is the composition root; services never touch the Mongo driver (repositories do).
 - `src/shared` — isomorphic contracts: constants (single source of truth for limits), Zod schemas for trace, API and examples.
-- `tracer/` — Java JDI tracer, built with plain `javac` (`pnpm tracer:build`, `pnpm tracer:test`).
+- `tracer/` — Java JDI tracer, built with plain `javac` (`yarn tracer:build`, `yarn tracer:test`).
 
 ## Rules
 - TypeScript strict, no `any`, no non-null assertions, exhaustive `switch` with `never`.
@@ -21,4 +21,4 @@ Free, open Java visualizer for Coding 101. Full spec: `docs/SPEC.md`.
 - All user-facing step-note wording lives in `features/visualizer/lib/note-templates.ts`.
 
 ## Commands
-`pnpm dev` · `pnpm check` (lint + typecheck + unit) · `pnpm test:e2e` · `pnpm build`
+`yarn dev` · `yarn check` (lint + typecheck + unit) · `yarn test:e2e` · `yarn build`

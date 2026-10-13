@@ -4,7 +4,7 @@
  * it ahead of time.
  *
  *   vercel link && vercel env pull .env.local   # provides VERCEL_OIDC_TOKEN for @vercel/sandbox
- *   pnpm sandbox:snapshot
+ *   yarn sandbox:snapshot
  *
  * With MONGODB_URI set, the snapshot is recorded in the database and picked up by every instance.
  * Otherwise set VERCEL_SANDBOX_SNAPSHOT_ID in the Vercel project to the printed id.

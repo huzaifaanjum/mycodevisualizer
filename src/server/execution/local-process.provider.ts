@@ -39,7 +39,7 @@ export function createLocalProcessProvider(tracerJarPath: string, nodeEnv: strin
           const timer = setTimeout(() => child.kill("SIGKILL"), timeoutMs + 10_000);
           child.on("error", (err) => {
             clearTimeout(timer);
-            reject(new AppError("EXECUTION_FAILED", "Java is not available. Install JDK 21 and run pnpm tracer:build.", { cause: err }));
+            reject(new AppError("EXECUTION_FAILED", "Java is not available. Install JDK 21 and run yarn tracer:build.", { cause: err }));
           });
           child.on("close", (code) => {
             clearTimeout(timer);

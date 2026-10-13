@@ -1,6 +1,6 @@
 .next
 node_modules
-pnpm-lock.yaml
+yarn.lock
 tracer/build
 tests/fixtures
 coverage

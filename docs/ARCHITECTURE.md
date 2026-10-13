@@ -198,7 +198,7 @@ flowchart LR
   SW -- "fixture" --> FX["Fixture traces<br/>for tests, no Java needed"]
 ```
 
-The sandbox snapshot (JDK 21 + `tracer.jar`) is built on first use and its id stored in the `runtime` collection, or built ahead of time with `pnpm sandbox:snapshot`.
+The sandbox snapshot (JDK 21 + `tracer.jar`) is built on first use and its id stored in the `runtime` collection, or built ahead of time with `yarn sandbox:snapshot`.
 
 ## Data model
 

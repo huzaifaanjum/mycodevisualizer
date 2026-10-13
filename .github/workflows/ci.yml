@@ -33,17 +33,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile=false
-      - run: pnpm lint
-      - run: pnpm typecheck
-      - run: pnpm test:coverage
-      - run: pnpm build
-      - run: pnpm audit --audit-level=high
+          cache: yarn
+      - run: yarn install --immutable
+      - run: yarn lint
+      - run: yarn typecheck
+      - run: yarn test:coverage
+      - run: yarn build
+      - run: yarn npm audit --severity high
         continue-on-error: true
 
   e2e:
@@ -52,17 +52,17 @@ jobs:
     needs: web
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile=false
-      - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm build
+          cache: yarn
+      - run: yarn install --immutable
+      - run: yarn playwright install --with-deps chromium
+      - run: yarn build
         env:
           EXECUTION_PROVIDER: fixture
-      - run: pnpm test:e2e
+      - run: yarn test:e2e
         env:
           CI: "true"
       - uses: actions/upload-artifact@v4

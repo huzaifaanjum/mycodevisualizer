@@ -61,13 +61,13 @@ User code never runs on the web server: each run gets a throwaway microVM with n
 | `docs/` | Product spec and architecture |
 
 ## Local development
-Requirements: Node 22+, pnpm, JDK 21.
+Requirements: Node 22+, Yarn 4 (`corepack enable`), JDK 21.
 
 ```bash
-pnpm install
-pnpm tracer:build          # builds tracer/build/tracer.jar
+yarn install
+yarn tracer:build          # builds tracer/build/tracer.jar
 cp .env.example .env.local # everything is optional for local dev
-pnpm dev
+yarn dev
 ```
 
 Without `MONGODB_URI` the app still works: examples come from `/content/examples`, sharing and sign-in are hidden, rate limits are kept in memory. In development, code runs through the `local` provider (the tracer jar on your machine). It is refused in production.
@@ -76,17 +76,17 @@ Without `MONGODB_URI` the app still works: examples come from `/content/examples
 1. Import the repo into Vercel (framework: Next.js).
 2. Create a MongoDB Atlas cluster and set `MONGODB_URI`.
 3. Set `AUTH_SECRET`, `IP_HASH_SALT` (and optionally GitHub/Google OAuth credentials, with callback URL `https://<your-domain>/api/auth/callback/<provider>`).
-4. Run `pnpm db:setup` and `pnpm db:seed` once against the database.
-5. The Java runtime snapshot is built automatically on first use (about a minute) and recorded in MongoDB. You can build it ahead of time with `pnpm sandbox:snapshot`.
+4. Run `yarn db:setup` and `yarn db:seed` once against the database.
+5. The Java runtime snapshot is built automatically on first use (about a minute) and recorded in MongoDB. You can build it ahead of time with `yarn sandbox:snapshot`.
 
 ## Scripts
 | Script | What it does |
 | --- | --- |
-| `pnpm check` | Lint, typecheck, unit tests |
-| `pnpm test:e2e` | Playwright tests (desktop + mobile) |
-| `pnpm tracer:test` | Runs the Java tracer against `tracer/src/test/programs` |
-| `pnpm db:setup` / `pnpm db:seed` | Create indexes / load examples |
-| `pnpm sandbox:snapshot` | Build the JDK + tracer sandbox snapshot |
+| `yarn check` | Lint, typecheck, unit tests |
+| `yarn test:e2e` | Playwright tests (desktop + mobile) |
+| `yarn tracer:test` | Runs the Java tracer against `tracer/src/test/programs` |
+| `yarn db:setup` / `yarn db:seed` | Create indexes / load examples |
+| `yarn sandbox:snapshot` | Build the JDK + tracer sandbox snapshot |
 
 ## Security
 User code only runs inside throwaway microVMs with no network access, an 8 s tracing budget, 128 MB heap and 1,000-step cap. The API validates every input with Zod, rejects cross-origin writes, caps request sizes, rate-limits by hashed IP, sends a strict CSP and security headers, and never stores raw IPs. See `CLAUDE.md` for coding rules.

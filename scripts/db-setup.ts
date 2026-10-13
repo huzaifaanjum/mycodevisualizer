@@ -1,6 +1,6 @@
 /**
  * Creates MongoDB indexes (idempotent). Run after setting MONGODB_URI:
- *   pnpm db:setup
+ *   yarn db:setup
  */
 import { getMongoClient } from "@/server/db/client";
 import { ensureIndexes } from "@/server/db/setup";

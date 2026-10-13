@@ -1,6 +1,6 @@
 /**
  * Upserts the bundled examples in /content/examples into MongoDB:
- *   pnpm db:seed
+ *   yarn db:seed
  */
 import { getMongoClient } from "@/server/db/client";
 import { examplesRepository } from "@/server/repositories/examples.repository";

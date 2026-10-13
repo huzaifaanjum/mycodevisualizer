@@ -16,7 +16,7 @@ export default defineConfig({
     { name: "mobile", use: { ...devices["Pixel 7"] } },
   ],
   webServer: {
-    command: `pnpm start --port ${PORT}`,
+    command: `yarn start --port ${PORT}`,
     port: PORT,
     reuseExistingServer: !process.env.CI,
     env: { EXECUTION_PROVIDER: "fixture", RATE_LIMIT_MULTIPLIER: "100" },
